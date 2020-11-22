@@ -1,0 +1,25 @@
+<div class="main-panel">
+  <div class="top-bar d-flex">
+    <div *ngIf="currentBoard" class="d-flex align-items-center" style="max-width: calc(100% - 28px)"><span class="text-ellipsis">{{currentBoard.title}}</span><i
+      class="material-icons icon-btn ml-3" matTooltip="Board settings">build</i></div>
+    <div class="flex-grow-1"></div>
+    <i class="material-icons icon-btn" matTooltip="System settings">settings</i>
+  </div>
+  <router-outlet *ngIf="loaded && currentBoard"></router-outlet>
+  <div *ngIf="!loaded" class="mt-5">
+    <mat-spinner  [diameter]="40" class="mx-auto"></mat-spinner>
+  </div>
+</div>
+<div class="boards-bar">
+    <div *ngFor="let b of boards" class="boards-item" (click)="boardChange(b)" matRipple>
+      <div matTooltip="{{b.title}}">
+        {{b.title | avatarPipe}}
+      </div>
+
+    </div>
+    <div class="boards-item-add " matRipple matTooltip="Create board">
+      <div>
+        +
+      </div>
+    </div>
+</div>

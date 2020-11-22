@@ -1,0 +1,57 @@
+@import "assets/scss/colors.scss";
+
+.boards-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 50px;
+  background: $background-alt;
+  overflow: auto;
+}
+
+.boards-item {
+  margin: 0.5rem auto auto;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  font-size: 25px;
+  text-align: center;
+  border-radius: 0.5rem;
+  background-color: $background;
+}
+
+.boards-item:hover {
+  background-color: $background-hover;
+  cursor: pointer;
+}
+
+.boards-item-add {
+  @extend .boards-item;
+  background-color: transparent;
+  border: 3px dashed $background-tertiary;
+  color: $success-bg;
+  line-height: 34px;
+  font-size: 30px;
+}
+
+.main-panel {
+  margin-left: 50px;
+  padding-top: 25px;
+  height: 100%;
+}
+
+.top-bar {
+  position: fixed;
+  height: 25px;
+  font-size: 17px;
+  line-height: 25px;
+  padding: 0px 3px 0px 0px;
+  background: $background-secondary;
+  top: 0;
+  left: 50px;
+  right: 0;
+  //border-bottom: 1px solid #484848;
+  //box-shadow: 0px 3px 8px 0px #2b2b2b, inset 3px -3px 8px -3px #494949;
+  box-shadow: $elevate-1;
+}

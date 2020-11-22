@@ -1,0 +1,61 @@
+@import "colors.scss";
+
+.bg-success {
+  background-color: $success-bg;
+}
+
+.bg-success-alt {
+  background-color: $success-bg-alt;
+}
+
+.fg {
+  color: $foreground;
+}
+
+.fg-2 {
+  color: $foreground-secondary;
+}
+
+.fg-3 {
+  color: $foreground-tertiary;
+}
+
+.fg-4 {
+  color: $foreground-quaternary;
+}
+
+.fg-dark {
+  color: $background-alt;
+}
+
+.fg-dark-2 {
+  color: $background-full;
+}
+
+.bg {
+  background-color: $background;
+}
+
+.bg-2 {
+  background-color: $background-secondary;
+}
+
+.bg-3 {
+  background-color: $background-tertiary;
+}
+
+.bg-4 {
+  background-color: $background-quaternary;
+}
+
+.bg-5 {
+  background-color: $background-alt;
+}
+
+.bg-6 {
+  background-color: $background-dark;
+}
+
+.elevate-bottom {
+  box-shadow: $elevate-1;
+}

@@ -1,0 +1,35 @@
+@import "../../assets/scss/colors.scss";
+
+
+.list {
+  background-color: #36393f;
+  border-radius: 10px;
+  padding: 0.5rem 0;
+  overflow: hidden;
+}
+
+.list-item {
+  padding: 0 0.5rem;
+  cursor: grab;
+}
+
+.list-item:hover {
+  background-color: rgba(79, 84, 92, 0.25);
+}
+
+.secondary-btn {
+  display: none;
+}
+
+.list:hover .secondary-btn {
+  display: block;
+}
+
+.list-add {
+  border: 3px dashed $background-tertiary;
+  color: $foreground-quaternary;
+  font-size: 30px;
+  margin-top: 3px;
+  border-radius: 10px;
+}
+
