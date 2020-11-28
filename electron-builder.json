@@ -20,7 +20,7 @@
     "!tslint.json",
     "src/server/",
     "src/shared/",
-    "!**/*.ts",
+    "!**/*.ts"
   ],
   "win": {
     "icon": "dist",
