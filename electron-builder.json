@@ -1,28 +1,31 @@
 {
-  "productName": "todo-list",
+  "productName": "SKanban",
   "directories": {
     "output": "release/"
   },
-    "files": [
-        "**/*",
-        "!**/*.ts",
-        "!*.code-workspace",
-        "!LICENSE.md",
-        "!package.json",
-        "!package-lock.json",
-        "!src/",
-        "!e2e/",
-        "!hooks/",
-        "!angular.json",
-        "!_config.yml",
-        "!karma.conf.js",
-        "!tsconfig.json",
-        "!tslint.json"
-    ],
+  "appId": "com.sheryv.${name}",
+  "files": [
+    "**/*",
+    "!*.code-workspace",
+    "!LICENSE.md",
+    "!package.json",
+    "!package-lock.json",
+    "!src/",
+    "!e2e/",
+    "!hooks/",
+    "!angular.json",
+    "!_config.yml",
+    "!karma.conf.js",
+    "!tsconfig.json",
+    "!tslint.json",
+    "src/server/",
+    "src/shared/",
+    "!**/*.ts",
+  ],
   "win": {
     "icon": "dist",
     "target": [
-      "portable"
+      "zip"
     ]
   },
   "mac": {
