@@ -6,7 +6,6 @@ import { ColorUtil } from '../../util/color-util';
 @Component({
   selector: 'app-label-chip-row',
   templateUrl: './label-chip-row.component.html',
-  styleUrls: ['./label-chip-row.component.scss'],
 })
 export class LabelChipRowComponent implements OnInit {
   @Input()
@@ -20,9 +19,6 @@ export class LabelChipRowComponent implements OnInit {
   }
   
   ngOnInit(): void {
-    this.labels.forEach(l => {
-      l.$fgInvert = l.bg_color && ColorUtil.isLightColor(l.bg_color);
-    });
   }
   
 }

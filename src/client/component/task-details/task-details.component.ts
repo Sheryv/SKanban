@@ -23,4 +23,8 @@ export class TaskDetailsComponent implements OnInit {
   ngOnInit(): void {
   }
   
+  text(){
+    return JSON.stringify(this.task, null, 2);
+  }
+  
 }

@@ -5,7 +5,9 @@ import { Observable } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Row } from '../../typings';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class PropertiesService {
   
   constructor(private db: DatabaseService) {

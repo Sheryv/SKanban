@@ -6,7 +6,9 @@ import { Label } from '../model/label';
 import { TaskHistory } from '../model/task-history';
 import { TaskLabel } from '../model/task-label';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class Factory {
   static readonly COLOR_LIST = '#eee';
   static readonly COLOR_LABEL = '#1a6acc';
@@ -35,12 +37,14 @@ export class Factory {
              content: string,
              list_id: number = null,
              position: number = 0,
+             due_date: number = null,
+             state: number = 0,
              modify_date: number = Date.now(),
              create_date: number = Date.now(),
              bg_color: string = null,
              deleted: number = null,
   ): Task {
-    return {title, content, modify_date, create_date, bg_color, position, deleted, list_id};
+    return {title, content, modify_date, create_date, state, bg_color, due_date, position, deleted, list_id};
   }
   
   createLabel(title: string,
@@ -55,9 +59,11 @@ export class Factory {
                      title: string = null,
                      content: string = null,
                      related_object: number = null,
-                     modify_date: number = Date.now(),
+                     state: number = null,
+                     due_date: number = null,
+                     history_date: number = Date.now(),
   ): TaskHistory {
-    return {type, task_id, title, content, related_object, modify_date};
+    return {type, task_id, title, content, state, due_date, related_object, history_date};
   }
   
   createLabelConnection(label_id: number,

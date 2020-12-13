@@ -1,6 +1,11 @@
 export class ColorUtil {
   static isLightColor(color: string) {
     const c = this.getRGB(color);
+    if (c == null) {
+      console.warn(`Null color for '${color}'`);
+      return false;
+    }
+    
     const luma = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; // per ITU-R BT.709
     return luma > 100;
   }
@@ -25,7 +30,7 @@ export class ColorUtil {
       // tslint:disable-next-line:no-bitwise
       b = (rgb >> 0) & 0xff;  // extract blue
     }
-    return r ? {r, g, b} : null;
+    return r != null ? {r, g, b} : null;
   }
 }
 

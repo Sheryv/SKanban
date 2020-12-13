@@ -5,6 +5,8 @@ export interface TaskHistory extends Entity {
   content: string;
   related_object: number;
   type: number;
-  modify_date: number;
+  state: number;
+  history_date: number;
+  due_date: number;
   task_id: number;
 }

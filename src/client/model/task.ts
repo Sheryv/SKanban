@@ -6,6 +6,8 @@ export interface Task extends Entity {
   content: string;
   modify_date: number;
   create_date: number;
+  due_date: number;
+  state: number;
   bg_color: string;
   position: number;
   deleted: number;

@@ -6,7 +6,9 @@ import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Bridge } from '../../shared/service/bridge';
 import { Row } from '../../typings';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class DatabaseService {
   
   save(operation: DbOperation): Observable<DbExecResult> {

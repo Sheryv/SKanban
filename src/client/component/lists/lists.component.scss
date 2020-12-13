@@ -25,6 +25,11 @@
   display: block;
 }
 
+.list-selected {
+  outline: 1px solid #456276;
+  -moz-outline-radius: 1px;
+}
+
 .list-add {
   border: 3px dashed $background-tertiary;
   color: $foreground-quaternary;

@@ -9,5 +9,5 @@ export interface TaskList extends Entity {
   deleted: number;
   board_id: number;
   
-  tasks?: Task[];
+  $tasks?: Task[];
 }

@@ -9,6 +9,7 @@
   <div *ngIf="!loaded" class="mt-5">
     <mat-spinner  [diameter]="40" class="mx-auto"></mat-spinner>
   </div>
+  <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
 </div>
 <div class="boards-bar">
     <div *ngFor="let b of boards" class="boards-item" (click)="boardChange(b)" matRipple>
@@ -17,7 +18,7 @@
       </div>
 
     </div>
-    <div class="boards-item-add " matRipple matTooltip="Create board">
+    <div class="boards-item-add " matRipple matTooltip="Create board" (click)="createBoard()">
       <div>
         +
       </div>

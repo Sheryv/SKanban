@@ -2,39 +2,46 @@
   <div as-split-area [size]="100 - ui.detailsWith" minSize="5"
        class="py-2 d-flex h-100 align-items-start"
        style="overflow-x: auto; overflow-y: hidden">
-    <div class="list m-1 d-flex flex-column" *ngFor="let l of lists" style="max-height: 100%"
-         [ngStyle]="{'width.px': ui.taskListWidth, 'min-width.px': ui.taskListWidth}">
-      <div class="px-2 pb-2 w-100 d-flex align-items-center elevate-bottom">
-        <h4 class="p-0 text-ellipsis">{{l.title}}</h4>
-        <span class="font-9 fg-4 mr-1">&nbsp;({{l.tasks.length}})</span>
-        <i class="material-icons icon-btn secondary-btn">edit</i>
-        <div class="flex-grow-1"></div>
-        <i class="material-icons icon-btn mr-1 secondary-btn">keyboard_arrow_left</i>
-        <i class="material-icons icon-btn mr-1 secondary-btn">keyboard_arrow_right</i>
-        <i class="material-icons icon-btn mr-1 secondary-btn">more_vert</i>
-        <i class="material-icons icon-btn">add</i>
-      </div>
-      <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}">
-        <div *ngFor="let task of l.tasks" class="list-item separator" [ngClass]="{'selected': task == visibleTask}"
-             [ngStyle]="{
+    <ng-container *ngIf="!loading">
+      <div class="list m-1 d-flex flex-column" *ngFor="let l of lists" style="max-height: 100%"
+           (click)="selectedList = l"
+           [ngClass]="{'list-selected': selectedList == l}"
+           [ngStyle]="{'width.px': ui.taskListWidth, 'min-width.px': ui.taskListWidth}">
+        <div class="px-2 pb-2 w-100 d-flex align-items-center elevate-bottom">
+          <h4 class="p-0 text-ellipsis">{{l.title}}</h4>
+          <span class="font-9 fg-4 mr-1">&nbsp;({{l.$tasks.length}})</span>
+          <i class="material-icons icon-btn secondary-btn">edit</i>
+          <div class="flex-grow-1"></div>
+          <i class="material-icons icon-btn mr-1 secondary-btn">keyboard_arrow_left</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn">keyboard_arrow_right</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn">more_vert</i>
+          <i class="material-icons icon-btn" (click)="addTask(l)">add</i>
+        </div>
+        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}">
+          <div *ngFor="let task of l.$tasks" class="list-item separator" [ngClass]="{'selected': task == visibleTask}"
+               [ngStyle]="{
                 'padding-top.rem': (ui.taskItemPadding/100 * 0.5),
                 'padding-bottom.rem': (ui.taskItemPadding/100 * 0.5)
               }"
-             tabindex="-1" (click)="selectTask(task);">
-          {{task.title}}
-          <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels" [settings]="ui"></app-label-chip-row>
-          <div class="fg-4 text-ellipsis mt-1" *ngIf="ui.taskShowContentSize > 0"
-               [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8)}">{{task.content}}</div>
-        </div>
-        <div class="text-right pr-2 pb-1">
-          <button mat-stroked-button color="accent" class="mt-1 btn-small">Add</button>
+               tabindex="-1" (click)="selectTask(task);">
+            {{task.title}}
+            <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"
+                                [settings]="ui"></app-label-chip-row>
+            <div class="fg-4 text-ellipsis mt-1" *ngIf="ui.taskShowContentSize > 0"
+                 [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8)}">{{task.content}}</div>
+          </div>
+          <div class="text-right pr-2 pb-1">
+            <button mat-stroked-button color="accent" class="mt-1 btn-small">Add</button>
+          </div>
         </div>
       </div>
+      <button class="list-add" mat-stroked-button matTooltip="Create list" (click)="addList()">
+        +
+      </button>
+    </ng-container>
+    <div *ngIf="loading" class="w-100">
+      <mat-spinner [diameter]="40" class="m-auto"></mat-spinner>
     </div>
-
-    <button class="list-add" mat-stroked-button matTooltip="Create list">
-      +
-    </button>
     <div>&nbsp;</div>
   </div>
   <div as-split-area [size]="ui.detailsWith" minSize="5" *ngIf="visibleTask != null"
@@ -53,13 +60,13 @@
   No board selected. <br><span class="font-9">Use left bar to manage.</span>
 </div>
 
-<div *ngIf="lists == null || lists.length == 0" class="text-center p-4 fg-4">
+<div *ngIf="!loading && (lists == null || lists.length == 0)" class="text-center p-4 fg-4">
   No lists available.
   <br>
   Create first
   <br>
   <br>
-  <button class="list-add" mat-stroked-button matTooltip="Create list">
+  <button class="list-add" mat-stroked-button matTooltip="Create list" (click)="addList()">
     +
   </button>
 </div>

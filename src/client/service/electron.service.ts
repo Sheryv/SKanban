@@ -7,7 +7,9 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class ElectronService {
   
   ipcRenderer: typeof ipcRenderer;

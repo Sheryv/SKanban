@@ -65,6 +65,8 @@ export class Bridge {
           result.subscribe(r => {
             const args = Array.isArray(r) ? [id, ...r] : [id, r];
             event.sender.send('asynchronous-reply', args);
+          }, error1 => {
+            console.error('>>>> Error in server bridge <<<<<', JSON.stringify(error1));
           });
         } else {
           event.sender.send('asynchronous-reply', [id, ...result]);

@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Board } from '../model/board';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class State {
   boardChanged = new Subject<Board>();
   currentBoard: Board;

@@ -1,5 +1,4 @@
-// @ts-ignore
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { State } from '../../service/state';
 import { Board } from '../../model/board';
 import { TaskList } from '../../model/task-list';
@@ -9,45 +8,80 @@ import { SettingsService } from '../../service/settings.service';
 import { TaskLabel } from '../../model/task-label';
 import { Label } from '../../model/label';
 import { UiSettings } from '../../model/settings';
+import { KeyCommandsService } from '../../service/key-commands.service';
+import { mergeMap, take, takeUntil, tap } from 'rxjs/operators';
+import { of, Subject, throwError, zip } from 'rxjs';
+import { TaskService } from '../../service/task.service';
+import { CreateBoardDialogComponent } from '../dialog/create-board-dialog/create-board-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { CreateListDialogComponent } from '../dialog/create-list-dialog/create-list-dialog.component';
+import { runInZone } from '../../util/client-utils';
+import { CreateTaskDialogComponent } from '../dialog/create-task-dialog/create-task-dialog.component';
 
 @Component({
   selector: 'app-lists',
   templateUrl: './lists.component.html',
   styleUrls: ['./lists.component.scss'],
 })
-export class ListsComponent implements OnInit {
+export class ListsComponent implements OnInit, OnDestroy {
   board: Board;
   lists: TaskList[];
   visibleTask: Task;
   ui: UiSettings;
+  selectedList: TaskList;
+  activeState = new Subject<any>();
+  loading: boolean;
   
-  constructor(private state: State, private factory: Factory, public settingsService: SettingsService) {
+  
+  constructor(private state: State, private factory: Factory, public settingsService: SettingsService, private keyService: KeyCommandsService,
+              private taskService: TaskService, private dialog: MatDialog, private zone: NgZone,
+  ) {
     state.boardChanged.subscribe((b) => this.changeBoard(b));
     this.ui = settingsService.base.ui;
     this.changeBoard(state.currentBoard);
   }
   
   ngOnInit(): void {
+    console.log('Config: ', this.ui);
+    this.keyService.addEvent.emitter.pipe(takeUntil(this.activeState)).subscribe(e => {
+      if (this.selectedList && this.selectedList.title) {
+        this.addTask(this.selectedList);
+      }
+    });
   }
   
   changeBoard(b: Board) {
-    if (b && b.title !== 'Test') {
-      this.board = b;
-      console.log('Config: ', this.ui);
-      const fc = this.factory;
-      this.lists = [fc.createList('Todo', 1), fc.createList('In progress', 1)];
-      this.lists[1].id = 2;
-      this.lists[0].id = 1;
-      this.lists[0].tasks = [fc.createTask('Task 1', 'content 1', 1), fc.createTask('Task 2', 'content 2', 2)];
-      this.lists[1].tasks = [];
-      for (let i = 0; i < 20; i++) {
-        const task = fc.createTask('Task ' + (i + 3), 'content ' + (i + 3), 2);
-        task.$labels = this.randomLabel();
-        this.lists[1].tasks.push(task);
-      }
-    } else {
-      this.lists = null;
-    }
+    this.board = b;
+    this.loading = true;
+    console.log('loading list');
+    this.loadLists();
+  }
+  
+  private loadLists() {
+    const b = this.board;
+    const fc = this.factory;
+    this.taskService.getLists(b.id)
+      .pipe(runInZone(this.zone))
+      .subscribe(lists => {
+        if (b && b.title === 'Test') {
+          this.lists = [fc.createList('Todo', 1), fc.createList('In progress', 1)];
+          this.lists[1].id = 2;
+          this.lists[0].id = 1;
+          this.lists[0].$tasks = [fc.createTask('Task 1', 'content 1', 1), fc.createTask('Task 2', 'content 2', 2)];
+          this.lists[1].$tasks = [];
+          for (let i = 0; i < 20; i++) {
+            const task = fc.createTask('Task ' + (i + 3), 'content ' + (i + 3), 2);
+            task.$labels = this.randomLabel();
+            this.lists[1].$tasks.push(task);
+          }
+        } else {
+          this.lists = lists.sort((a, b1) => a.position - b1.position);
+        }
+        
+        this.selectedList = this.lists && this.lists[0];
+        this.loading = false;
+        console.log('loaded list ', this.lists);
+      });
   }
   
   randomLabel(): Label[] {
@@ -75,12 +109,59 @@ export class ListsComponent implements OnInit {
     return `rgb(${r}, ${g}, ${b})`;
   }
   
-  addTask() {
+  addTask(list: TaskList) {
+    const dialogRef = this.dialog.open(CreateTaskDialogComponent, {
+      maxWidth: '95vw',
+      minWidth: '30vw',
+      width: '1100px',
+      data: list,
+      
+    });
+    
+    dialogRef.afterClosed().subscribe(task => {
+      this.loadLists();
+    });
+  }
   
+  addList() {
+    const dialogRef = this.dialog.open(CreateListDialogComponent, {
+      width: '450px',
+    });
+    
+    dialogRef.afterClosed()
+      .pipe(
+        take(1),
+        tap(() => this.loading = true),
+        mergeMap(name => {
+          if (!name) {
+            return throwError('Name cannot be empty');
+          }
+          
+          const l = this.factory.createList(name, this.board.id, this.lists ? this.lists.length : 0);
+          return this.taskService.saveList(l);
+        }),
+        mergeMap(res => {
+          return this.taskService.getLists(this.board.id);
+        }),
+        runInZone(this.zone),
+      )
+      .subscribe(lists => {
+        this.lists = lists.sort((a, b1) => a.position - b1.position);
+        this.selectedList = this.lists[this.lists.length - 1];
+        this.loading = false;
+        console.log('asd', lists);
+      }, error1 => {
+        this.loading = false;
+      });
   }
   
   selectTask(task: Task) {
     console.log('Change task', task);
     this.visibleTask = task;
+  }
+  
+  ngOnDestroy(): void {
+    this.activeState.next();
+    this.activeState.complete();
   }
 }

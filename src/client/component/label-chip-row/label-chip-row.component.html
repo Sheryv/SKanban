@@ -1,15 +1,4 @@
-<ng-container *ngIf="settings.taskLabelShowText > 0 && !editable">
-  <div class="task-label fg-2 mt-1" [ngStyle]="{ 'font-size.rem': (settings.taskItemSize/100*0.7)}"
-       *ngFor="let lbl of labels" [ngClass]="{'fg-dark': lbl.$fgInvert}"
-       [style.background-color]="lbl.bg_color || 'inherit'">{{lbl.title}}</div>
-</ng-container>
-<ng-container *ngIf="!settings.taskLabelShowText && !editable">
-  <div *ngFor="let lbl of labels" class="task-label p-0 mt-1"
-       [style.background-color]="lbl.bg_color || 'inherit'"></div>
-</ng-container>
-<ng-container *ngIf="editable">
-  <div class="task-label task-label-editable fg mt-1" *ngFor="let lbl of labels" [ngClass]="{'fg-dark': lbl.$fgInvert}"
-       [style.background-color]="lbl.bg_color || 'inherit'"><span>{{lbl.title}}&nbsp;</span>
-    <i class="material-icons icon-btn-18" style="float: right" [ngClass]="{'fg-dark': lbl.$fgInvert}">close</i>
-  </div>
-</ng-container>
+<app-label-chip *ngFor="let lbl of labels" [label]="lbl" [editable]="editable" [showText]="editable || settings.taskLabelShowText > 0"
+                [class]="!editable ? 'no-shadow' : ''"
+                [ngStyle]="{ 'font-size.rem': (editable ? 0.9 : settings.taskItemSize/100*0.7)}"
+></app-label-chip>

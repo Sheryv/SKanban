@@ -7,6 +7,16 @@ import { Board } from './model/board';
 import { Factory } from './service/factory';
 import { State } from './service/state';
 import { SettingsService } from './service/settings.service';
+import { KeyCommandsService } from './service/key-commands.service';
+import { ShortcutInput } from 'ng-keyboard-shortcuts';
+import { MatDialog } from '@angular/material/dialog';
+import { CreateBoardDialogComponent } from './component/dialog/create-board-dialog/create-board-dialog.component';
+import { map, mergeMap } from 'rxjs/operators';
+import { TaskService } from './service/task.service';
+import { of, throwError, zip } from 'rxjs';
+import { DbExecResult } from '../shared/model/db-exec-result';
+import { NgZone } from '@angular/core';
+import { runInZone, ClientUtils } from './util/client-utils';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +27,7 @@ export class AppComponent implements OnInit {
   boards: Board[];
   currentBoard: Board;
   loaded: boolean = null;
+  shortcuts: ShortcutInput[];
   
   constructor(public electronService: ElectronService,
               private translate: TranslateService,
@@ -24,9 +35,14 @@ export class AppComponent implements OnInit {
               private state: State,
               private settings: SettingsService,
               private change: ChangeDetectorRef,
+              private dialog: MatDialog,
+              private taskService: TaskService,
+              private zone: NgZone,
+              keyService: KeyCommandsService,
   ) {
-    translate.setDefaultLang('en');
+    translate.setDefaultLang(ClientUtils.getLang());
     console.log('AppConfig', AppConfig);
+    this.shortcuts = keyService.prepareShortcuts();
     
     if (electronService.isElectron()) {
       console.log('Mode electron');
@@ -41,21 +57,52 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.settings.refresh().subscribe(s => {
       this.loaded = true;
-      this.change.detectChanges();
       console.log('Initialized');
     });
-    this.boards = [
-      this.factory.createBoard('🍬 Bsadas'),
-      this.factory.createBoard('Test'),
-      this.factory.createBoard('T'),
-    ];
-    setTimeout(() => {
+    this.state.boardChanged.subscribe(b => {
+      this.currentBoard = b;
+      console.log('on change board:', b.title, this.boards);
+    });
+    this.refreshBoards();
+  }
+  
+  private refreshBoards() {
+    this.taskService.getBoards().pipe(runInZone(this.zone)).subscribe(b => {
+      this.boards = b;
       this.boardChange(this.boards[0]);
-    }, 10);
+    });
   }
   
   boardChange(b: Board) {
-    this.currentBoard = b;
+    console.log('init change board:', b.title, this.boards);
     this.state.boardChanged.next(b);
+  }
+  
+  createBoard() {
+    const dialogRef = this.dialog.open(CreateBoardDialogComponent, {
+      width: '450px',
+    });
+    
+    dialogRef.afterClosed()
+      .pipe(
+        mergeMap(name => {
+          if (!name) {
+            return throwError('Name cannot be empty');
+          }
+        
+          const b = this.factory.createBoard(name);
+          return this.taskService.saveBoard(b);
+        }),
+        mergeMap(res => {
+          const id = res.lastID;
+          return zip(of(id), this.taskService.getBoards());
+        }),
+        runInZone(this.zone),
+      )
+      .subscribe(bs => {
+        const board = bs[1].find(b => b.id === bs[0]);
+        this.boards = bs[1];
+        this.boardChange(board);
+      });
   }
 }

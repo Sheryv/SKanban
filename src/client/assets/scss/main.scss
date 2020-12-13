@@ -169,3 +169,18 @@ html, body {
   outline: 2px solid #3668b5;
   background-color: rgba(13, 71, 161, 0.3) !important;
 }
+
+.task-label {
+  display: inline-block;
+  min-height: 0.25rem;
+  margin-right: 0.4rem;
+  padding: 0.1rem 0.4rem;
+  background-color: $background-quaternary;
+  min-width: 1.5rem;
+  box-shadow: $elevate-2;
+  border-radius: 0.7rem;
+}
+
+.no-shadow > .task-label {
+  box-shadow: none;
+}
