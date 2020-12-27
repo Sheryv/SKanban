@@ -49,6 +49,11 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ClientUtils } from './util/client-utils';
 import { LabelService } from './service/label.service';
 import { LabelChipComponent } from './component/label-chip/label-chip.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MessageService } from './service/message.service';
+import { DateMillisPipe } from './pipe/date-millis.pipe';
+import { CreateLabelDialogComponent } from './component/dialog/create-label-dialog/create-label-dialog.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -61,6 +66,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     TodoComponent,
     WebviewDirective,
     BoardAvatarPipe,
+    DateMillisPipe,
     ListsComponent,
     TaskDetailsComponent,
     LabelChipRowComponent,
@@ -68,6 +74,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     CreateBoardDialogComponent,
     CreateListDialogComponent,
     CreateTaskDialogComponent,
+    CreateLabelDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -81,6 +88,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     MatIconModule,
     MatListModule,
     MatDialogModule,
+    MatSnackBarModule,
+    MatMenuModule,
     DragDropModule,
     HttpClientModule,
     AppRoutingModule,
@@ -98,7 +107,16 @@ export function HttpLoaderFactory(http: HttpClient) {
     MatProgressSpinnerModule,
     KeyboardShortcutsModule.forRoot(),
   ],
-  providers: [ElectronService, DatabaseService, Factory, State, SettingsService, PropertiesService, TaskService, LabelService,
+  providers: [
+    ElectronService,
+    DatabaseService,
+    Factory,
+    State,
+    SettingsService,
+    PropertiesService,
+    TaskService,
+    LabelService,
+    MessageService,
     {provide: MAT_DATE_LOCALE, useValue: 'pl-PL', useFactory: ClientUtils.getLangCode},
   ],
   bootstrap: [AppComponent],

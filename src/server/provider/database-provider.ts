@@ -17,27 +17,28 @@ export class DatabaseProvider {
       filename: './database.db',
       driver: sqlite3.Database,
     }).then((db) => {
-      const handler = err => console.error('>>>> Error in DB init <<<<<', JSON.stringify(err));
-    
+      const handler = err => console.error('>>>> Error in DB init <<<<<:', err);
+      
       console.log('db opened');
       this.db = db;
       this.db.on('trace', (t) => {
         console.debug(':::DB::: ', t);
       });
-      this.db.exec('CREATE TABLE IF NOT EXISTS labels (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT NOT NULL, ' +
-        'create_date INTEGER NOT NULL, ' +
-        'bg_color TEXT' +
-        ')').catch(handler);
-        
       this.db.exec('CREATE TABLE IF NOT EXISTS boards (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
         'title TEXT NOT NULL, ' +
         'create_date INTEGER NOT NULL, ' +
         'type_label_id INTEGER, ' +
-        'deleted INTEGER, ' +
-        'FOREIGN KEY(type_label_id) REFERENCES labels(id)' +
+        'deleted INTEGER' +
         ')').catch(handler);
-        
+      
+      this.db.exec('CREATE TABLE IF NOT EXISTS labels (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
+        'title TEXT NOT NULL, ' +
+        'create_date INTEGER NOT NULL, ' +
+        'bg_color TEXT, ' +
+        'board_id INTEGER NOT NULL, ' +
+        'FOREIGN KEY(board_id) REFERENCES boards(id)' +
+        ')').catch(handler);
+      
       this.db.exec('CREATE TABLE IF NOT EXISTS lists (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
         'title TEXT NOT NULL, ' +
         'create_date INTEGER NOT NULL, ' +
@@ -52,18 +53,18 @@ export class DatabaseProvider {
         'title TEXT NOT NULL, ' +
         'content TEXT, ' +
         'modify_date INTEGER NOT NULL, ' +
-        'create_date INTEGER NOT NULL,' +
-        'state INTEGER NOT NULL,' +
+        'create_date INTEGER NOT NULL, ' +
+        'state INTEGER NOT NULL, ' +
         'due_date INTEGER, ' +
-        'bg_color TEXT,' +
+        'bg_color TEXT, ' +
         'position INTEGER NOT NULL,' +
         'deleted INTEGER, ' +
-        'list_id INTEGER, ' +
+        'list_id INTEGER NOT NULL, ' +
         'FOREIGN KEY(list_id) REFERENCES lists(id)' +
         ')').catch(handler);
-        
+      
       this.db.exec('CREATE TABLE IF NOT EXISTS task_history (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT ' +
+        'title TEXT, ' +
         'content TEXT, ' +
         'related_object NUMBER, ' +
         'type NUMBER NOT NULL, ' +
@@ -73,15 +74,16 @@ export class DatabaseProvider {
         'task_id INTEGER NOT NULL, ' +
         'FOREIGN KEY(task_id) REFERENCES tasks(id)' +
         ')').catch(handler);
-        
+      
       this.db.exec('CREATE TABLE IF NOT EXISTS task_labels (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
         'create_date INTEGER NOT NULL, ' +
         'label_id INTEGER NOT NULL, ' +
         'task_id INTEGER NOT NULL, ' +
+        'deleted_date INTEGER, ' +
         'FOREIGN KEY(label_id) REFERENCES labels(id),' +
         'FOREIGN KEY(task_id) REFERENCES tasks(id)' +
         ')').catch(handler);
-        
+      
       this.db.exec('CREATE TABLE IF NOT EXISTS properties (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
         'key TEXT NOT NULL UNIQUE, ' +
         'value TEXT NOT NULL ' +
@@ -110,15 +112,19 @@ export class DatabaseProvider {
   }
   
   findAll(op: DbOperation): Observable<Row[]> {
-    return from(this.db.all<Row[]>(
-        `select *
-      from ${op.table}`));
+    const cl = this.transformClauses(op.clauses, ' where ');
+    
+    const sql = `select *
+    from ${op.table}${cl.where}`;
+     console.log('findAll: ', JSON.stringify(op), 'SQL: ' + sql, '\n');
+    return from(this.db.all<Row[]>(sql, ...cl.params));
   }
   
   findById(op: DbOperation): Observable<Row | null> {
     notNullField(op.findId, 'DbOperation.findId');
+    const cl = this.transformClauses(op.clauses, ' and ');
     
-    return from(this.db.get<Row | null>(`select * from ${op.table} where id=?`, op.findId));
+    return from(this.db.get<Row | null>(`select * from ${op.table} where id=?${cl.where}`, op.findId, ...cl.params));
   }
   
   exec(op: DbOperation): Observable<DbExecResult> {
@@ -138,16 +144,37 @@ export class DatabaseProvider {
   }
   
   private buildUpdate(op: DbOperation) {
-    const keys = Object.keys(op.row).filter(k => !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string'));
+    const keys = Object.keys(op.row).filter(k => k !== 'id' && !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string'));
     
-    return this.db.run(`update ${op.table} set (${keys.map(k => k + '=?').join(', ')})`,
-      ...keys.map(k => op.row[k]));
+    const sql = `update ${op.table} set ${keys.map(k => k + '=?').join(', ')} where id=?`;
+    const params = keys.map(k => op.row[k]);
+    params.push(op.row.id);
+    console.log('update: ', sql, ' || ', JSON.stringify(params));
+    return this.db.run(sql, ...params);
   }
   
   private buildInsert(op: DbOperation) {
     const keys = Object.keys(op.row).filter(k => k !== 'id' && !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string'));
     
-    return this.db.run(`insert into ${op.table} (${keys.join(', ')}) values (${keys.map(k => '?').join(',')})`,
-      ...keys.map(k => op.row[k]));
+    const sql = `insert into ${op.table} (${keys.join(', ')}) values (${keys.map(k => '?').join(',')})`;
+    const params = keys.map(k => op.row[k]);
+    console.log('insert: ', sql, ' || ', JSON.stringify(params));
+    return this.db.run(sql, ...params);
+  }
+  
+  private transformClauses(clauses: { [key: string]: any }, suffix: string = ''): { where: string, params: any[] } {
+    const res = {where: '', params: []};
+    if (clauses && Object.keys(clauses).length > 0) {
+      const keys = Object.keys(clauses);
+      res.params = keys.map(k => clauses[k]).filter(v => typeof v !== 'string' || !v.startsWith('\0'));
+      res.where = suffix + (keys.map(k => {
+        const value = clauses[k];
+        if (typeof value === 'string' && value.startsWith('\0')) {
+          return k + ' ' + value.substr(1);
+        }
+        return k + '=?';
+      }).join(' and '));
+    }
+    return res;
   }
 }

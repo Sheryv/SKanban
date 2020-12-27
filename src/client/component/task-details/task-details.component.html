@@ -1,11 +1,99 @@
 <div>
-  <h4>Labels</h4>
-  <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"
-                      [settings]="ui" [editable]="true"></app-label-chip-row>
+  <form [formGroup]="form" *ngIf="form">
+    <div class="field-title">
+      <span>Name</span>
+      <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit" (click)="startEdit('task-name')">edit</i>
+      <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+    </div>
+    <div class="mb-2">
+      <div *ngIf="!editMode" (dblclick)="startEdit('task-name')">
+        {{task.title}}
+      </div>
+      <mat-form-field class="w-100 field-small" appearance="outline" *ngIf="editMode">
+        <input matInput maxlength="100" formControlName="title" #name (keydown.enter)="save()" id="task-name"
+               (keydown.control.enter)="save()">
+        <mat-hint align="end">{{name.value?.length || 0}} / 100</mat-hint>
+        <mat-error *ngIf="form.get('title').hasError('required')">Cannot be empty</mat-error>
+        <mat-hint>Press 'Enter' to submit</mat-hint>
+      </mat-form-field>
+    </div>
 
+    <div class="field-title">
+      <span>Labels</span>
+      <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit" (click)="startEdit()">edit</i>
+      <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+    </div>
+    <div class="mb-2">
+      <div class="mb-2">
+        <app-label-chip *ngFor="let lbl of editMode ? selectedLabels : task.$labels" [label]="lbl" style="cursor: pointer" [editable]="editMode"
+                        (removed)="removeLabel(lbl)"
+        ></app-label-chip>
+      </div>
+      <div class="p-2 mb-2 bg-5" *ngIf="editMode">
+        Available:<br>
+        <div>
+          <app-label-chip *ngFor="let lbl of labels" [label]="lbl" style="cursor: pointer" matTooltip="Click to add"
+                          (click)="addLabel(lbl)"
+          ></app-label-chip>
+        </div>
+      </div>
+    </div>
 
-  <pre class="text-monospace">
-    {{text()}}
+    <div class="field-title">
+      <span>Content</span>
+      <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit" (click)="startEdit('task-content')">edit</i>
+      <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+    </div>
+    <div class="mb-2">
+      <div *ngIf="!editMode" (dblclick)="startEdit('task-content')">
+        {{task.content}}
+      </div>
+      <mat-form-field class="w-100 field-small mb-3" appearance="outline" *ngIf="editMode">
+      <textarea matInput maxlength="10000" rows="5" formControlName="content" (keydown.control.enter)="save()" id="task-content"
+                #content></textarea>
+        <mat-hint>Submit with 'Ctrl + Enter'. Markdown supported</mat-hint>
+        <mat-hint align="end">{{content.value?.length || 0}} / 10000</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="field-title">
+      <span>Due day</span>
+      <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit" (click)="startEdit('task-due-date')">edit</i>
+      <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+    </div>
+    <div class="mb-2">
+      <div *ngIf="!editMode" (dblclick)="startEdit('task-due-date')">
+        {{task.due_date | dateMillis}}
+      </div>
+      <mat-form-field class="w-100 field-small mb-3" appearance="outline" *ngIf="editMode">
+        <input matInput [matDatepicker]="picker" formControlName="due_date" placeholder="dd.mm.yyyy" id="task-due-date"
+               (keydown.enter)="save()" (keydown.control.enter)="save()">
+        <mat-datepicker-toggle matSuffix [for]="picker" matTooltip="Select date"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="form.get('due_date').errors">Invalid date</mat-error>
+        <mat-hint>Click icon to select</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="field-title">
+      <span>Create date</span>
+    </div>
+    <div class="mb-3">{{task.create_date | dateMillis:true}}</div>
+
+    <div class="field-title">
+      <span>Modify date</span>
+    </div>
+    <div class="mb-3">{{task.modify_date | dateMillis:true}}</div>
+
+    <div class="field-title">
+      <span>State</span>
+    </div>
+    <div class="mb-3">{{task.state}}</div>
+
+  </form>
+
+  <pre class="text-monospace mt-4">
+    {{text}}
 
   </pre>
 </div>

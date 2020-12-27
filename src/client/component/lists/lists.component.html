@@ -10,12 +10,18 @@
         <div class="px-2 pb-2 w-100 d-flex align-items-center elevate-bottom">
           <h4 class="p-0 text-ellipsis">{{l.title}}</h4>
           <span class="font-9 fg-4 mr-1">&nbsp;({{l.$tasks.length}})</span>
-          <i class="material-icons icon-btn secondary-btn">edit</i>
+          <i class="material-icons icon-btn secondary-btn" matTooltip="Edit">edit</i>
           <div class="flex-grow-1"></div>
-          <i class="material-icons icon-btn mr-1 secondary-btn">keyboard_arrow_left</i>
-          <i class="material-icons icon-btn mr-1 secondary-btn">keyboard_arrow_right</i>
-          <i class="material-icons icon-btn mr-1 secondary-btn">more_vert</i>
-          <i class="material-icons icon-btn" (click)="addTask(l)">add</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" matTooltip="Move left">keyboard_arrow_left</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" matTooltip="Move right">keyboard_arrow_right</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn"  [matMenuTriggerFor]="listDetailsMenu">more_vert</i>
+          <mat-menu #listDetailsMenu="matMenu">
+            <button mat-menu-item>
+              <mat-icon>delete</mat-icon>
+              <span>Delete</span>
+            </button>
+          </mat-menu>
+          <i class="material-icons icon-btn" (click)="addTask(l)" matTooltip="Add task">add</i>
         </div>
         <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}">
           <div *ngFor="let task of l.$tasks" class="list-item separator" [ngClass]="{'selected': task == visibleTask}"
@@ -49,9 +55,24 @@
     <div class="bg-5 px-2 d-flex align-items-center" style="position: sticky; height: 2rem; line-height: 2rem">
       <i class="mr-2 material-icons icon-btn bg-6" matRipple (click)="visibleTask = null" matTooltip="Close">close</i>
       <span class="flex-grow-1 text-ellipsis">{{visibleTask.title}}</span>
-      <i class="ml-1 material-icons icon-btn" matRipple matTooltip="Task actions">more_vert</i>
+      <i class="ml-1 material-icons icon-btn" matRipple matTooltip="Task actions"
+         [matMenuTriggerFor]="itemDetailsMenu">more_vert</i>
+      <mat-menu #itemDetailsMenu="matMenu">
+        <button mat-menu-item>
+          <mat-icon>arrow_upward</mat-icon>
+          <span>Move to list top</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>arrow_downward</mat-icon>
+          <span>Move to list bottom</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>delete</mat-icon>
+          <span>Delete</span>
+        </button>
+      </mat-menu>
     </div>
-    <app-task-details class="p-2 overflow-auto" [task]="visibleTask">
+    <app-task-details class="p-2 overflow-auto" [task]="visibleTask" [list]="selectedList" (saved)="onTaskSaved($event)" (closed)="visibleTask = null">
     </app-task-details>
   </div>
 </as-split>

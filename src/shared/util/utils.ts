@@ -1,4 +1,5 @@
 export class Utils {
+
   private static readonly CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   
   static generateId(length: number = 6) {

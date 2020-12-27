@@ -18,14 +18,14 @@ export class TaskService {
   }
   
   getBoards(): Observable<Board[]> {
-    return this.db.findAll({table: 'boards', findId: null})
+    return this.db.findAll({table: 'boards'})
       .pipe(
         take(1),
       );
   }
   
   getLists(boardId: number): Observable<TaskList[]> {
-    return this.db.query({table: 'lists', findId: null, sql: `select * from lists where board_id = ?`, params: [boardId]})
+    return this.db.findAll({table: 'lists', clauses: {board_id: boardId}})
       .pipe(
         take(1),
         mergeMap((ls: TaskList[]) => {
@@ -43,20 +43,24 @@ export class TaskService {
   }
   
   getTasks(listId: number): Observable<Task[]> {
-    return this.db.query({table: null, findId: null, sql: `select * from tasks where list_id = ?`, params: [listId]})
+    return this.db.findAll({table: 'tasks', clauses: {list_id: listId}})
       .pipe(
         mergeMap((ls: Task[]) => {
-          const query = this.db.query({
-            table: 'labels', findId: null,
-            sql: `select l.*, t.task_id from labels l join task_labels t on l.id = t.label_id where t.task_id in (${ls.map(t => '?').join(',')})`, params: [...ls.map(t => t.id)],
-          });
-          
-          return zip(of(ls), query);
+          if (ls.length > 0) {
+            const query = this.db.query({
+              table: 'labels', findId: null,
+              sql: `select l.*, t.task_id from labels l join task_labels t on l.id = t.label_id where t.deleted_date is null and t.task_id in (${ls.map(t => '?').join(',')})`, params: [...ls.map(t => t.id)],
+            });
+            return zip(of(ls), query);
+          }
+          return zip(of(ls), of([]));
         }),
         map((z: any[]) => {
           const task: Task[] = z[0];
-          const labels = ClientUtils.groupBy<Label, number>(z[1], (l) => l['task_id']);
-          task.forEach(t => t.$labels = labels.get(t.id));
+          if (task.length > 0) {
+            const labels = ClientUtils.groupBy<Label, number>(z[1], (l) => l['task_id']);
+            task.forEach(t => t.$labels = labels.get(t.id));
+          }
           return task;
         }),
       );

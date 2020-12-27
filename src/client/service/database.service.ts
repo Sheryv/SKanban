@@ -7,9 +7,11 @@ import { Bridge } from '../../shared/service/bridge';
 import { Row } from '../../typings';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class DatabaseService {
+  public static readonly IS_NULL = '\0is null';
+  public static readonly IS_NOT_NULL = '\0is not null';
   
   save(operation: DbOperation): Observable<DbExecResult> {
     return Bridge.clientSend('dbp', 'save', operation).pipe(take(1), map(r => r[0]));

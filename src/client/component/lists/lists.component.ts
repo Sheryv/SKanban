@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { CreateListDialogComponent } from '../dialog/create-list-dialog/create-list-dialog.component';
 import { runInZone } from '../../util/client-utils';
 import { CreateTaskDialogComponent } from '../dialog/create-task-dialog/create-task-dialog.component';
+import { MessageService } from '../../service/message.service';
 
 @Component({
   selector: 'app-lists',
@@ -34,7 +35,7 @@ export class ListsComponent implements OnInit, OnDestroy {
   
   
   constructor(private state: State, private factory: Factory, public settingsService: SettingsService, private keyService: KeyCommandsService,
-              private taskService: TaskService, private dialog: MatDialog, private zone: NgZone,
+              private taskService: TaskService, private msg: MessageService, private dialog: MatDialog, private zone: NgZone,
   ) {
     state.boardChanged.subscribe((b) => this.changeBoard(b));
     this.ui = settingsService.base.ui;
@@ -94,9 +95,9 @@ export class ListsComponent implements OnInit, OnDestroy {
       const random = Math.random();
       if (random < 0.1) {
       } else if (random < 0.4) {
-        la.push(this.factory.createLabel('Trivial', '#23123'));
+        la.push(this.factory.createLabel('Trivial', this.board.id, '#23123'));
       } else {
-        la.push(this.factory.createLabel('Inner', this.randomColor()));
+        la.push(this.factory.createLabel('Inner', this.board.id, this.randomColor()));
       }
     }
     return la;
@@ -149,7 +150,7 @@ export class ListsComponent implements OnInit, OnDestroy {
         this.lists = lists.sort((a, b1) => a.position - b1.position);
         this.selectedList = this.lists[this.lists.length - 1];
         this.loading = false;
-        console.log('asd', lists);
+        this.msg.success('List created');
       }, error1 => {
         this.loading = false;
       });
@@ -163,5 +164,9 @@ export class ListsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.activeState.next();
     this.activeState.complete();
+  }
+  
+  onTaskSaved(task: Task) {
+  
   }
 }

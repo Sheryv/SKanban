@@ -34,8 +34,8 @@ export class CreateTaskDialogComponent implements OnInit {
     
     this.form = fb.group({
       name: ['T' + (Math.floor(Math.random() * 90) + 10), [Validators.required]],
-      content: [''],
-      dueDate: [tomorrow.toJSDate()],
+      content: ['', [Validators.max(10000)]],
+      due_date: [tomorrow.toJSDate()],
     });
   }
   
@@ -44,14 +44,14 @@ export class CreateTaskDialogComponent implements OnInit {
     this.form.updateValueAndValidity();
     if (this.form.valid) {
       const v = this.form.value;
-      const millisecond = DateTime.fromJSDate(v.dueDate).toMillis();
+      const millisecond = DateTime.fromJSDate(v.due_date).toMillis();
       const task = this.fc.createTask(v.name, v.content, this.list.id, this.list.$tasks.length, millisecond);
       this.taskService.saveTask(task)
         .pipe(
           take(1),
           mergeMap(res => {
             task.id = res.lastID;
-            return this.labelService.addLabelsTask(task, this.selectedLabels);
+            return this.labelService.setLabelsForTask(task, this.selectedLabels);
           }),
           take(1),
           runInZone(this.zone),
@@ -59,14 +59,14 @@ export class CreateTaskDialogComponent implements OnInit {
         .subscribe(r => {
           this.dialogRef.close(task);
         }, error1 => {
-          console.error('close e');
+          console.error('e', error1);
         });
     } else {
     }
   }
   
   ngOnInit(): void {
-    this.labelService.getLabels().subscribe(ls => {
+    this.labelService.getLabels(this.list.board_id).subscribe(ls => {
       this.labels = ls;
     });
   }

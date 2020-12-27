@@ -1,11 +1,11 @@
 import { Observable, Subject } from 'rxjs';
 import { app, remote, ipcRenderer, ipcMain } from 'electron';
+import { Utils } from '../util/utils';
 
 export class Bridge {
   
   // static readonly clientBus: Subject<{ event: ClientEvent, args: any[] }> = new Subject();
   // static readonly serverBus: Subject<{ event: ServerEvent, args: any[] }> = new Subject();
-  private static readonly PREFIX = 'sk-';
   private static readonly LISTENERS: { key: string, receiver: Subject<any[]> }[] = [];
   private static readonly PROCESSORS: { key: string, single?: boolean, processor: (args: any[]) => Observable<any[]> | any[] }[] = [];
   
@@ -22,7 +22,14 @@ export class Bridge {
       if (listener < 0) {
         console.error('>> null receiver', id);
       } else {
-        this.LISTENERS[listener].receiver.next((<any[]>arg).slice(1));
+        const params = (<any[]>arg).slice(1);
+        const receiver = this.LISTENERS[listener].receiver;
+        // console.debug('Exec: ', receiver, params);
+        try {
+          receiver.next(params);
+        } catch (e) {
+          console.error('>>> ', e);
+        }
         this.LISTENERS.splice(listener, 1);
       }
     });
@@ -33,9 +40,10 @@ export class Bridge {
       throw Error('It is not client process. Cannot send');
     }
     const receiver = new Subject<any[]>();
-    this.LISTENERS.push({key: id, receiver: receiver});
-    args = [id, ...args];
-    console.debug('>> client send', id, args);
+    const fullId = id + '/' + Utils.generateId();
+    this.LISTENERS.push({key: fullId, receiver: receiver});
+    args = [fullId, ...args];
+    console.debug('>> client send', fullId, args);
     
     ipcRenderer.send('asynchronous-message', args);
     return receiver;
@@ -50,8 +58,8 @@ export class Bridge {
     
     ipcMain.on('asynchronous-message', (event, arg) => {
       console.debug('>> server received', arg, this.PROCESSORS);
-      
-      const id = arg[0] as string;
+      const fullId = arg[0] as string;
+      const id = fullId.split('/')[0];
       const i = this.PROCESSORS.findIndex(l => l.key === id);
       if (i < 0) {
         console.error('>> null processor', id);
@@ -63,13 +71,13 @@ export class Bridge {
         }
         if (result instanceof Observable) {
           result.subscribe(r => {
-            const args = Array.isArray(r) ? [id, ...r] : [id, r];
+            const args = Array.isArray(r) ? [fullId, ...r] : [fullId, r];
             event.sender.send('asynchronous-reply', args);
           }, error1 => {
-            console.error('>>>> Error in server bridge <<<<<', JSON.stringify(error1));
+            console.error('>>>> Error in server bridge <<<<<', error1);
           });
         } else {
-          event.sender.send('asynchronous-reply', [id, ...result]);
+          event.sender.send('asynchronous-reply', [fullId, ...result]);
         }
       }
     });

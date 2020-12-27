@@ -17,6 +17,9 @@ import { of, throwError, zip } from 'rxjs';
 import { DbExecResult } from '../shared/model/db-exec-result';
 import { NgZone } from '@angular/core';
 import { runInZone, ClientUtils } from './util/client-utils';
+import { CreateLabelDialogComponent } from './component/dialog/create-label-dialog/create-label-dialog.component';
+import { LabelService } from './service/label.service';
+import { MessageService } from './service/message.service';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +40,8 @@ export class AppComponent implements OnInit {
               private change: ChangeDetectorRef,
               private dialog: MatDialog,
               private taskService: TaskService,
+              private labelService: LabelService,
+              private msg: MessageService,
               private zone: NgZone,
               keyService: KeyCommandsService,
   ) {
@@ -74,8 +79,10 @@ export class AppComponent implements OnInit {
   }
   
   boardChange(b: Board) {
-    console.log('init change board:', b.title, this.boards);
-    this.state.boardChanged.next(b);
+    console.log('init change board:', b && b.title, this.boards);
+    if (b) {
+      this.state.boardChanged.next(b);
+    }
   }
   
   createBoard() {
@@ -89,7 +96,7 @@ export class AppComponent implements OnInit {
           if (!name) {
             return throwError('Name cannot be empty');
           }
-        
+          
           const b = this.factory.createBoard(name);
           return this.taskService.saveBoard(b);
         }),
@@ -103,6 +110,28 @@ export class AppComponent implements OnInit {
         const board = bs[1].find(b => b.id === bs[0]);
         this.boards = bs[1];
         this.boardChange(board);
-      });
+        this.msg.success('Board created');
+      }, err => this.msg.error('Cannot create label'));
+  }
+  
+  createLabel(boardId: number) {
+    const dialogRef = this.dialog.open(CreateLabelDialogComponent, {
+      width: '450px',
+    });
+    
+    dialogRef.afterClosed()
+      .pipe(
+        mergeMap(name => {
+          if (!name) {
+            return throwError('Name cannot be empty');
+          }
+          
+          return this.labelService.createLabel(name, boardId);
+        }),
+        runInZone(this.zone),
+      )
+      .subscribe(bs => {
+        this.msg.success('Label created');
+      }, err => this.msg.error('Cannot create label: ' + err));
   }
 }

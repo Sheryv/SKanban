@@ -48,10 +48,11 @@ export class Factory {
   }
   
   createLabel(title: string,
+              board_id: number,
               bg_color: string = null,
               create_date: number = Date.now(),
   ): Label {
-    return {title, create_date, bg_color};
+    return {title, create_date, board_id, bg_color};
   }
   
   createHistoryEntry(type: number,
@@ -69,8 +70,10 @@ export class Factory {
   createLabelConnection(label_id: number,
                         task_id: number,
                         create_date: number = Date.now(),
+                        markDeleted: boolean = false,
   ): TaskLabel {
-    return {label_id, task_id, create_date};
+    const deleted_date = markDeleted ? Date.now() : null;
+    return {label_id, task_id, create_date, deleted_date};
   }
   
 }

@@ -23,11 +23,11 @@
       <div class="col-sm-4 col-md-3 col-lg-2 col-12 order-sm-1 mb-3">
         <mat-form-field class="w-100" appearance="outline">
           <mat-label>Due day</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="dueDate" placeholder="dd.mm.yyyy"
+          <input matInput [matDatepicker]="picker" formControlName="due_date" placeholder="dd.mm.yyyy"
                  (keydown.enter)="save()" (keydown.control.enter)="save()">
           <mat-datepicker-toggle matSuffix [for]="picker" matTooltip="Select date"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
-          <mat-error *ngIf="form.get('dueDate').errors">Invalid date</mat-error>
+          <mat-error *ngIf="form.get('due_date').errors">Invalid date</mat-error>
           <mat-hint>Click icon to select</mat-hint>
         </mat-form-field>
       </div>
