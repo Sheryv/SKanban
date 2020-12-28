@@ -54,6 +54,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MessageService } from './service/message.service';
 import { DateMillisPipe } from './pipe/date-millis.pipe';
 import { CreateLabelDialogComponent } from './component/dialog/create-label-dialog/create-label-dialog.component';
+import { ColorPickerModule } from 'ngx-color-picker';
+import { MarkdownPipe } from './pipe/markdown.pipe';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -67,6 +69,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     WebviewDirective,
     BoardAvatarPipe,
     DateMillisPipe,
+    MarkdownPipe,
     ListsComponent,
     TaskDetailsComponent,
     LabelChipRowComponent,
@@ -93,6 +96,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     DragDropModule,
     HttpClientModule,
     AppRoutingModule,
+    ColorPickerModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

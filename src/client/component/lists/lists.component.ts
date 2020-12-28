@@ -18,6 +18,7 @@ import { CreateListDialogComponent } from '../dialog/create-list-dialog/create-l
 import { runInZone } from '../../util/client-utils';
 import { CreateTaskDialogComponent } from '../dialog/create-task-dialog/create-task-dialog.component';
 import { MessageService } from '../../service/message.service';
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-lists',
@@ -77,6 +78,7 @@ export class ListsComponent implements OnInit, OnDestroy {
           }
         } else {
           this.lists = lists.sort((a, b1) => a.position - b1.position);
+          this.lists.forEach(l => l.$tasks.sort((a, b1) => a.position - b1.position));
         }
         
         this.selectedList = this.lists && this.lists[0];
@@ -168,5 +170,34 @@ export class ListsComponent implements OnInit, OnDestroy {
   
   onTaskSaved(task: Task) {
   
+  }
+  
+  drop(event: CdkDragDrop<Task[]>) {
+    const tasks = event.container.data;
+    const list = this.findList(tasks);
+    if (event.previousContainer === event.container) {
+      moveItemInArray(tasks, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(event.previousContainer.data,
+        tasks,
+        event.previousIndex,
+        event.currentIndex);
+      const listPrev = this.findList(event.previousContainer.data);
+      this.updatePositions(event.previousContainer.data, listPrev.id);
+    }
+    this.updatePositions(tasks, list.id);
+  }
+  
+  private updatePositions(list: Task[], listId: number) {
+    for (let i = 0; i < list.length; i++) {
+      list[i].position = i;
+      list[i].list_id = listId;
+    }
+    
+    this.taskService.updatePosition(list).subscribe();
+  }
+  
+  private findList(tasks: Task[]): TaskList {
+    return this.lists.find(l => l.$tasks === tasks);
   }
 }

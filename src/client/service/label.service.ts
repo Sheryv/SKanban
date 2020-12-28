@@ -34,8 +34,8 @@ export class LabelService {
     this.labels = null;
   }
   
-  createLabel(name: string, boardId: number): Observable<DbExecResult> {
-    const label = this.fc.createLabel(name, boardId);
+  createLabel(name: string, boardId: number, color: string = null): Observable<DbExecResult> {
+    const label = this.fc.createLabel(name, boardId, color);
     return this.db.save({table: 'labels', row: label});
   }
   

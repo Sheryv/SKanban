@@ -45,10 +45,9 @@
       <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
     </div>
     <div class="mb-2">
-      <div *ngIf="!editMode" (dblclick)="startEdit('task-content')">
-        {{task.content}}
+      <div *ngIf="!editMode" class="markdown-content" (dblclick)="startEdit('task-content')" [innerHTML]="task.content | markdown">
       </div>
-      <mat-form-field class="w-100 field-small mb-3" appearance="outline" *ngIf="editMode">
+      <mat-form-field class="w-100 field-small mb-2" appearance="outline" *ngIf="editMode">
       <textarea matInput maxlength="10000" rows="5" formControlName="content" (keydown.control.enter)="save()" id="task-content"
                 #content></textarea>
         <mat-hint>Submit with 'Ctrl + Enter'. Markdown supported</mat-hint>
@@ -61,11 +60,11 @@
       <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit" (click)="startEdit('task-due-date')">edit</i>
       <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
     </div>
-    <div class="mb-2">
+    <div class="mb-3">
       <div *ngIf="!editMode" (dblclick)="startEdit('task-due-date')">
         {{task.due_date | dateMillis}}
       </div>
-      <mat-form-field class="w-100 field-small mb-3" appearance="outline" *ngIf="editMode">
+      <mat-form-field class="w-100 field-small mb-1" appearance="outline" *ngIf="editMode">
         <input matInput [matDatepicker]="picker" formControlName="due_date" placeholder="dd.mm.yyyy" id="task-due-date"
                (keydown.enter)="save()" (keydown.control.enter)="save()">
         <mat-datepicker-toggle matSuffix [for]="picker" matTooltip="Select date"></mat-datepicker-toggle>
@@ -92,8 +91,5 @@
 
   </form>
 
-  <pre class="text-monospace mt-4">
-    {{text}}
-
-  </pre>
+  <code class="text-monospace markdown-content-preview d-block mt-4">{{text}}</code>
 </div>

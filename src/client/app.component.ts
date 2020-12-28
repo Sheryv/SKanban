@@ -121,17 +121,17 @@ export class AppComponent implements OnInit {
     
     dialogRef.afterClosed()
       .pipe(
-        mergeMap(name => {
-          if (!name) {
-            return throwError('Name cannot be empty');
+        mergeMap(lb => {
+          if (lb && lb.name) {
+            return this.labelService.createLabel(lb.name, boardId, lb.color);
+          } else {
+            return throwError('');
           }
-          
-          return this.labelService.createLabel(name, boardId);
         }),
         runInZone(this.zone),
       )
       .subscribe(bs => {
         this.msg.success('Label created');
-      }, err => this.msg.error('Cannot create label: ' + err));
+      });
   }
 }

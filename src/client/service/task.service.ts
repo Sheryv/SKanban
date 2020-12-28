@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DatabaseService } from './database.service';
-import { map, mergeMap, take } from 'rxjs/operators';
-import { Observable, of, zip } from 'rxjs';
+import { map, mergeMap, take, toArray } from 'rxjs/operators';
+import { concat, Observable, of, zip } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Board } from '../model/board';
 import { TaskList } from '../model/task-list';
@@ -76,6 +76,17 @@ export class TaskService {
   
   saveTask(b: Task): Observable<DbExecResult> {
     return this.db.save({table: 'tasks', row: b});
+  }
+  
+  updatePosition(tasks: Task[]): Observable<DbExecResult[]> {
+    return concat(tasks.map(t => {
+      return this.db.exec({table: 'tasks', sql: 'update tasks set position = ?, list_id = ? where id = ?', params: [t.position, t.list_id, t.id]});
+    })).pipe(
+      mergeMap(v => v),
+      take(tasks.length),
+      toArray(),
+      take(1),
+    );
   }
   
   //

@@ -2,8 +2,9 @@
   <div as-split-area [size]="100 - ui.detailsWith" minSize="5"
        class="py-2 d-flex h-100 align-items-start"
        style="overflow-x: auto; overflow-y: hidden">
-    <ng-container *ngIf="!loading">
+    <div class=" d-flex h-100 align-items-start" *ngIf="!loading" cdkDropListGroup>
       <div class="list m-1 d-flex flex-column" *ngFor="let l of lists" style="max-height: 100%"
+          cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListData]="l.$tasks"
            (click)="selectedList = l"
            [ngClass]="{'list-selected': selectedList == l}"
            [ngStyle]="{'width.px': ui.taskListWidth, 'min-width.px': ui.taskListWidth}">
@@ -23,28 +24,29 @@
           </mat-menu>
           <i class="material-icons icon-btn" (click)="addTask(l)" matTooltip="Add task">add</i>
         </div>
-        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}">
+        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}" style="min-height: 3rem">
           <div *ngFor="let task of l.$tasks" class="list-item separator" [ngClass]="{'selected': task == visibleTask}"
+          cdkDrag
                [ngStyle]="{
                 'padding-top.rem': (ui.taskItemPadding/100 * 0.5),
                 'padding-bottom.rem': (ui.taskItemPadding/100 * 0.5)
               }"
                tabindex="-1" (click)="selectTask(task);">
-            {{task.title}}
+            {{task.title}} > {{task.position}} > {{task.list_id}}
             <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"
                                 [settings]="ui"></app-label-chip-row>
-            <div class="fg-4 text-ellipsis mt-1" *ngIf="ui.taskShowContentSize > 0"
-                 [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8)}">{{task.content}}</div>
+            <div class="fg-4 text-ellipsis mt-1 markdown-content-preview" *ngIf="ui.taskShowContentSize > 0"
+                 [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8), 'max-height.rem': (ui.taskShowContentSize+0.6)*(ui.taskItemSize/100*0.8)}" >{{task.content}}</div>
           </div>
-          <div class="text-right pr-2 pb-1">
-            <button mat-stroked-button color="accent" class="mt-1 btn-small">Add</button>
-          </div>
+<!--          <div class="text-right pr-2 pb-1" *ngIf="l.$tasks && l.$tasks.length > 0">-->
+<!--            <button mat-stroked-button color="accent" class="mt-1 btn-small">Add</button>-->
+<!--          </div>-->
         </div>
       </div>
       <button class="list-add" mat-stroked-button matTooltip="Create list" (click)="addList()">
         +
       </button>
-    </ng-container>
+    </div>
     <div *ngIf="loading" class="w-100">
       <mat-spinner [diameter]="40" class="m-auto"></mat-spinner>
     </div>
