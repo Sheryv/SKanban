@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { DatabaseService } from './database.service';
-import { map, mergeMap, take, tap, toArray } from 'rxjs/operators';
+import { map, mergeMap, take, tap, toArray, zip } from 'rxjs/operators';
 import { concat, Observable, of } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Task } from '../model/task';
 import { Label } from '../model/label';
 import { Factory } from './factory';
 import { TaskLabel } from '../model/task-label';
+import { HistoryType } from '../model/history-type';
 
 @Injectable({
   providedIn: 'root',
@@ -57,23 +58,38 @@ export class LabelService {
             return n;
           });
         }),
-        
         tap((d) => console.log('lb delete', d)),
-        mergeMap(d => concat(d.map(l =>
-          this.db.save({table: 'task_labels', row: l}))).pipe(mergeMap(v => v), toArray()),
-        ),
+        mergeMap(d => {
+          let ob: Observable<TaskLabel[]>;
+          if (d.length > 0) {
+            const h = this.fc.createHistoryEntry(HistoryType.LABEL_REMOVE, task.id, null, null, task.id, null, null, null, d.map(l => l.label_id).join(','));
+            ob = this.db.save({table: 'task_history', row: h}).pipe(map(() => d));
+          } else {
+            ob = of(d);
+          }
+          return ob;
+        }),
+        mergeMap(d => concat(d.map(l => this.db.save({table: 'task_labels', row: l}))).pipe(
+          mergeMap(v => v),
+          toArray(),
+        )),
         take(1),
-        
         tap(() => console.log('lb save', lb)),
-        mergeMap(() =>
-          concat(lb.map(l => {
+        mergeMap(() => {
+          if (lb.length <= 0) {
+            return of(null);
+          }
+          const h = this.fc.createHistoryEntry(HistoryType.LABEL_ADD, task.id, null, null, task.id, null, null, lb.map(l => l.id).join(','));
+          return this.db.save({table: 'task_history', row: h});
+        }),
+        mergeMap(() => concat(lb.map(l => {
             const connection = this.fc.createLabelConnection(l.id, task.id);
             return this.db.save({table: 'task_labels', row: connection});
           })).pipe(
-            mergeMap(v => v),
-            take(lb.length),
-            toArray(),
-            take(1),
+          mergeMap(v => v),
+          take(lb.length),
+          toArray(),
+          take(1),
           ),
         ),
       );

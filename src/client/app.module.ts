@@ -43,7 +43,6 @@ import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 import { TaskService } from './service/task.service';
 import { CreateBoardDialogComponent } from './component/dialog/create-board-dialog/create-board-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
-import { CreateListDialogComponent } from './component/dialog/create-list-dialog/create-list-dialog.component';
 import { CreateTaskDialogComponent } from './component/dialog/create-task-dialog/create-task-dialog.component';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ClientUtils } from './util/client-utils';
@@ -56,6 +55,8 @@ import { DateMillisPipe } from './pipe/date-millis.pipe';
 import { CreateLabelDialogComponent } from './component/dialog/create-label-dialog/create-label-dialog.component';
 import { ColorPickerModule } from 'ngx-color-picker';
 import { MarkdownPipe } from './pipe/markdown.pipe';
+import { SingleInputDialogComponent } from './component/dialog/single-input-dialog/single-input-dialog.component';
+import { BoardSettingsDialogComponent } from './component/dialog/board-settings-dialog/board-settings-dialog.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -75,9 +76,10 @@ export function HttpLoaderFactory(http: HttpClient) {
     LabelChipRowComponent,
     LabelChipComponent,
     CreateBoardDialogComponent,
-    CreateListDialogComponent,
+    SingleInputDialogComponent,
     CreateTaskDialogComponent,
     CreateLabelDialogComponent,
+    BoardSettingsDialogComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,5 +1,6 @@
 import { NgZone } from '@angular/core';
 import { Observable, OperatorFunction } from 'rxjs';
+import { HistoryType } from '../model/history-type';
 
 export function runInZone<T>(zone: NgZone): OperatorFunction<T, T> {
   return (source) => {
@@ -14,6 +15,7 @@ export function runInZone<T>(zone: NgZone): OperatorFunction<T, T> {
 
 
 export class ClientUtils {
+  private static readonly HISTORY_TYPE_LABELS = new Map<HistoryType, string>();
   
   static getLangCode(): string {
     let l = localStorage.getItem('lang');
@@ -40,5 +42,21 @@ export class ClientUtils {
       }
     });
     return map;
+  }
+  
+  static mapHistoryType(type: HistoryType): string {
+    const map = this.HISTORY_TYPE_LABELS;
+    if (map.size === 0) {
+      map.set(HistoryType.LABEL_REMOVE, 'Labels removed');
+      map.set(HistoryType.LABEL_ADD, 'Labels added');
+      map.set(HistoryType.TITLE_MODIFY, 'Title changed');
+      map.set(HistoryType.CONTENT_MODIFY, 'Content changed');
+      map.set(HistoryType.DUE_DATE_MODIFY, 'Due date changed');
+      map.set(HistoryType.STATE_MODIFY, 'State changed');
+      map.set(HistoryType.DELETE, 'Task deleted');
+      map.set(HistoryType.LIST_CHANGE, 'Task moved to another list');
+    }
+    
+    return map.get(type);
   }
 }

@@ -8,24 +8,27 @@ import { TaskList } from '../model/task-list';
 import { Task } from '../model/task';
 import { ClientUtils } from '../util/client-utils';
 import { Label } from '../model/label';
+import { HistoryType } from '../model/history-type';
+import { Factory } from './factory';
+import { TaskHistory } from '../model/task-history';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TaskService {
   
-  constructor(private db: DatabaseService) {
+  constructor(private db: DatabaseService, private fc: Factory) {
   }
   
   getBoards(): Observable<Board[]> {
-    return this.db.findAll({table: 'boards'})
+    return this.db.findAll({table: 'boards', clauses: {deleted: DatabaseService.IS_NULL}})
       .pipe(
         take(1),
       );
   }
   
   getLists(boardId: number): Observable<TaskList[]> {
-    return this.db.findAll({table: 'lists', clauses: {board_id: boardId}})
+    return this.db.findAll({table: 'lists', clauses: {board_id: boardId, deleted: DatabaseService.IS_NULL}})
       .pipe(
         take(1),
         mergeMap((ls: TaskList[]) => {
@@ -43,7 +46,7 @@ export class TaskService {
   }
   
   getTasks(listId: number): Observable<Task[]> {
-    return this.db.findAll({table: 'tasks', clauses: {list_id: listId}})
+    return this.db.findAll({table: 'tasks', clauses: {list_id: listId, deleted: DatabaseService.IS_NULL}})
       .pipe(
         mergeMap((ls: Task[]) => {
           if (ls.length > 0) {
@@ -80,16 +83,67 @@ export class TaskService {
   
   updatePosition(tasks: Task[]): Observable<DbExecResult[]> {
     return concat(tasks.map(t => {
-      return this.db.exec({table: 'tasks', sql: 'update tasks set position = ?, list_id = ? where id = ?', params: [t.position, t.list_id, t.id]});
+      const prevList = t.$prevList;
+      const list = t.list_id;
+      const ob = prevList ? this.addHistoryEntry(t, HistoryType.LIST_CHANGE) : of(true);
+      t.$prevList = null;
+      
+      return zip(this.db.exec({table: 'tasks', sql: 'update tasks set position = ?, list_id = ? where id = ?', params: [t.position, list, t.id]}), ob);
     })).pipe(
-      mergeMap(v => v),
+      mergeMap(v => v[0]),
       take(tasks.length),
       toArray(),
       take(1),
     );
   }
   
-  //
+  updateListPosition(lists: TaskList[]): Observable<DbExecResult[]> {
+    return concat(lists.map(t => {
+      return this.db.exec({table: 'tasks', sql: 'update lists set position = ? where id = ?', params: [t.position, t.id]});
+    })).pipe(
+      mergeMap(v => v),
+      take(lists.length),
+      toArray(),
+      take(1),
+    );
+  }
+  
+  addHistoryEntry(task: Task, type: HistoryType): Observable<DbExecResult> {
+    const h = this.createHistoryEntry(type, task);
+    return this.db.save({table: 'task_history', row: h});
+  }
+  
+  private createHistoryEntry(type: HistoryType, task: Task): TaskHistory {
+    let h: TaskHistory = null;
+    switch (type) {
+      case HistoryType.LIST_CHANGE:
+        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, null, null, task.list_id.toString(), task.$prevList.toString());
+        break;
+      case HistoryType.CONTENT_MODIFY:
+        h = this.fc.createHistoryEntry(type, task.id, null, task.content, task.id);
+        break;
+      case HistoryType.TITLE_MODIFY:
+        h = this.fc.createHistoryEntry(type, task.id, task.title, null, task.id);
+        break;
+      case HistoryType.DUE_DATE_MODIFY:
+        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, null, task.due_date);
+        break;
+      case HistoryType.DELETE:
+        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id);
+        break;
+      case HistoryType.STATE_MODIFY:
+        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, task.state);
+        break;
+    }
+    
+    return h;
+  }
+  
+  getHistory(taskId: number): Observable<TaskHistory[]> {
+    return this.db.findAll({table: 'task_history', clauses: {task_id: taskId}});
+  }
+
+//
   // getValue(key: string): Observable<string> {
   //   return this.get(key).pipe(map(r => r && r.value));
   // }

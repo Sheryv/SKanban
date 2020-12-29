@@ -2,7 +2,7 @@
   <div class="top-bar d-flex">
     <div *ngIf="currentBoard" class="d-flex align-items-center" style="max-width: calc(100% - 28px)">
       <span class="text-ellipsis">{{currentBoard.title}}</span><i
-      class="material-icons icon-btn ml-3" matTooltip="Board settings">build</i>
+      class="material-icons icon-btn ml-3" matTooltip="Board settings" (click)="boardSettings(currentBoard)">build</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">local_offer</i>
     </div>
     <div class="flex-grow-1"></div>

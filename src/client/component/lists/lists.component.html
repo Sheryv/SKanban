@@ -11,18 +11,18 @@
         <div class="px-2 pb-2 w-100 d-flex align-items-center elevate-bottom">
           <h4 class="p-0 text-ellipsis">{{l.title}}</h4>
           <span class="font-9 fg-4 mr-1">&nbsp;({{l.$tasks.length}})</span>
-          <i class="material-icons icon-btn secondary-btn" matTooltip="Edit">edit</i>
+          <i class="material-icons icon-btn secondary-btn" matTooltip="Rename" (click)="renameList(l)">edit</i>
           <div class="flex-grow-1"></div>
-          <i class="material-icons icon-btn mr-1 secondary-btn" matTooltip="Move left">keyboard_arrow_left</i>
-          <i class="material-icons icon-btn mr-1 secondary-btn" matTooltip="Move right">keyboard_arrow_right</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position > 0" matTooltip="Move left" (click)="moveList(l, l.position-1)">keyboard_arrow_left</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position < (lists.length - 1)" matTooltip="Move right" (click)="moveList(l, l.position+1)">keyboard_arrow_right</i>
           <i class="material-icons icon-btn mr-1 secondary-btn"  [matMenuTriggerFor]="listDetailsMenu">more_vert</i>
           <mat-menu #listDetailsMenu="matMenu">
-            <button mat-menu-item>
+            <button mat-menu-item (click)="deleteList(l)">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
             </button>
           </mat-menu>
-          <i class="material-icons icon-btn" (click)="addTask(l)" matTooltip="Add task">add</i>
+          <i class="material-icons icon-btn" (click)="addTask(l)" matTooltip="Add task (^⇧ A)">add</i>
         </div>
         <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}" style="min-height: 3rem">
           <div *ngFor="let task of l.$tasks" class="list-item separator" [ngClass]="{'selected': task == visibleTask}"
@@ -60,21 +60,22 @@
       <i class="ml-1 material-icons icon-btn" matRipple matTooltip="Task actions"
          [matMenuTriggerFor]="itemDetailsMenu">more_vert</i>
       <mat-menu #itemDetailsMenu="matMenu">
-        <button mat-menu-item>
+        <button mat-menu-item (click)="moveTaskToTop(visibleTask)">
           <mat-icon>arrow_upward</mat-icon>
-          <span>Move to list top</span>
+          <span>Move to list top (^⇧ D)</span>
         </button>
-        <button mat-menu-item>
+        <button mat-menu-item (click)="moveTaskToBottom(visibleTask)">
           <mat-icon>arrow_downward</mat-icon>
-          <span>Move to list bottom</span>
+          <span>Move to list bottom (^⇧ F)</span>
         </button>
-        <button mat-menu-item>
+        <button mat-menu-item  (click)="deleteTask(visibleTask)">
           <mat-icon>delete</mat-icon>
           <span>Delete</span>
         </button>
       </mat-menu>
     </div>
-    <app-task-details class="p-2 overflow-auto" [task]="visibleTask" [list]="selectedList" (saved)="onTaskSaved($event)" (closed)="visibleTask = null">
+    <app-task-details class="p-2 overflow-auto" [task]="visibleTask" [list]="selectedList" (saved)="onTaskSaved($event)"
+     (closed)="visibleTask = null">
     </app-task-details>
   </div>
 </as-split>

@@ -1,18 +1,22 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnInit, Output, QueryList, Renderer2, ViewChild, ViewChildren } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, NgZone, OnInit, Output, Renderer2 } from '@angular/core';
 import { State } from '../../service/state';
 import { Task } from '../../model/task';
 import { Factory } from '../../service/factory';
 import { SettingsService } from '../../service/settings.service';
 import { UiSettings } from '../../model/settings';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { Label } from '../../model/label';
 import { LabelService } from '../../service/label.service';
 import { MessageService } from '../../service/message.service';
-import { mergeMap, take } from 'rxjs/operators';
-import { runInZone } from '../../util/client-utils';
+import { mergeMap, take, zip } from 'rxjs/operators';
+import { ClientUtils, runInZone } from '../../util/client-utils';
 import { TaskService } from '../../service/task.service';
 import { TaskList } from '../../model/task-list';
+import { HistoryType } from '../../model/history-type';
+import { forkJoin, Observable, of } from 'rxjs';
+import { DbExecResult } from '../../../shared/model/db-exec-result';
+import { TaskHistory } from '../../model/task-history';
 
 @Component({
   selector: 'app-task-details',
@@ -31,6 +35,8 @@ export class TaskDetailsComponent implements OnInit {
   allLabels: Label[] = [];
   selectedLabels: Label[] = [];
   editMode = false;
+  history: TaskHistory[] = [];
+  historyTypes = HistoryType;
   @Output()
   saved: EventEmitter<Task> = new EventEmitter<Task>();
   @Output()
@@ -46,6 +52,7 @@ export class TaskDetailsComponent implements OnInit {
       this.cancel();
     }
     if (this._task) {
+      this._task = value;
       this.reset();
     }
     this._task = value;
@@ -75,6 +82,12 @@ export class TaskDetailsComponent implements OnInit {
   
   reset() {
     const date = this._task.due_date && DateTime.fromMillis(this._task.due_date).toJSDate();
+    
+    this.taskService.getHistory(this._task.id).pipe(runInZone(this.zone)).subscribe(h => {
+      h.forEach(i => i.$label = ClientUtils.mapHistoryType(i.type));
+      h.sort((a, b) => b.history_date - a.history_date);
+      this.history = h;
+    });
     this.text = JSON.stringify(this._task, null, 2);
     
     this.form = this.fb.group({
@@ -89,8 +102,7 @@ export class TaskDetailsComponent implements OnInit {
   
   save() {
     this.editMode = false;
-    const v = this.form.value;
-    const t = this.task;
+    const t = Object.assign({}, this.task);
     
     Object.assign(t, this.form.value);
     t.$labels = this.selectedLabels;
@@ -98,9 +110,11 @@ export class TaskDetailsComponent implements OnInit {
     if (isNaN(t.due_date)) {
       t.due_date = null;
     }
-    this.taskService.saveTask(t)
+    t.modify_date = Date.now();
+    this.createHistory(this.task, t)
       .pipe(
         take(1),
+        mergeMap(res => this.taskService.saveTask(t)),
         mergeMap(res => {
           return this.labelService.setLabelsForTask(t, this.selectedLabels);
         }),
@@ -108,8 +122,13 @@ export class TaskDetailsComponent implements OnInit {
         runInZone(this.zone),
       )
       .subscribe(r => {
-        this.saved.emit(this.task);
+        Object.assign(this._task, t);
+        const strings = this.selectedLabels.map(l => l.title);
+        console.log('lb after save', strings);
+        this._task.$labels = this.selectedLabels;
+        this.saved.emit(this._task);
         this.message.successShort('Task saved');
+        this.reset();
       }, error1 => {
         console.error('close e');
       });
@@ -139,6 +158,28 @@ export class TaskDetailsComponent implements OnInit {
         elementRef.focus();
       }
     }, 10);
+  }
+  
+  createHistory(prev: Task, edited: Task): Observable<DbExecResult[]> {
+    const ob: Observable<DbExecResult>[] = [];
+    if (prev.title !== edited.title) {
+      ob.push(this.taskService.addHistoryEntry(prev, HistoryType.TITLE_MODIFY));
+    }
+    if (prev.content !== edited.content) {
+      ob.push(this.taskService.addHistoryEntry(prev, HistoryType.CONTENT_MODIFY));
+    }
+    if (prev.state !== edited.state) {
+      ob.push(this.taskService.addHistoryEntry(prev, HistoryType.STATE_MODIFY));
+    }
+    if (prev.due_date !== edited.due_date) {
+      ob.push(this.taskService.addHistoryEntry(prev, HistoryType.DUE_DATE_MODIFY));
+    }
+    return ob.length > 0 ? forkJoin(ob) : of(null);
+  }
+  
+  filterLabels(ids: string) {
+    const numbers = ids.split(',').map(s => Number(s)).filter(n => !isNaN(n));
+    return this.allLabels.filter(lb => numbers.includes(lb.id));
   }
   
   

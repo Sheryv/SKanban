@@ -20,3 +20,16 @@
     visibility: visible;
   }
 }
+
+.history-item {
+  background-color: $background-alt;
+  border-radius: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.history-item-title {
+  background-color: $background-quaternary;
+  border-top-left-radius: 0.5rem;
+  padding: 0.3rem;
+  font-size: 0.9rem;
+}

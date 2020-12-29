@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { ElectronService } from './service/electron.service';
 import { TranslateService } from '@ngx-translate/core';
 import { AppConfig } from '../environments/environment';
@@ -10,16 +10,15 @@ import { SettingsService } from './service/settings.service';
 import { KeyCommandsService } from './service/key-commands.service';
 import { ShortcutInput } from 'ng-keyboard-shortcuts';
 import { MatDialog } from '@angular/material/dialog';
-import { CreateBoardDialogComponent } from './component/dialog/create-board-dialog/create-board-dialog.component';
-import { map, mergeMap } from 'rxjs/operators';
+import { filter, mergeMap, take, tap } from 'rxjs/operators';
 import { TaskService } from './service/task.service';
-import { of, throwError, zip } from 'rxjs';
-import { DbExecResult } from '../shared/model/db-exec-result';
-import { NgZone } from '@angular/core';
-import { runInZone, ClientUtils } from './util/client-utils';
+import { of, zip } from 'rxjs';
+import { ClientUtils, runInZone } from './util/client-utils';
 import { CreateLabelDialogComponent } from './component/dialog/create-label-dialog/create-label-dialog.component';
 import { LabelService } from './service/label.service';
 import { MessageService } from './service/message.service';
+import { DialogParams, SingleInputDialogComponent } from './component/dialog/single-input-dialog/single-input-dialog.component';
+import { BoardSettingsDialogComponent } from './component/dialog/board-settings-dialog/board-settings-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -86,17 +85,16 @@ export class AppComponent implements OnInit {
   }
   
   createBoard() {
-    const dialogRef = this.dialog.open(CreateBoardDialogComponent, {
+    const dialogRef = this.dialog.open<SingleInputDialogComponent, DialogParams>(SingleInputDialogComponent, {
       width: '450px',
+      data: {title: 'Create board'},
     });
     
     dialogRef.afterClosed()
       .pipe(
+        take(1),
+        filter(name => name),
         mergeMap(name => {
-          if (!name) {
-            return throwError('Name cannot be empty');
-          }
-          
           const b = this.factory.createBoard(name);
           return this.taskService.saveBoard(b);
         }),
@@ -111,7 +109,7 @@ export class AppComponent implements OnInit {
         this.boards = bs[1];
         this.boardChange(board);
         this.msg.success('Board created');
-      }, err => this.msg.error('Cannot create label'));
+      }, error1 => this.msg.error('Cannot create ' + error1));
   }
   
   createLabel(boardId: number) {
@@ -121,17 +119,34 @@ export class AppComponent implements OnInit {
     
     dialogRef.afterClosed()
       .pipe(
-        mergeMap(lb => {
-          if (lb && lb.name) {
-            return this.labelService.createLabel(lb.name, boardId, lb.color);
-          } else {
-            return throwError('');
-          }
-        }),
+        take(1),
+        filter(lb => lb && lb.name),
+        mergeMap(lb => this.labelService.createLabel(lb.name, boardId, lb.color)),
         runInZone(this.zone),
       )
       .subscribe(bs => {
         this.msg.success('Label created');
-      });
+      }, error1 => this.msg.error('Cannot create ' + error1));
+  }
+  
+  boardSettings(board: Board) {
+    const dialogRef = this.dialog.open(BoardSettingsDialogComponent, {
+      width: '550px',
+      data: board,
+    });
+    
+    dialogRef.afterClosed()
+      .pipe(
+        take(1),
+        filter(name => name),
+        mergeMap(name => {
+          board.title = name;
+          return this.taskService.saveBoard(board);
+        }),
+        runInZone(this.zone),
+      )
+      .subscribe(lists => {
+        this.msg.successShort('Rename success');
+      }, error1 => this.msg.error('Cannot rename ' + error1), () => this.refreshBoards());
   }
 }

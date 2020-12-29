@@ -68,6 +68,8 @@ export class DatabaseProvider {
         'content TEXT, ' +
         'related_object NUMBER, ' +
         'type NUMBER NOT NULL, ' +
+        'added TEXT, ' +
+        'removed TEXT, ' +
         'state NUMBER, ' +
         'due_date INTEGER, ' +
         'history_date INTEGER NOT NULL, ' +

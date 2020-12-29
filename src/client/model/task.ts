@@ -14,4 +14,5 @@ export interface Task extends Entity {
   list_id: number;
   
   $labels?: Label[];
+  $prevList?: number;
 }

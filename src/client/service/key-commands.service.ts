@@ -25,9 +25,31 @@ export class KeyCommandsService {
     };
   });
   
+  readonly moveToTopEvent: KeyEvent = new KeyEvent(e => {
+    return {
+      key: 'ctrl + shift + d',
+      command(event: ShortcutEventOutput): any {
+        e.next(event);
+      },
+      description: 'Move selected task to top',
+    };
+  });
+  
+  readonly moveToBottomEvent: KeyEvent = new KeyEvent(e => {
+    return {
+      key: 'ctrl + shift + f',
+      command(event: ShortcutEventOutput): any {
+        e.next(event);
+      },
+      description: 'Move selected task to bottom',
+    };
+  });
+  
   prepareShortcuts(): ShortcutInput[] {
     return [
       this.addEvent.def,
+      this.moveToTopEvent.def,
+      this.moveToBottomEvent.def,
     ];
   }
   
