@@ -4,7 +4,7 @@ import { from, Observable } from 'rxjs';
 import { DbOperation } from '../../shared/model/db-operation';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Row } from '../../typings';
-import { notNullField } from '../../shared/util/utils';
+import { notNullField, Utils } from '../../shared/util/utils';
 import { tap } from 'rxjs/operators';
 
 
@@ -14,7 +14,7 @@ export class DatabaseProvider {
   
   init() {
     open({
-      filename: './database.db',
+      filename: './' + Utils.DB_NAME,
       driver: sqlite3.Database,
     }).then((db) => {
       const handler = err => console.error('>>>> Error in DB init <<<<<:', err);
@@ -118,7 +118,7 @@ export class DatabaseProvider {
     
     const sql = `select *
     from ${op.table}${cl.where}`;
-     console.log('findAll: ', JSON.stringify(op), 'SQL: ' + sql, '\n');
+    console.log('findAll: ', JSON.stringify(op), 'SQL: ' + sql, '\n');
     return from(this.db.all<Row[]>(sql, ...cl.params));
   }
   

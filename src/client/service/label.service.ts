@@ -32,12 +32,12 @@ export class LabelService {
   }
   
   clearCache() {
-    this.labels = null;
+    this.labels.clear();
   }
   
   createLabel(name: string, boardId: number, color: string = null): Observable<DbExecResult> {
     const label = this.fc.createLabel(name, boardId, color);
-    return this.db.save({table: 'labels', row: label});
+    return this.db.save({table: 'labels', row: label}).pipe(tap(() => this.clearCache()));
   }
   
   setLabelsForTask(task: Task, labels: Label[]): Observable<DbExecResult[]> {

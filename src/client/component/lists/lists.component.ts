@@ -38,7 +38,6 @@ export class ListsComponent implements OnInit, OnDestroy {
               private taskService: TaskService, private msg: MessageService, private dialog: MatDialog, private zone: NgZone,
   ) {
     state.boardChanged.subscribe((b) => this.changeBoard(b));
-    this.ui = settingsService.base.ui;
     this.changeBoard(state.currentBoard);
   }
   
@@ -71,6 +70,7 @@ export class ListsComponent implements OnInit, OnDestroy {
   private loadLists() {
     const b = this.board;
     const fc = this.factory;
+    this.ui = this.settingsService.base.ui;
     return this.taskService.getLists(b.id).pipe(
       runInZone(this.zone),
       take(1),
@@ -93,7 +93,7 @@ export class ListsComponent implements OnInit, OnDestroy {
         
         this.selectedList = this.lists && this.lists[0];
         this.loading = false;
-        console.log('loaded list ', this.lists);
+        console.log('loaded list ', this.lists, this.ui);
       }));
   }
   

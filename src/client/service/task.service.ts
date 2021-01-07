@@ -90,7 +90,8 @@ export class TaskService {
       
       return zip(this.db.exec({table: 'tasks', sql: 'update tasks set position = ?, list_id = ? where id = ?', params: [t.position, list, t.id]}), ob);
     })).pipe(
-      mergeMap(v => v[0]),
+      mergeMap(v => v),
+      map(v => v[0]),
       take(tasks.length),
       toArray(),
       take(1),

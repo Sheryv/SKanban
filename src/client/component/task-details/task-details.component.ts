@@ -74,30 +74,34 @@ export class TaskDetailsComponent implements OnInit {
   
   
   ngOnInit(): void {
-    this.labelService.getLabels(this.list.board_id).pipe(runInZone(this.zone)).subscribe(ls => {
-      this.allLabels = ls;
-      this.reset();
-    });
+    this.reset();
+    
+    this.state.boardChanged.subscribe(b => this.cancel());
   }
   
   reset() {
-    const date = this._task.due_date && DateTime.fromMillis(this._task.due_date).toJSDate();
-    
-    this.taskService.getHistory(this._task.id).pipe(runInZone(this.zone)).subscribe(h => {
-      h.forEach(i => i.$label = ClientUtils.mapHistoryType(i.type));
-      h.sort((a, b) => b.history_date - a.history_date);
-      this.history = h;
+    this.labelService.getLabels(this.list.board_id).pipe(runInZone(this.zone)).subscribe(ls => {
+      this.allLabels = ls;
+      
+      const date = this._task.due_date && DateTime.fromMillis(this._task.due_date).toJSDate();
+      
+      this.taskService.getHistory(this._task.id).pipe(runInZone(this.zone)).subscribe(h => {
+        h.forEach(i => i.$label = ClientUtils.mapHistoryType(i.type));
+        h.sort((a, b) => b.history_date - a.history_date);
+        this.history = h;
+      });
+      this.text = JSON.stringify(this._task, null, 2);
+      
+      this.form = this.fb.group({
+        title: [this._task.title, [Validators.required]],
+        content: [this._task.content, [Validators.max(10000)]],
+        due_date: [date],
+      });
+      this.selectedLabels = (this._task.$labels && this._task.$labels.slice()) || [];
+      this.labels = this.allLabels.slice().filter(a => this.selectedLabels.every(s => a.id !== s.id));
+      console.log('reset to ', this.allLabels);
     });
-    this.text = JSON.stringify(this._task, null, 2);
     
-    this.form = this.fb.group({
-      title: [this._task.title, [Validators.required]],
-      content: [this._task.content, [Validators.max(10000)]],
-      due_date: [date],
-    });
-    this.selectedLabels = (this._task.$labels && this._task.$labels.slice()) || [];
-    this.labels = this.allLabels.slice().filter(a => this.selectedLabels.every(s => a.id !== s.id));
-    console.log('reset to ', this.allLabels);
   }
   
   save() {

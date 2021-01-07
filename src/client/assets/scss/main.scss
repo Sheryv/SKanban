@@ -172,7 +172,7 @@ html, body {
 
 .task-label {
   display: inline-block;
-  min-height: 0.25rem;
+  min-height: 0.3rem;
   margin-right: 0.4rem;
   padding: 0.1rem 0.4rem;
   background-color: $background-quaternary;
@@ -264,4 +264,17 @@ hr {
   border-top-style: inset;
   border-top-width: 1px;
   border-color: $foreground-tertiary;
+}
+
+a {
+  color: #5089f8;
+  cursor: pointer;
+}
+
+a:visited {
+  color: #98b8f6;
+}
+
+a:hover {
+  color: #266fff;
 }

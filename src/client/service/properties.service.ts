@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { DatabaseService } from './database.service';
 import { map, mergeMap, take } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Row } from '../../typings';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class PropertiesService {
   
@@ -14,7 +14,7 @@ export class PropertiesService {
   }
   
   get(key: string): Observable<Row> {
-    return this.db.query({table: 'properties', findId: null, sql: 'select value from properties where key = ?', params: [key]})
+    return this.db.findAll({table: 'properties', clauses: {key: key}})
       .pipe(
         take(1),
         map(r => r && r[0]),
@@ -26,16 +26,20 @@ export class PropertiesService {
   }
   
   set(key: string, value: any): Observable<DbExecResult> {
-    if (value == null) {
-      return;
-    }
+    // if (value == null) {
+    //   return of(null);
+    // }
     return this.get(key).pipe(
       mergeMap(v => {
+        const row = {key: key, value: value, id: null};
         if (v != null) {
-          return this.db.save({table: 'properties', findId: null, row: {id: v.id}});
-        } else {
-          return this.db.exec({table: 'properties', findId: null, sql: 'insert into properties (key, value) values (?,?)', params: [key, value]});
+          row.id = v.id;
         }
+        console.log('get-set prop', row);
+        return this.db.save({table: 'properties', findId: null, row: row});
+        // else {
+        //   return this.db.exec({table: 'properties', findId: null, sql: 'insert into properties (key, value) values (?,?)', params: [key, value]});
+        // }
       }),
     );
   }

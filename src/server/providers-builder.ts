@@ -1,6 +1,11 @@
 import { Context } from './context';
 import { DatabaseProvider } from './provider/database-provider';
 import { Bridge } from '../shared/service/bridge';
+import { of } from 'rxjs';
+import { Utils } from '../shared/util/utils';
+
+const {app, shell} = require('electron');
+const path = require('path');
 
 export class ProvidersBuilder {
   static readonly dbp = new DatabaseProvider();
@@ -19,6 +24,18 @@ export class ProvidersBuilder {
       }
       
       return this.dbp[fun](a[1]);
+    });
+    
+    Bridge.registerServerListener('shell', (a) => {
+      const fun = a[0];
+      
+      if (fun === 'showDbFile') {
+        const fullPath = path.join(path.dirname(app.getPath('exe')), Utils.DB_NAME);
+        console.log('showing file ', fullPath);
+        shell.showItemInFolder(fullPath);
+      }
+      
+      return [];
     });
     
     

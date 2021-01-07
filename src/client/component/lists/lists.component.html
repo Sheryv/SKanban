@@ -1,10 +1,10 @@
 <as-split *ngIf="board && lists?.length > 0" gutterSize="7">
-  <div as-split-area [size]="100 - ui.detailsWith" minSize="5"
+  <div as-split-area [size]="100 - ui.detailsWith" minSize="10"
        class="py-2 d-flex h-100 align-items-start"
        style="overflow-x: auto; overflow-y: hidden">
     <div class=" d-flex h-100 align-items-start" *ngIf="!loading" cdkDropListGroup>
       <div class="list m-1 d-flex flex-column" *ngFor="let l of lists" style="max-height: 100%"
-          cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListData]="l.$tasks"
+           cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListData]="l.$tasks"
            (click)="selectedList = l"
            [ngClass]="{'list-selected': selectedList == l}"
            [ngStyle]="{'width.px': ui.taskListWidth, 'min-width.px': ui.taskListWidth}">
@@ -13,9 +13,11 @@
           <span class="font-9 fg-4 mr-1">&nbsp;({{l.$tasks.length}})</span>
           <i class="material-icons icon-btn secondary-btn" matTooltip="Rename" (click)="renameList(l)">edit</i>
           <div class="flex-grow-1"></div>
-          <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position > 0" matTooltip="Move left" (click)="moveList(l, l.position-1)">keyboard_arrow_left</i>
-          <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position < (lists.length - 1)" matTooltip="Move right" (click)="moveList(l, l.position+1)">keyboard_arrow_right</i>
-          <i class="material-icons icon-btn mr-1 secondary-btn"  [matMenuTriggerFor]="listDetailsMenu">more_vert</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position > 0" matTooltip="Move left"
+             (click)="moveList(l, l.position-1)">keyboard_arrow_left</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position < (lists.length - 1)"
+             matTooltip="Move right" (click)="moveList(l, l.position+1)">keyboard_arrow_right</i>
+          <i class="material-icons icon-btn mr-1 secondary-btn" [matMenuTriggerFor]="listDetailsMenu">more_vert</i>
           <mat-menu #listDetailsMenu="matMenu">
             <button mat-menu-item (click)="deleteList(l)">
               <mat-icon>delete</mat-icon>
@@ -24,23 +26,31 @@
           </mat-menu>
           <i class="material-icons icon-btn" (click)="addTask(l)" matTooltip="Add task (^⇧ A)">add</i>
         </div>
-        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}" style="min-height: 3rem">
+        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}"
+             style="min-height: 3rem">
           <div *ngFor="let task of l.$tasks" class="list-item separator" [ngClass]="{'selected': task == visibleTask}"
-          cdkDrag
+               cdkDrag
                [ngStyle]="{
                 'padding-top.rem': (ui.taskItemPadding/100 * 0.5),
                 'padding-bottom.rem': (ui.taskItemPadding/100 * 0.5)
               }"
                tabindex="-1" (click)="selectTask(task);">
-            {{task.title}} > {{task.position}} > {{task.list_id}}
+            <div class="d-flex flex-wrap">
+              <span>{{task.title}}</span>
+              <span [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.85)}" *ngIf="ui.taskListWidth >= 300 && task.due_date"
+               class="fg-3 d-flex flex-grow-1 justify-content-end align-items-center">
+                <i class="material-icons mr-1" style="font-size: inherit">schedule</i>
+                <span>{{task.due_date | dateMillis}}</span>
+              </span>
+            </div>
             <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"
                                 [settings]="ui"></app-label-chip-row>
-            <div class="fg-4 text-ellipsis mt-1 markdown-content-preview" *ngIf="ui.taskShowContentSize > 0"
-                 [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8), 'max-height.rem': (ui.taskShowContentSize+0.6)*(ui.taskItemSize/100*0.8)}" >{{task.content}}</div>
+            <div class="fg-4 text-ellipsis mt-1 markdown-content-preview" *ngIf="ui.taskShowContentSize > 0 && task.content"
+                 [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8), 'max-height.rem': (ui.taskShowContentSize+0.6)*(ui.taskItemSize/100*0.8)}">{{task.content}}</div>
           </div>
-<!--          <div class="text-right pr-2 pb-1" *ngIf="l.$tasks && l.$tasks.length > 0">-->
-<!--            <button mat-stroked-button color="accent" class="mt-1 btn-small">Add</button>-->
-<!--          </div>-->
+          <!--          <div class="text-right pr-2 pb-1" *ngIf="l.$tasks && l.$tasks.length > 0">-->
+          <!--            <button mat-stroked-button color="accent" class="mt-1 btn-small">Add</button>-->
+          <!--          </div>-->
         </div>
       </div>
       <button class="list-add" mat-stroked-button matTooltip="Create list" (click)="addList()">
@@ -68,14 +78,14 @@
           <mat-icon>arrow_downward</mat-icon>
           <span>Move to list bottom (^⇧ F)</span>
         </button>
-        <button mat-menu-item  (click)="deleteTask(visibleTask)">
+        <button mat-menu-item (click)="deleteTask(visibleTask)">
           <mat-icon>delete</mat-icon>
           <span>Delete</span>
         </button>
       </mat-menu>
     </div>
     <app-task-details class="p-2 overflow-auto" [task]="visibleTask" [list]="selectedList" (saved)="onTaskSaved($event)"
-     (closed)="visibleTask = null">
+                      (closed)="visibleTask = null">
     </app-task-details>
   </div>
 </as-split>

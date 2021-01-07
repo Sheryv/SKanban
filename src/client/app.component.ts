@@ -19,6 +19,9 @@ import { LabelService } from './service/label.service';
 import { MessageService } from './service/message.service';
 import { DialogParams, SingleInputDialogComponent } from './component/dialog/single-input-dialog/single-input-dialog.component';
 import { BoardSettingsDialogComponent } from './component/dialog/board-settings-dialog/board-settings-dialog.component';
+import { SettingsComponent } from './component/dialog/settings-dialog/settings.component';
+import { Settings } from './model/settings';
+import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -148,5 +151,39 @@ export class AppComponent implements OnInit {
       .subscribe(lists => {
         this.msg.successShort('Rename success');
       }, error1 => this.msg.error('Cannot rename ' + error1), () => this.refreshBoards());
+  }
+  
+  
+  systemSettings() {
+    const dialogRef = this.dialog.open(SettingsComponent, {
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      height: '100%',
+      width: '100%',
+    });
+    
+    dialogRef.afterClosed()
+      .pipe(
+        take(1),
+        filter(settings => settings),
+        mergeMap(settings => {
+          console.log('save settings', settings);
+          const s: Settings = JSON.parse(JSON.stringify(this.settings.base));
+          s.ui = settings;
+          return this.settings.save(s);
+        }),
+      )
+      .subscribe(s => {
+        this.msg.successShort('Settings saved');
+      }, error1 => this.msg.error('Cannot save ' + error1));
+  }
+  
+  aboutDialog() {
+    this.dialog.open(AboutDialogComponent, {
+    });
+  }
+  
+  showDbFile() {
+    this.electronService.showDbFile();
   }
 }

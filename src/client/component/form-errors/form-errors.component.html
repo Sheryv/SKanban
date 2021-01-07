@@ -1,0 +1,12 @@
+<ng-container *ngIf="error.key === 'required'">
+  Cannot be empty
+</ng-container>
+<ng-container *ngIf="error.key === 'pattern'">
+  Integer value required
+</ng-container>
+<ng-container *ngIf="error.key === 'min'">
+  Minimum allowed value is {{error.value.min}}
+</ng-container>
+<ng-container *ngIf="error.key === 'max'">
+  Max allowed value is {{error.value.max}}
+</ng-container>

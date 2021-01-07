@@ -1,6 +1,8 @@
 export class Utils {
-
+  
   private static readonly CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  
+  static readonly DB_NAME = 'database.db';
   
   static generateId(length: number = 6) {
     let result = '';
@@ -35,4 +37,19 @@ export function notNull(ob, msg: string) {
 
 export function notNullField(ob, field: string) {
   notNull(ob, 'Field \'' + field + '\' is required and cannot be null');
+}
+
+export function inRangeField(ob, field: string, min: number = null, max: number = null) {
+  notNull(ob, 'Field \'' + field + '\' is required and cannot be null');
+  const num = Number(ob[field]);
+  if (isNaN(num)) {
+    throw new Error(`Field '${field}' is not a number. '${ob[field]}' cannot be parsed as number`);
+  }
+  
+  if (min != null && num < min) {
+    throw new Error(`Field '${field}' value is too low. ${num} < ${min}`);
+  }
+  if (max != null && num > max) {
+    throw new Error(`Field '${field}' value is too high. ${num} > ${max}`);
+  }
 }

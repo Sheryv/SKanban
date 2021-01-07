@@ -57,6 +57,9 @@ import { ColorPickerModule } from 'ngx-color-picker';
 import { MarkdownPipe } from './pipe/markdown.pipe';
 import { SingleInputDialogComponent } from './component/dialog/single-input-dialog/single-input-dialog.component';
 import { BoardSettingsDialogComponent } from './component/dialog/board-settings-dialog/board-settings-dialog.component';
+import { SettingsComponent } from './component/dialog/settings-dialog/settings.component';
+import { FormErrorsComponent } from './component/form-errors/form-errors.component';
+import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -80,6 +83,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     CreateTaskDialogComponent,
     CreateLabelDialogComponent,
     BoardSettingsDialogComponent,
+    SettingsComponent,
+    AboutDialogComponent,
+    FormErrorsComponent
   ],
   imports: [
     BrowserModule,

@@ -6,7 +6,25 @@
       <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">local_offer</i>
     </div>
     <div class="flex-grow-1"></div>
-    <i class="material-icons icon-btn" matTooltip="System settings">settings</i>
+    <i class="material-icons icon-btn" matTooltip="System menu" [matMenuTriggerFor]="systemMenu">settings</i>
+    <mat-menu #systemMenu="matMenu">
+      <button mat-menu-item (click)="systemSettings()">
+        <mat-icon>tune</mat-icon>
+        <span>Settings</span>
+      </button>
+      <button mat-menu-item (click)="aboutDialog()">
+        <mat-icon>code</mat-icon>
+        <span>About</span>
+      </button>
+      <button mat-menu-item (click)="showDbFile()">
+        <mat-icon>storage</mat-icon>
+        <span>Show DB file in explorer</span>
+      </button>
+      <button mat-menu-item disabled>
+        <mat-icon>help</mat-icon>
+        <span>Keyboard shortcuts</span>
+      </button>
+    </mat-menu>
   </div>
   <router-outlet *ngIf="loaded && currentBoard"></router-outlet>
   <div *ngIf="!loaded" class="mt-5">

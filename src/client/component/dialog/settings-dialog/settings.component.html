@@ -1,0 +1,92 @@
+<h1 mat-dialog-title>System settings</h1>
+<div mat-dialog-content>
+  <div class="container">
+    <form [formGroup]="form">
+
+      <div class="row mb-2">
+        <div class="col">
+          <h3>General</h3>
+          <hr/>
+        </div>
+      </div>
+
+      <div class="row my-2">
+        <div class="col">
+          <h3>Lists</h3>
+          <hr/>
+        </div>
+      </div>
+
+      <div class="row mb-2">
+        <div class="col-12 col-sm-6 mt-2">Task list width [px]</div>
+        <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
+          <input matInput type="number" maxlength="100" formControlName="taskListWidth">
+          <mat-error *ngFor="let e of (form.get('taskListWidth').errors | keyvalue) || []" app-form-errors
+                     [error]="e"></mat-error>
+          <mat-hint>Default: 300</mat-hint>
+        </mat-form-field>
+      </div>
+      <div class="row mb-2">
+        <div class="col-12 col-sm-6 mt-2">Task item font size [%]</div>
+        <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
+          <input matInput type="number" maxlength="100" formControlName="taskItemSize">
+          <mat-error *ngFor="let e of (form.get('taskItemSize').errors | keyvalue) || []" app-form-errors
+                     [error]="e"></mat-error>
+          <mat-hint>Default: 100</mat-hint>
+        </mat-form-field>
+      </div>
+
+       <div class="row mb-2">
+        <div class="col-12 col-sm-6 mt-2">Task item padding [%]</div>
+        <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
+          <input matInput type="number" maxlength="100" formControlName="taskItemPadding">
+          <mat-error *ngFor="let e of (form.get('taskItemPadding').errors | keyvalue) || []" app-form-errors
+                     [error]="e"></mat-error>
+          <mat-hint>Default: 100</mat-hint>
+        </mat-form-field>
+      </div>
+
+       <div class="row mb-2">
+        <div class="col-12 col-sm-6 mt-2">Label text visibility in lists</div>
+        <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
+          <input matInput type="number" maxlength="100" formControlName="taskLabelShowText">
+          <mat-error *ngFor="let e of (form.get('taskLabelShowText').errors | keyvalue) || []" app-form-errors
+                     [error]="e"></mat-error>
+          <mat-hint>Default: 1. 0 means hidden, 1 - visible</mat-hint>
+        </mat-form-field>
+      </div>
+
+       <div class="row mb-2">
+        <div class="col-12 col-sm-6 mt-2">Number of content lines visible for each task in list</div>
+        <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
+          <input matInput maxlength="100" formControlName="taskShowContentSize">
+          <mat-error *ngFor="let e of (form.get('taskShowContentSize').errors | keyvalue) || []" app-form-errors
+                     [error]="e"></mat-error>
+          <mat-hint>Default: 3</mat-hint>
+        </mat-form-field>
+      </div>
+
+
+      <div class="row my-2">
+        <div class="col">
+          <h3>Tasks</h3>
+          <hr/>
+        </div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-12 col-sm-6 mt-2">Task details panel width [%]</div>
+        <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
+          <input matInput type="number" maxlength="100" formControlName="detailsWith">
+          <mat-error *ngFor="let e of (form.get('detailsWith').errors | keyvalue) || []" app-form-errors
+                     [error]="e"></mat-error>
+          <mat-hint>Default: 25</mat-hint>
+        </mat-form-field>
+      </div>
+
+    </form>
+  </div>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="accent" (click)="save()">Save</button>
+</div>
