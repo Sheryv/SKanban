@@ -18,6 +18,7 @@ import { MessageService } from '../../service/message.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { DialogParams, SingleInputDialogComponent } from '../dialog/single-input-dialog/single-input-dialog.component';
 import { HistoryType } from '../../model/history-type';
+import { TaskType } from '../../model/task-type';
 
 @Component({
   selector: 'app-lists',
@@ -32,6 +33,7 @@ export class ListsComponent implements OnInit, OnDestroy {
   selectedList: TaskList;
   activeState = new Subject<any>();
   loading: boolean;
+  types = TaskType;
   
   
   constructor(private state: State, private factory: Factory, public settingsService: SettingsService, private keyService: KeyCommandsService,
@@ -71,7 +73,7 @@ export class ListsComponent implements OnInit, OnDestroy {
     const b = this.board;
     const fc = this.factory;
     this.ui = this.settingsService.base.ui;
-    return this.taskService.getLists(b.id).pipe(
+    return this.taskService.getLists(b).pipe(
       runInZone(this.zone),
       take(1),
       tap(lists => {

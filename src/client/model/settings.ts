@@ -9,4 +9,6 @@ export interface UiSettings {
   taskItemSize: number;
   taskLabelShowText: number;
   taskShowContentSize: number;
+  taskDueDateVisibility: boolean;
+  codeParserConfig: string;
 }

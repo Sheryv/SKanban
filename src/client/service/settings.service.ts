@@ -5,7 +5,7 @@ import { flatMap, mergeMap, tap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { inRangeField, notNullField } from '../../shared/util/utils';
-import { runInZone } from '../util/client-utils';
+import { ClientUtils, runInZone } from '../util/client-utils';
 
 @Injectable()
 export class SettingsService {
@@ -20,6 +20,8 @@ export class SettingsService {
       taskItemSize: 100,
       taskLabelShowText: 1,
       taskShowContentSize: 3,
+      taskDueDateVisibility: true,
+      codeParserConfig: ''
     },
   };
   
@@ -41,6 +43,7 @@ export class SettingsService {
     return this.property.getValue('settings').pipe(mergeMap(json => {
       if (json) {
         this.base = JSON.parse(json);
+        this.base = ClientUtils.mergeDeep(this.DEFAULT_SETTINGS, this.base);
         return of(this.base);
       } else {
         this.base = this.DEFAULT_SETTINGS;

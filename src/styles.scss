@@ -67,4 +67,6 @@ $cdark-theme: mat-dark-theme($dark-primary, $dark-accent, $dark-warn);
 
 @import "client/assets/css/bootstrap-grid.min.css";
 @import "client/assets/css/utils.css";
+@import "client/assets/scss/fontawesome/fontawesome";
+@import "client/assets/scss/fontawesome/solid";
 @import "client/assets/scss/main.scss";

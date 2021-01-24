@@ -8,4 +8,5 @@ export enum HistoryType {
   LIST_CHANGE = 1024,
   LABEL_ADD = 2048,
   LABEL_REMOVE = 4096,
+  TYPE_MODIFY = 8192,
 }

@@ -22,12 +22,21 @@
               "src/favicon.png",
               "src/favicon.icns",
               "src/favicon.256x256.png",
-              "src/favicon.512x512.png"
+              "src/favicon.512x512.png",
+              {
+                "glob": "**/*",
+                "input": "node_modules/ace-builds/src-min",
+                "output": "./client/assets/ace-builds/"
+              }
             ],
             "styles": [
-              "src/styles.scss"
+              "node_modules/ngx-markdown-editor/dist/assets/highlight.js/agate.min.css",
+              "src/styles.scss",
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/ngx-markdown-editor/dist/assets/highlight.js/highlight.min.js",
+              "node_modules/ngx-markdown-editor/dist/assets/marked.min.js"
+            ]
           },
           "configurations": {
             "dev": {

@@ -60,6 +60,9 @@ import { BoardSettingsDialogComponent } from './component/dialog/board-settings-
 import { SettingsComponent } from './component/dialog/settings-dialog/settings.component';
 import { FormErrorsComponent } from './component/form-errors/form-errors.component';
 import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
+import { LMarkdownEditorModule } from 'ngx-markdown-editor/dist';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -85,7 +88,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     BoardSettingsDialogComponent,
     SettingsComponent,
     AboutDialogComponent,
-    FormErrorsComponent
+    FormErrorsComponent,
   ],
   imports: [
     BrowserModule,
@@ -98,6 +101,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     MatInputModule,
     MatIconModule,
     MatListModule,
+    MatSlideToggleModule,
+    MatSelectModule,
     MatDialogModule,
     MatSnackBarModule,
     MatMenuModule,
@@ -118,6 +123,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     AngularSplitModule,
     MatProgressSpinnerModule,
     KeyboardShortcutsModule.forRoot(),
+    LMarkdownEditorModule,
+    LMarkdownEditorModule,
   ],
   providers: [
     ElectronService,

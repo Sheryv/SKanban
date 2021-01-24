@@ -62,7 +62,7 @@ export class LabelService {
         mergeMap(d => {
           let ob: Observable<TaskLabel[]>;
           if (d.length > 0) {
-            const h = this.fc.createHistoryEntry(HistoryType.LABEL_REMOVE, task.id, null, null, task.id, null, null, null, d.map(l => l.label_id).join(','));
+            const h = this.fc.createHistoryEntry(HistoryType.LABEL_REMOVE, task.id, null, null, task.id, null, null, null, null, d.map(l => l.label_id).join(','));
             ob = this.db.save({table: 'task_history', row: h}).pipe(map(() => d));
           } else {
             ob = of(d);
@@ -79,7 +79,7 @@ export class LabelService {
           if (lb.length <= 0) {
             return of(null);
           }
-          const h = this.fc.createHistoryEntry(HistoryType.LABEL_ADD, task.id, null, null, task.id, null, null, lb.map(l => l.id).join(','));
+          const h = this.fc.createHistoryEntry(HistoryType.LABEL_ADD, task.id, null, null, task.id, null, null, null, lb.map(l => l.id).join(','));
           return this.db.save({table: 'task_history', row: h});
         }),
         mergeMap(() => concat(lb.map(l => {

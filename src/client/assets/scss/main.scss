@@ -204,17 +204,23 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.12)
 }
 
-mat-form-field.field-small .mat-form-field-infix {
-  margin-top: 0;
-  padding-bottom: 10px;
-  border-top: none;
+mat-form-field.field-small {
+  .mat-form-field-infix {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-top: none;
+  }
+
+  .mat-select-arrow-wrapper {
+    transform: none;
+  }
 }
 
 .markdown-content-preview {
   white-space: pre-wrap;
 }
 
-.markdown-content {
+.markdown-content, md-editor {
   li {
     display: list-item;
     list-style-position: inside;
@@ -277,4 +283,16 @@ a:visited {
 
 a:hover {
   color: #266fff;
+}
+
+.hljs {
+  background: $background-alt;
+}
+
+md-editor .preview-panel {
+  background-color: $background !important;
+}
+
+.ace-editor {
+  font-size: 1rem;
 }

@@ -10,14 +10,14 @@ import { tap } from 'rxjs/operators';
 
 export class DatabaseProvider {
   private db: Database;
-  private readonly version = 1;
+  private readonly version = 2;
+  private handler = err => console.error('>>>> Error in DB init <<<<<:', err);
   
   init() {
     open({
       filename: './' + Utils.DB_NAME,
       driver: sqlite3.Database,
     }).then((db) => {
-      const handler = err => console.error('>>>> Error in DB init <<<<<:', err);
       
       console.log('db opened');
       this.db = db;
@@ -25,78 +25,93 @@ export class DatabaseProvider {
         console.debug(':::DB::: ', t);
       });
       this.db.exec('CREATE TABLE IF NOT EXISTS boards (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT NOT NULL, ' +
-        'create_date INTEGER NOT NULL, ' +
-        'type_label_id INTEGER, ' +
-        'deleted INTEGER' +
-        ')').catch(handler);
+          'title TEXT NOT NULL, ' +
+          'create_date INTEGER NOT NULL, ' +
+          'type_label_id INTEGER, ' +
+          'deleted INTEGER' +
+          ')').catch(this.handler);
       
       this.db.exec('CREATE TABLE IF NOT EXISTS labels (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT NOT NULL, ' +
-        'create_date INTEGER NOT NULL, ' +
-        'bg_color TEXT, ' +
-        'board_id INTEGER NOT NULL, ' +
-        'FOREIGN KEY(board_id) REFERENCES boards(id)' +
-        ')').catch(handler);
+          'title TEXT NOT NULL, ' +
+          'create_date INTEGER NOT NULL, ' +
+          'bg_color TEXT, ' +
+          'board_id INTEGER NOT NULL, ' +
+          'FOREIGN KEY(board_id) REFERENCES boards(id)' +
+          ')').catch(this.handler);
       
       this.db.exec('CREATE TABLE IF NOT EXISTS lists (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT NOT NULL, ' +
-        'create_date INTEGER NOT NULL, ' +
-        'position INTEGER NOT NULL,' +
-        'bg_color TEXT,' +
-        'deleted INTEGER, ' +
-        'board_id INTEGER NOT NULL, ' +
-        'FOREIGN KEY(board_id) REFERENCES boards(id)' +
-        ')').catch(handler);
+          'title TEXT NOT NULL, ' +
+          'create_date INTEGER NOT NULL, ' +
+          'position INTEGER NOT NULL,' +
+          'bg_color TEXT,' +
+          'deleted INTEGER, ' +
+          'board_id INTEGER NOT NULL, ' +
+          'FOREIGN KEY(board_id) REFERENCES boards(id)' +
+          ')').catch(this.handler);
       
       this.db.exec('CREATE TABLE IF NOT EXISTS tasks (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT NOT NULL, ' +
-        'content TEXT, ' +
-        'modify_date INTEGER NOT NULL, ' +
-        'create_date INTEGER NOT NULL, ' +
-        'state INTEGER NOT NULL, ' +
-        'due_date INTEGER, ' +
-        'bg_color TEXT, ' +
-        'position INTEGER NOT NULL,' +
-        'deleted INTEGER, ' +
-        'list_id INTEGER NOT NULL, ' +
-        'FOREIGN KEY(list_id) REFERENCES lists(id)' +
-        ')').catch(handler);
+          'title TEXT NOT NULL, ' +
+          'content TEXT, ' +
+          'modify_date INTEGER NOT NULL, ' +
+          'create_date INTEGER NOT NULL, ' +
+          'state INTEGER NOT NULL, ' +
+          'due_date INTEGER, ' +
+          'bg_color TEXT, ' +
+          'position INTEGER NOT NULL,' +
+          'deleted INTEGER, ' +
+          'list_id INTEGER NOT NULL, ' +
+          'FOREIGN KEY(list_id) REFERENCES lists(id)' +
+          ')').catch(this.handler);
       
       this.db.exec('CREATE TABLE IF NOT EXISTS task_history (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'title TEXT, ' +
-        'content TEXT, ' +
-        'related_object NUMBER, ' +
-        'type NUMBER NOT NULL, ' +
-        'added TEXT, ' +
-        'removed TEXT, ' +
-        'state NUMBER, ' +
-        'due_date INTEGER, ' +
-        'history_date INTEGER NOT NULL, ' +
-        'task_id INTEGER NOT NULL, ' +
-        'FOREIGN KEY(task_id) REFERENCES tasks(id)' +
-        ')').catch(handler);
+          'title TEXT, ' +
+          'content TEXT, ' +
+          'related_object NUMBER, ' +
+          'type NUMBER NOT NULL, ' +
+          'added TEXT, ' +
+          'removed TEXT, ' +
+          'state NUMBER, ' +
+          'due_date INTEGER, ' +
+          'history_date INTEGER NOT NULL, ' +
+          'task_id INTEGER NOT NULL, ' +
+          'FOREIGN KEY(task_id) REFERENCES tasks(id)' +
+          ')').catch(this.handler);
       
       this.db.exec('CREATE TABLE IF NOT EXISTS task_labels (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'create_date INTEGER NOT NULL, ' +
-        'label_id INTEGER NOT NULL, ' +
-        'task_id INTEGER NOT NULL, ' +
-        'deleted_date INTEGER, ' +
-        'FOREIGN KEY(label_id) REFERENCES labels(id),' +
-        'FOREIGN KEY(task_id) REFERENCES tasks(id)' +
-        ')').catch(handler);
+          'create_date INTEGER NOT NULL, ' +
+          'label_id INTEGER NOT NULL, ' +
+          'task_id INTEGER NOT NULL, ' +
+          'deleted_date INTEGER, ' +
+          'FOREIGN KEY(label_id) REFERENCES labels(id),' +
+          'FOREIGN KEY(task_id) REFERENCES tasks(id)' +
+          ')').catch(this.handler);
       
       this.db.exec('CREATE TABLE IF NOT EXISTS properties (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
-        'key TEXT NOT NULL UNIQUE, ' +
-        'value TEXT NOT NULL ' +
-        ')').catch(handler);
+          'key TEXT NOT NULL UNIQUE, ' +
+          'value TEXT NOT NULL ' +
+          ')').catch(this.handler);
       
       this.db.get('select value from properties where key = ?', 'db_version').then(v => {
-        if (v == null) {
-          this.db.run('insert into properties (key, value) values (?, ?)', 'db_version', this.version.toString()).catch(handler);
+        if (v == null || v.value == null) {
+          this.db.run('insert into properties (key, value) values (?, ?)', 'db_version', this.version.toString()).catch(this.handler);
         }
-      }).catch(handler);
+        v = v && v.value ? Number(v.value) : this.version;
+        v = this.migrateDB(v);
+        
+      }).catch(this.handler);
     });
+  }
+  
+  private migrateDB(version) {
+    if (version === 1) {
+      Promise.all([
+          this.db.exec('alter table tasks add column type INTEGER NOT NULL default 0'),
+          this.db.exec('alter table task_history add column task_type INTEGER'),
+      ]).catch(this.handler);
+      version++;
+      this.db.run('update properties set value = ? where key = ?', version.toString(), 'db_version').catch(this.handler);
+    }
+    return version;
   }
   
   save(op: DbOperation): Observable<DbExecResult> {
@@ -108,7 +123,7 @@ export class DatabaseProvider {
         p = this.buildInsert(op);
       }
       p.then(res => console.log('DB: Saved: ', JSON.stringify(op), ' | ', res),
-        e => console.error('DB: Error executing sql: ', JSON.stringify(op), ' | ', e));
+          e => console.error('DB: Error executing sql: ', JSON.stringify(op), ' | ', e));
       return p;
     }));
   }

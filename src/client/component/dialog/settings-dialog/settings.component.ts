@@ -32,6 +32,8 @@ export class SettingsComponent {
       taskItemSize: [this.ui.taskItemSize, [Validators.required, Validators.min(10), Validators.pattern(numberPattern)]],
       taskLabelShowText: [this.ui.taskLabelShowText, [Validators.required, Validators.min(0), Validators.max(1), Validators.pattern(numberPattern)]],
       taskShowContentSize: [this.ui.taskShowContentSize, [Validators.required, Validators.min(0), Validators.max(50), Validators.pattern(numberPattern)]],
+      taskDueDateVisibility: [this.ui.taskDueDateVisibility],
+      codeParserConfig: [this.ui.codeParserConfig],
     });
     
   }
@@ -45,6 +47,8 @@ export class SettingsComponent {
         taskItemSize: this.toNumber(this.form.value.taskItemSize),
         taskLabelShowText: this.toNumber(this.form.value.taskLabelShowText),
         taskShowContentSize: this.toNumber(this.form.value.taskShowContentSize),
+        taskDueDateVisibility: this.toBool(this.form.value.taskDueDateVisibility),
+        codeParserConfig: this.form.value.codeParserConfig,
       };
       this.dialogRef.close(u);
     } else {
@@ -54,5 +58,9 @@ export class SettingsComponent {
   
   private toNumber(v: any) {
     return Number(v);
+  }
+  
+  private toBool(v: any) {
+    return v === 'true' || v === 'checked' || v === true;
   }
 }

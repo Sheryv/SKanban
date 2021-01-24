@@ -1,5 +1,6 @@
 import { Entity } from '../../shared/model/entity';
 import { Label } from './label';
+import { TaskType } from './task-type';
 
 export interface Task extends Entity {
   title: string;
@@ -12,6 +13,7 @@ export interface Task extends Entity {
   position: number;
   deleted: number;
   list_id: number;
+  type: TaskType;
   
   $labels?: Label[];
   $prevList?: number;

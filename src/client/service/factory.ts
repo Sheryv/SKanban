@@ -6,6 +6,7 @@ import { Label } from '../model/label';
 import { TaskHistory } from '../model/task-history';
 import { TaskLabel } from '../model/task-label';
 import { HistoryType } from '../model/history-type';
+import { TaskType } from '../model/task-type';
 
 @Injectable({
   providedIn: 'root',
@@ -39,13 +40,14 @@ export class Factory {
              list_id: number = null,
              position: number = 0,
              due_date: number = null,
+             type: TaskType = TaskType.STANDARD,
              state: number = 0,
              modify_date: number = Date.now(),
              create_date: number = Date.now(),
              bg_color: string = null,
              deleted: number = null,
   ): Task {
-    return {title, content, modify_date, create_date, state, bg_color, due_date, position, deleted, list_id};
+    return {title, content, modify_date, create_date, state, bg_color, due_date, position, deleted, list_id, type};
   }
   
   createLabel(title: string,
@@ -63,11 +65,12 @@ export class Factory {
                      related_object: number = null,
                      state: number = null,
                      due_date: number = null,
+                     task_type: TaskType = null,
                      added: string = null,
                      removed: string = null,
                      history_date: number = Date.now(),
   ): TaskHistory {
-    return {type, task_id, title, content, state, due_date, related_object, added, removed, history_date};
+    return {type, task_id, title, content, state, due_date, related_object, task_type, added, removed, history_date};
   }
   
   createLabelConnection(label_id: number,

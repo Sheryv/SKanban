@@ -9,7 +9,7 @@ import { DateTime } from 'luxon';
 import { Label } from '../../model/label';
 import { LabelService } from '../../service/label.service';
 import { MessageService } from '../../service/message.service';
-import { mergeMap, take, zip } from 'rxjs/operators';
+import { mergeMap, take, tap } from 'rxjs/operators';
 import { ClientUtils, runInZone } from '../../util/client-utils';
 import { TaskService } from '../../service/task.service';
 import { TaskList } from '../../model/task-list';
@@ -17,6 +17,8 @@ import { HistoryType } from '../../model/history-type';
 import { forkJoin, Observable, of } from 'rxjs';
 import { DbExecResult } from '../../../shared/model/db-exec-result';
 import { TaskHistory } from '../../model/task-history';
+import { TaskType } from '../../model/task-type';
+import { MarkdownUtils } from '../../util/marked-renderers';
 
 @Component({
   selector: 'app-task-details',
@@ -37,10 +39,15 @@ export class TaskDetailsComponent implements OnInit {
   editMode = false;
   history: TaskHistory[] = [];
   historyTypes = HistoryType;
+  taskTypes: Map<TaskType, string> = ClientUtils.taskTypes;
+  
   @Output()
   saved: EventEmitter<Task> = new EventEmitter<Task>();
   @Output()
   closed: EventEmitter<Task> = new EventEmitter<Task>();
+  options = MarkdownUtils.editorOptions();
+  
+  preRenderPreviewCallback: (s: string) => string;
   
   get task(): Task {
     return this._task;
@@ -52,8 +59,15 @@ export class TaskDetailsComponent implements OnInit {
       this.cancel();
     }
     if (this._task) {
-      this._task = value;
-      this.reset();
+      if (this.form && this.form.dirty) {
+        this.saveAsync(this._task).subscribe(() => {
+          this._task = value;
+          this.reset();
+        });
+      } else {
+        this._task = value;
+        this.reset();
+      }
     }
     this._task = value;
   }
@@ -68,8 +82,9 @@ export class TaskDetailsComponent implements OnInit {
               private fc: Factory,
               private fb: FormBuilder) {
     this.ui = settingsService.base.ui;
-    
-    
+    this.preRenderPreviewCallback = (md) => {
+      return MarkdownUtils.preProcessContent(md, this.ui);
+    };
   }
   
   
@@ -88,6 +103,8 @@ export class TaskDetailsComponent implements OnInit {
       this.taskService.getHistory(this._task.id).pipe(runInZone(this.zone)).subscribe(h => {
         h.forEach(i => i.$label = ClientUtils.mapHistoryType(i.type));
         h.sort((a, b) => b.history_date - a.history_date);
+        h.filter(t => t.type === HistoryType.LABEL_ADD || t.type === HistoryType.LABEL_REMOVE).forEach(t => t.$labels = this.filterLabels(t.added || t.removed));
+        
         this.history = h;
       });
       this.text = JSON.stringify(this._task, null, 2);
@@ -96,17 +113,34 @@ export class TaskDetailsComponent implements OnInit {
         title: [this._task.title, [Validators.required]],
         content: [this._task.content, [Validators.max(10000)]],
         due_date: [date],
+        type: [this._task.type, [Validators.required]],
+        $md: [
+          `# Hello, Markdown Editor!
+\`\`\`javascript
+function Test() {
+\tconsole.log("Test");
+}
+\`\`\`
+ Name | Type
+ ---- | ----
+ A | Test
+![](favicon.png)
+
+- [ ] Task A
+- [x] Task B
+- test
+
+[Link](https://www.google.com)`],
       });
       this.selectedLabels = (this._task.$labels && this._task.$labels.slice()) || [];
       this.labels = this.allLabels.slice().filter(a => this.selectedLabels.every(s => a.id !== s.id));
       console.log('reset to ', this.allLabels);
     });
-    
   }
   
-  save() {
+  private saveAsync(task: Task): Observable<any> {
     this.editMode = false;
-    const t = Object.assign({}, this.task);
+    const t = Object.assign({}, task);
     
     Object.assign(t, this.form.value);
     t.$labels = this.selectedLabels;
@@ -115,7 +149,7 @@ export class TaskDetailsComponent implements OnInit {
       t.due_date = null;
     }
     t.modify_date = Date.now();
-    this.createHistory(this.task, t)
+    return this.createHistory(task, t)
       .pipe(
         take(1),
         mergeMap(res => this.taskService.saveTask(t)),
@@ -124,22 +158,32 @@ export class TaskDetailsComponent implements OnInit {
         }),
         take(1),
         runInZone(this.zone),
-      )
-      .subscribe(r => {
-        Object.assign(this._task, t);
-        const strings = this.selectedLabels.map(l => l.title);
-        console.log('lb after save', strings);
-        this._task.$labels = this.selectedLabels;
-        this.saved.emit(this._task);
-        this.message.successShort('Task saved');
-        this.reset();
-      }, error1 => {
-        console.error('close e');
-      });
+        tap(r => {
+          const strings = this.selectedLabels.map(l => l.title);
+          console.log('lb after save', strings);
+          t.$labels = this.selectedLabels;
+          const prevList = this.state.currentBoard.$lists.find(l => l.id === t.list_id);
+          if (prevList) {
+            const find = prevList.$tasks.find(tt => tt.id === t.id);
+            if (find) {
+              Object.assign(find, t);
+            }
+          }
+          this.saved.emit(t);
+          this.message.successShort('Task saved');
+          this.reset();
+        }, error1 => {
+          console.error('close e');
+        }),
+      );
+  }
+  
+  save() {
+    this.saveAsync(this.task).subscribe();
   }
   
   cancel() {
-    this.editMode = false;
+    (this.form && this.form.dirty ? this.saveAsync(this.task) : of(null)).subscribe(v => this.closed.emit(this.task));
   }
   
   addLabel(lbl: Label) {
@@ -156,12 +200,14 @@ export class TaskDetailsComponent implements OnInit {
   startEdit(control: string = 'task-name') {
     this.reset();
     this.editMode = true;
-    setTimeout(() => {
-      const elementRef = this.render.selectRootElement('#' + control);
-      if (elementRef) {
-        elementRef.focus();
-      }
-    }, 10);
+    if (control) {
+      setTimeout(() => {
+        const elementRef = this.render.selectRootElement(control);
+        if (elementRef) {
+          elementRef.focus();
+        }
+      }, 10);
+    }
   }
   
   createHistory(prev: Task, edited: Task): Observable<DbExecResult[]> {
@@ -178,12 +224,21 @@ export class TaskDetailsComponent implements OnInit {
     if (prev.due_date !== edited.due_date) {
       ob.push(this.taskService.addHistoryEntry(prev, HistoryType.DUE_DATE_MODIFY));
     }
+    if (prev.type !== edited.type) {
+      ob.push(this.taskService.addHistoryEntry(prev, HistoryType.TYPE_MODIFY));
+    }
     return ob.length > 0 ? forkJoin(ob) : of(null);
   }
   
-  filterLabels(ids: string) {
-    const numbers = ids.split(',').map(s => Number(s)).filter(n => !isNaN(n));
-    return this.allLabels.filter(lb => numbers.includes(lb.id));
+  
+  private filterLabels(ids: string) {
+    if (ids) {
+      const numbers = ids.split(',').map(s => Number(s)).filter(n => !isNaN(n));
+      return this.allLabels.filter(lb => numbers.includes(lb.id));
+    } else {
+      console.error('Empty ids for labels');
+      return [];
+    }
   }
   
   

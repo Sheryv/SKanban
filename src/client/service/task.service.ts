@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { DatabaseService } from './database.service';
-import { map, mergeMap, take, toArray } from 'rxjs/operators';
+import { map, mergeMap, take, tap, toArray } from 'rxjs/operators';
 import { concat, Observable, of, zip } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Board } from '../model/board';
@@ -27,8 +27,8 @@ export class TaskService {
       );
   }
   
-  getLists(boardId: number): Observable<TaskList[]> {
-    return this.db.findAll({table: 'lists', clauses: {board_id: boardId, deleted: DatabaseService.IS_NULL}})
+  getLists(board: Board): Observable<TaskList[]> {
+    return this.db.findAll({table: 'lists', clauses: {board_id: board.id, deleted: DatabaseService.IS_NULL}})
       .pipe(
         take(1),
         mergeMap((ls: TaskList[]) => {
@@ -42,6 +42,7 @@ export class TaskService {
           }
           return ls;
         }),
+        tap(ls => board.$lists = ls),
       );
   }
   
@@ -118,7 +119,7 @@ export class TaskService {
     let h: TaskHistory = null;
     switch (type) {
       case HistoryType.LIST_CHANGE:
-        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, null, null, task.list_id.toString(), task.$prevList.toString());
+        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, null, null, null, task.list_id.toString(), task.$prevList.toString());
         break;
       case HistoryType.CONTENT_MODIFY:
         h = this.fc.createHistoryEntry(type, task.id, null, task.content, task.id);
@@ -134,6 +135,9 @@ export class TaskService {
         break;
       case HistoryType.STATE_MODIFY:
         h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, task.state);
+        break;
+      case HistoryType.TYPE_MODIFY:
+        h = this.fc.createHistoryEntry(type, task.id, null, null, task.id, null, null, task.type);
         break;
     }
     

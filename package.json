@@ -1,6 +1,6 @@
 {
   "name": "skanban",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple Kanban tool using Electron 10 and Angular 10. Based on https://github.com/dalenguyen/todo-app-electron-angular",
   "homepage": "https://github.com/Sheryv/SKanban",
   "author": {
@@ -42,11 +42,12 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md"
   },
   "dependencies": {
+    "ace-builds": "^1.4.12",
     "angular-split": "^4.0.0",
     "dompurify": "^2.2.6",
     "luxon": "^1.24.1",
-    "marked": "^1.2.7",
     "ngx-color-picker": "^11.0.0",
+    "ngx-markdown-editor": "^3.3.0",
     "ngx-material-timepicker": "^4.0.2",
     "rxjs": "^6.6.3",
     "sqlite": "^4.0.17",
