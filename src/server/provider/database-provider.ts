@@ -56,6 +56,7 @@ export class DatabaseProvider {
           'create_date INTEGER NOT NULL, ' +
           'state INTEGER NOT NULL, ' +
           'due_date INTEGER, ' +
+          'type INTEGER NOT NULL default 0, ' +
           'bg_color TEXT, ' +
           'position INTEGER NOT NULL,' +
           'deleted INTEGER, ' +

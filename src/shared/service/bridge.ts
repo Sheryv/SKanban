@@ -33,6 +33,10 @@ export class Bridge {
         this.LISTENERS.splice(listener, 1);
       }
     });
+    
+    ipcRenderer.on('asynchronous-error', (event, arg) => {
+      console.error('>> server error', arg, event);
+    });
   }
   
   static clientSend(id: string, ...args: any[]): Observable<any[]> {
@@ -57,27 +61,33 @@ export class Bridge {
     }
     
     ipcMain.on('asynchronous-message', (event, arg) => {
-      console.debug('>> server received', arg, this.PROCESSORS);
       const fullId = arg[0] as string;
+      console.debug('>> server received:', fullId, '; ', arg, this.PROCESSORS.map(p => p.key).join(','));
       const id = fullId.split('/')[0];
       const i = this.PROCESSORS.findIndex(l => l.key === id);
       if (i < 0) {
         console.error('>> null processor', id);
+        event.sender.send('asynchronous-error', [fullId, ' >> null processor << ', arg]);
       } else {
-        const processor = this.PROCESSORS[i];
-        const result = processor.processor((<any[]>arg).slice(1));
-        if (processor.single) {
-          this.PROCESSORS.splice(i, 1);
-        }
-        if (result instanceof Observable) {
-          result.subscribe(r => {
-            const args = Array.isArray(r) ? [fullId, ...r] : [fullId, r];
-            event.sender.send('asynchronous-reply', args);
-          }, error1 => {
-            console.error('>>>> Error in server bridge <<<<<', error1);
-          });
-        } else {
-          event.sender.send('asynchronous-reply', [fullId, ...result]);
+        try {
+          const processor = this.PROCESSORS[i];
+          const result = processor.processor((<any[]>arg).slice(1));
+          if (processor.single) {
+            this.PROCESSORS.splice(i, 1);
+          }
+          if (result instanceof Observable) {
+            result.subscribe(r => {
+              const args = Array.isArray(r) ? [fullId, ...r] : [fullId, r];
+              event.sender.send('asynchronous-reply', args);
+            }, error1 => {
+              console.error('>>>> Error in server bridge <<<<<', error1);
+              event.sender.send('asynchronous-error', [fullId, error1, arg]);
+            });
+          } else {
+            event.sender.send('asynchronous-reply', [fullId, ...result]);
+          }
+        } catch (e) {
+          event.sender.send('asynchronous-error', [fullId, e, arg]);
         }
       }
     });
