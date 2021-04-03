@@ -2,6 +2,8 @@ import { NgZone } from '@angular/core';
 import { Observable, OperatorFunction } from 'rxjs';
 import { HistoryType } from '../model/history-type';
 import { TaskType } from '../model/task-type';
+import { TaskSortField } from '../model/task-sort-field';
+import { version } from '../../../package.json';
 
 export function runInZone<T>(zone: NgZone): OperatorFunction<T, T> {
   return (source) => {
@@ -19,14 +21,27 @@ export class ClientUtils {
   private static readonly HISTORY_TYPE_LABELS = new Map<HistoryType, string>();
   
   private static readonly _TASK_TYPES_LABELS = new Map<TaskType, string>();
+  private static readonly _TASK_ORDER_FIELD_LABELS = new Map<TaskSortField, string>();
   
-  public static readonly VERSION = '0.1.1';
+  public static readonly VERSION = version;
   
   static get taskTypes(): Map<TaskType, string> {
     const map = this._TASK_TYPES_LABELS;
     if (map.size === 0) {
       map.set(TaskType.STANDARD, 'Standard');
       map.set(TaskType.NOTE, 'Note');
+    }
+    return map;
+  }
+  
+  static get taskOrderFields(): Map<TaskSortField, string> {
+    const map = this._TASK_ORDER_FIELD_LABELS;
+    if (map.size === 0) {
+      map.set(TaskSortField.TITLE, 'Title');
+      map.set(TaskSortField.CONTENT, 'Content');
+      map.set(TaskSortField.MODIFY_DATE, 'Modify date');
+      map.set(TaskSortField.CREATE_DATE, 'Create date');
+      map.set(TaskSortField.DUE_DATE, 'Due date');
     }
     return map;
   }

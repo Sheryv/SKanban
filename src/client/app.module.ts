@@ -63,6 +63,7 @@ import { AboutDialogComponent } from './component/dialog/about-dialog/about-dial
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSelectModule } from '@angular/material/select';
 import { LMarkdownEditorModule } from 'ngx-markdown-editor/dist';
+import { AutofocusDirective } from './directive/auto-focus.directive';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -74,6 +75,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AppComponent,
     TodoComponent,
     WebviewDirective,
+    AutofocusDirective,
     BoardAvatarPipe,
     DateMillisPipe,
     MarkdownPipe,

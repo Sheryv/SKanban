@@ -45,11 +45,34 @@ export class KeyCommandsService {
     };
   });
   
+  readonly searchEvent: KeyEvent = new KeyEvent(e => {
+    return {
+      key: 'ctrl + f',
+      command(event: ShortcutEventOutput): any {
+        e.next(event);
+      },
+      description: 'Find task in current board',
+    };
+  });
+  
+  readonly escapeEvent: KeyEvent = new KeyEvent(e => {
+    return {
+      key: 'esc',
+      command(event: ShortcutEventOutput): any {
+        console.debug('KEY: ', event.key);
+        e.next(event);
+      },
+      description: 'Exit current task',
+    };
+  });
+  
   prepareShortcuts(): ShortcutInput[] {
     return [
       this.addEvent.def,
       this.moveToTopEvent.def,
       this.moveToBottomEvent.def,
+      this.searchEvent.def,
+      this.escapeEvent.def,
     ];
   }
   

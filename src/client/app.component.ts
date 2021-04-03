@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
   currentBoard: Board;
   loaded: boolean = null;
   shortcuts: ShortcutInput[];
+  searchMode = false;
   
   constructor(public electronService: ElectronService,
               private translate: TranslateService,
@@ -46,7 +47,7 @@ export class AppComponent implements OnInit {
               private labelService: LabelService,
               private msg: MessageService,
               private zone: NgZone,
-              keyService: KeyCommandsService,
+              private keyService: KeyCommandsService,
   ) {
     translate.setDefaultLang(ClientUtils.getLang());
     console.log('AppConfig', AppConfig);
@@ -82,6 +83,8 @@ export class AppComponent implements OnInit {
       this.currentBoard = b;
       console.log('on change board:', b.title, this.boards);
     });
+    this.keyService.searchEvent.emitter.subscribe(e => this.searchMode = true);
+    this.keyService.escapeEvent.emitter.subscribe(e => this.closeSearch());
     this.refreshBoards();
   }
   
@@ -95,6 +98,7 @@ export class AppComponent implements OnInit {
   boardChange(b: Board) {
     console.log('init change board:', b && b.title, this.boards);
     if (b) {
+      this.closeSearch();
       this.state.boardChanged.next(b);
     }
   }
@@ -106,25 +110,25 @@ export class AppComponent implements OnInit {
     });
     
     dialogRef.afterClosed()
-        .pipe(
-            take(1),
-            filter(name => name),
-            mergeMap(name => {
-              const b = this.factory.createBoard(name);
-              return this.taskService.saveBoard(b);
-            }),
-            mergeMap(res => {
-              const id = res.lastID;
-              return zip(of(id), this.taskService.getBoards());
-            }),
-            runInZone(this.zone),
-        )
-        .subscribe(bs => {
-          const board = bs[1].find(b => b.id === bs[0]);
-          this.boards = bs[1];
-          this.boardChange(board);
-          this.msg.success('Board created');
-        }, error1 => this.msg.error('Cannot create ' + error1));
+      .pipe(
+        take(1),
+        filter(name => name),
+        mergeMap(name => {
+          const b = this.factory.createBoard(name);
+          return this.taskService.saveBoard(b);
+        }),
+        mergeMap(res => {
+          const id = res.lastID;
+          return zip(of(id), this.taskService.getBoards());
+        }),
+        runInZone(this.zone),
+      )
+      .subscribe(bs => {
+        const board = bs[1].find(b => b.id === bs[0]);
+        this.boards = bs[1];
+        this.boardChange(board);
+        this.msg.success('Board created');
+      }, error1 => this.msg.error('Cannot create ' + error1));
   }
   
   createLabel(boardId: number) {
@@ -133,15 +137,15 @@ export class AppComponent implements OnInit {
     });
     
     dialogRef.afterClosed()
-        .pipe(
-            take(1),
-            filter(lb => lb && lb.name),
-            mergeMap(lb => this.labelService.createLabel(lb.name, boardId, lb.color)),
-            runInZone(this.zone),
-        )
-        .subscribe(bs => {
-          this.msg.success('Label created');
-        }, error1 => this.msg.error('Cannot create ' + error1));
+      .pipe(
+        take(1),
+        filter(lb => lb && lb.name),
+        mergeMap(lb => this.labelService.createLabel(lb.name, boardId, lb.color)),
+        runInZone(this.zone),
+      )
+      .subscribe(bs => {
+        this.msg.success('Label created');
+      }, error1 => this.msg.error('Cannot create ' + error1));
   }
   
   boardSettings(board: Board) {
@@ -151,18 +155,18 @@ export class AppComponent implements OnInit {
     });
     
     dialogRef.afterClosed()
-        .pipe(
-            take(1),
-            filter(name => name),
-            mergeMap(name => {
-              board.title = name;
-              return this.taskService.saveBoard(board);
-            }),
-            runInZone(this.zone),
-        )
-        .subscribe(lists => {
-          this.msg.successShort('Rename success');
-        }, error1 => this.msg.error('Cannot rename ' + error1), () => this.refreshBoards());
+      .pipe(
+        take(1),
+        filter(name => name),
+        mergeMap(name => {
+          board.title = name;
+          return this.taskService.saveBoard(board);
+        }),
+        runInZone(this.zone),
+      )
+      .subscribe(lists => {
+        this.msg.successShort('Rename success');
+      }, error1 => this.msg.error('Cannot rename ' + error1), () => this.refreshBoards());
   }
   
   
@@ -175,19 +179,19 @@ export class AppComponent implements OnInit {
     });
     
     dialogRef.afterClosed()
-        .pipe(
-            take(1),
-            filter(settings => settings),
-            mergeMap(settings => {
-              console.log('save settings', settings);
-              const s: Settings = JSON.parse(JSON.stringify(this.settings.base));
-              s.ui = settings;
-              return this.settings.save(s);
-            }),
-        )
-        .subscribe(s => {
-          this.msg.successShort('Settings saved');
-        }, error1 => this.msg.error('Cannot save ' + error1));
+      .pipe(
+        take(1),
+        filter(settings => settings),
+        mergeMap(settings => {
+          console.log('save settings', settings);
+          const s: Settings = JSON.parse(JSON.stringify(this.settings.base));
+          s.ui = settings;
+          return this.settings.save(s);
+        }),
+      )
+      .subscribe(s => {
+        this.msg.successShort('Settings saved');
+      }, error1 => this.msg.error('Cannot save ' + error1));
   }
   
   aboutDialog() {
@@ -196,5 +200,16 @@ export class AppComponent implements OnInit {
   
   showDbFile() {
     this.electronService.showDbFile();
+  }
+  
+  search(term: string) {
+    this.state.search.next({term: term, enabled: true});
+  }
+  
+  closeSearch() {
+    if (this.searchMode) {
+      this.searchMode = false;
+      this.state.search.next({enabled: false, term: ''});
+    }
   }
 }

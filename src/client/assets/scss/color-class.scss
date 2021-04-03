@@ -13,7 +13,7 @@
 }
 
 .bg-accent {
-  background-color: $error-bg;
+  background-color: $accent-bg;
 }
 
 .fg {
@@ -38,6 +38,18 @@
 
 .fg-dark-2 {
   color: $background-full;
+}
+
+.fg-warn {
+  color: $warn;
+}
+
+.fg-accent {
+  color: $accent;
+}
+
+.fg-primary {
+  color: $primary;
 }
 
 .bg {

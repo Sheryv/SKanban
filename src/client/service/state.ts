@@ -3,10 +3,11 @@ import { Subject } from 'rxjs';
 import { Board } from '../model/board';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class State {
   boardChanged = new Subject<Board>();
+  search = new Subject<{ term: string, enabled: boolean }>();
   currentBoard: Board;
   
   constructor() {

@@ -1,6 +1,6 @@
 {
   "name": "skanban",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Simple Kanban tool using Electron 10 and Angular 10. Based on https://github.com/dalenguyen/todo-app-electron-angular",
   "homepage": "https://github.com/Sheryv/SKanban",
   "author": {

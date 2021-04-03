@@ -123,6 +123,10 @@ html, body {
   opacity: 1;
 }
 
+.icon-btn-fill {
+  opacity: 1;
+}
+
 .icon-btn-30 {
   @extend .icon-btn;
   line-height: 30px;
@@ -214,6 +218,24 @@ mat-form-field.field-small {
   .mat-select-arrow-wrapper {
     transform: none;
   }
+}
+
+.small-input {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 2px;
+  background: transparent;
+  color: $foreground;
+}
+
+.small-input:hover {
+  border-width: 2px;
+  border-color: white;
+}
+
+.small-input:focus {
+  border-width: 2px;
+  border-color: $primary;
 }
 
 .markdown-content-preview {

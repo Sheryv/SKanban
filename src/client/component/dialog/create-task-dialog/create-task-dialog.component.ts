@@ -7,7 +7,7 @@ import { LabelService } from '../../../service/label.service';
 import { Label } from '../../../model/label';
 import { TaskService } from '../../../service/task.service';
 import { Factory } from '../../../service/factory';
-import { mergeMap, take } from 'rxjs/operators';
+import { flatMap, mergeMap, take } from 'rxjs/operators';
 import { ClientUtils, runInZone } from '../../../util/client-utils';
 import { TaskType } from '../../../model/task-type';
 import { MarkdownUtils } from '../../../util/marked-renderers';
@@ -61,9 +61,16 @@ export class CreateTaskDialogComponent implements OnInit {
     if (this.form.valid) {
       const v = this.form.value;
       const millisecond = DateTime.fromJSDate(v.due_date).toMillis();
-      const task = this.fc.createTask(v.name, v.content, this.list.id, this.list.$tasks.length, millisecond, this.form.get('type').value);
-      this.taskService.saveTask(task)
+      const task = this.fc.createTask(v.name, v.content, this.list.id, 0, millisecond, this.form.get('type').value);
+      this.taskService.getTasks(this.list.id)
         .pipe(
+          mergeMap(tasks => {
+            for (let i = 0; i < tasks.length; i++) {
+              tasks[i].position = tasks[i].position + 1;
+            }
+            return this.taskService.updatePosition(tasks);
+          }),
+          mergeMap(() => this.taskService.saveTask(task)),
           take(1),
           mergeMap(res => {
             task.id = res.lastID;

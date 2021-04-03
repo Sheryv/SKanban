@@ -77,6 +77,72 @@
                 </mat-form-field>
             </div>
 
+            <div class="row mb-3">
+                <div class="col mt-2 mb-1">Configure task visibility in list</div>
+                <div class="col-auto mt-2 mb-1">
+                    <i class="material-icons icon-btn" matTooltip="Add"
+                       (click)="addRow(form.get('listVisibleTaskConfig'))">add</i>
+                </div>
+
+                <div class="col-12" formArrayName="listVisibleTaskConfig">
+                    <div class="bg-4 p-2" style="border-radius: 10px">
+                        <div *ngFor="let listConfig of form.get('listVisibleTaskConfig')['controls']; index as i"
+                             class="w-100 mt-2" style="border-bottom: 1px solid rgb(115 136 175)">
+                            <ng-container [formGroupName]="i">
+                                <div class="row w-100">
+                                    <mat-form-field class="col-11 mt-2" appearance="outline">
+                                        <mat-label>List name</mat-label>
+                                        <input matInput maxlength="100" formControlName="name">
+                                        <mat-error *ngFor="let e of (listConfig.get('name').errors | keyvalue) || []"
+                                                   app-form-errors
+                                                   [error]="e"></mat-error>
+                                    </mat-form-field>
+                                    <div class="col-1 pt-4">
+                                        <button mat-icon-button color="warn"
+                                                (click)="deleteRow(form.get('listVisibleTaskConfig'), i)">
+                                            <mat-icon>clear</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="row w-100">
+                                    <mat-form-field class="col-12 col-sm-8 col-md-2" appearance="outline">
+                                        <mat-label>Order by</mat-label>
+                                        <mat-select formControlName="sortBy">
+                                            <mat-option *ngFor="let e of taskOrders | keyvalue"
+                                                        [value]="e.key">{{e.value}}</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <div class="col-12 col-sm-4 col-md-2 pt-md-4 pb-2">
+                                        <button mat-raised-button
+                                                (click)="listConfig.get('sortDir').setValue(sortDir.ASC === listConfig.get('sortDir').value ? sortDir.DESC : sortDir.ASC)">
+                                            {{ sortDir.ASC === listConfig.get('sortDir').value ? 'Ascending ⇓' : 'Descending ⇑'}}
+                                        </button>
+                                    </div>
+                                    <mat-form-field class="col-6 col-md-4" appearance="outline">
+                                        <mat-label>Min. number of visible tasks (default 10)</mat-label>
+                                        <input matInput type="number" formControlName="minVisible">
+                                        <mat-error
+                                                *ngFor="let e of (listConfig.get('minVisible').errors | keyvalue) || []"
+                                                app-form-errors
+                                                [error]="e"></mat-error>
+                                    </mat-form-field>
+                                    <mat-form-field class="col-6 col-md-4" appearance="outline">
+                                        <mat-label>Hide task after days (default 14)</mat-label>
+                                        <input matInput type="number" formControlName="lastVisibleDays">
+                                        <mat-error
+                                                *ngFor="let e of (listConfig.get('lastVisibleDays').errors | keyvalue) || []"
+                                                app-form-errors
+                                                [error]="e"></mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
 
             <div class="row my-2">
                 <div class="col">
@@ -96,10 +162,12 @@
             <div class="row mb-2">
                 <div class="col-12 col-sm-6 mt-2">Parse codes and replace with links</div>
                 <mat-form-field class="col-12 col-sm-6 field-small" appearance="outline">
-                    <textarea matInput class="text-monospace" maxlength="10000" rows="5" formControlName="codeParserConfig"></textarea>
+                    <textarea matInput class="text-monospace" maxlength="10000" rows="5"
+                              formControlName="codeParserConfig"></textarea>
                     <mat-error *ngFor="let e of (form.get('codeParserConfig').errors | keyvalue) || []" app-form-errors
                                [error]="e"></mat-error>
-                    <mat-hint>Each code in new line. Format: &lt;regexp&gt;;&lt;url with $ indexed group number&gt;</mat-hint>
+                    <mat-hint>Each code in new line. Format: &lt;regexp&gt;;&lt;url with $ indexed group number&gt;
+                    </mat-hint>
                     <mat-hint align="end">{{form.get('codeParserConfig').value?.length || 0}} / 10000</mat-hint>
                 </mat-form-field>
             </div>

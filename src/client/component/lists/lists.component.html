@@ -11,7 +11,7 @@
                 <div class="px-2 pb-2 w-100 d-flex align-items-center elevate-bottom">
                     <h4 class="p-0 text-ellipsis">{{l.title}}</h4>
                     <span class="font-9 fg-4 mr-1">&nbsp;({{l.$tasks.length}})</span>
-                    <i class="material-icons icon-btn secondary-btn" matTooltip="Rename"
+                    <i class="material-icons icon-btn secondary-btn" matTooltip="Edit"
                        (click)="renameList(l)">edit</i>
                     <div class="flex-grow-1"></div>
                     <i class="material-icons icon-btn mr-1 secondary-btn" *ngIf="l.position > 0" matTooltip="Move left"
@@ -29,7 +29,7 @@
                 </div>
                 <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}"
                      style="min-height: 3rem">
-                    <div *ngFor="let task of l.$tasks" class="list-item separator"
+                    <div *ngFor="let task of filterTasks(l.$tasks, l)" class="list-item separator"
                          [ngClass]="{'selected': task == visibleTask}"
                          cdkDrag
                          [ngStyle]="{ 'padding-top.rem': (ui.taskItemPadding/100 * 0.5), 'padding-bottom.rem': (ui.taskItemPadding/100 * 0.5)}"

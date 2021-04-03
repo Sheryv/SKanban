@@ -19,6 +19,9 @@ import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/dr
 import { DialogParams, SingleInputDialogComponent } from '../dialog/single-input-dialog/single-input-dialog.component';
 import { HistoryType } from '../../model/history-type';
 import { TaskType } from '../../model/task-type';
+import { DateTime } from 'luxon';
+import { SortDirection } from '../../model/sort-direction';
+import { TaskSortField } from '../../model/task-sort-field';
 
 @Component({
   selector: 'app-lists',
@@ -34,6 +37,8 @@ export class ListsComponent implements OnInit, OnDestroy {
   activeState = new Subject<any>();
   loading: boolean;
   types = TaskType;
+  restrictedMode = false;
+  private searchTerm = '';
   
   
   constructor(private state: State, private factory: Factory, public settingsService: SettingsService, private keyService: KeyCommandsService,
@@ -58,6 +63,15 @@ export class ListsComponent implements OnInit, OnDestroy {
     this.keyService.moveToBottomEvent.emitter.pipe(takeUntil(this.activeState)).subscribe(e => {
       if (this.visibleTask) {
         this.moveTaskToBottom(this.visibleTask);
+      }
+    });
+    
+    this.state.search.subscribe(c => {
+      this.restrictedMode = c.enabled;
+      if (c.enabled) {
+        this.searchTerm = c.term;
+      } else {
+        this.searchTerm = '';
       }
     });
   }
@@ -95,7 +109,9 @@ export class ListsComponent implements OnInit, OnDestroy {
         
         this.selectedList = this.lists && this.lists[0];
         this.loading = false;
-        console.log('loaded list ', this.lists, this.ui);
+        console.log('loaded list ', this.lists, this.ui, this.lists[0].$tasks.map(t => {
+          return {n: t.title, d: new Date(t.create_date).toLocaleDateString(), c: t.content};
+        }));
       }));
   }
   
@@ -205,6 +221,11 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
   
   drop(event: CdkDragDrop<Task[]>) {
+    if (this.restrictedMode) {
+      this.msg.info('Drag&Drop is disabled when in search mode');
+      return;
+    }
+    
     const tasks = event.container.data;
     const list = this.findList(tasks);
     if (event.previousContainer === event.container) {
@@ -283,5 +304,78 @@ export class ListsComponent implements OnInit, OnDestroy {
       this.visibleTask = null;
     });
     
+  }
+  
+  filterTasks(tasks: Task[], list: TaskList): Task[] {
+    const config = this.isListAutoSorted(list);
+    if (this.searchTerm) {
+      const baseList = tasks.filter(t => t.title.includes(this.searchTerm) || t.content.includes(this.searchTerm));
+      if (config) {
+        const sort = config.sortBy;
+        return  baseList.sort((a, b) => this.sortTasks(a, b, sort, config));
+      }
+      return baseList;
+    } else {
+      if (config) {
+        const now = DateTime.fromMillis(Date.now());
+        const past = now.minus({days: config.lastVisibleDays}).toMillis();
+        const sort = config.sortBy;
+        const sorted = tasks.sort((a, b) => this.sortTasks(a, b, sort, config));
+        // const first = sorted.slice(0, config.minVisible);
+        if (config.minVisible >= sorted.length) {
+          return sorted;
+        }
+        
+        const recent = sorted.filter(t => t.create_date >= past);
+        if (recent.length === sorted.length) {
+          return sorted;
+        }
+        
+        const missing = Math.min(config.minVisible, sorted.length) - recent.length;
+        if (missing > 0) {
+          // const left = sorted.filter(t => t.create_date < past);
+          let i = 0;
+          for (let j = 0; j < missing; j++) {
+            while (i < sorted.length) {
+              if (sorted[i].create_date < past) {
+                recent.push(sorted[i]);
+                i++;
+                break;
+              }
+              i++;
+            }
+          }
+          
+          return sorted.filter(t => recent.some(o => o.id === t.id));
+        }
+        return recent;
+      }
+      return tasks;
+    }
+  }
+  
+  private isListAutoSorted(list: TaskList) {
+    return this.ui.listVisibleTaskConfig.find(c => c.name === list.title);
+  }
+  
+  private sortTasks(a: Task, b: Task, sort: TaskSortField, config: { name: string; minVisible: number; lastVisibleDays: number; sortBy: TaskSortField; sortDir: SortDirection }): number {
+    if (a[sort] == null) {
+      return 1;
+    }
+    if (b[sort] == null) {
+      return -1;
+    }
+    
+    if (typeof a[sort] === 'string') {
+      const field1 = a[sort] as string;
+      const field2 = b[sort] as string;
+      return config.sortDir === SortDirection.DESC ? field1.localeCompare(field2) : field2.localeCompare(field1);
+    } else if (typeof a[sort] === 'number') {
+      const field1 = a[sort] as number;
+      const field2 = b[sort] as number;
+      return config.sortDir === SortDirection.DESC ? field2 - field1 : field1 - field2;
+    } else {
+      throw new Error('Unsupported type: ' + (typeof a[sort]));
+    }
   }
 }

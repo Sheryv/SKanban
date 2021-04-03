@@ -21,7 +21,8 @@ export class SettingsService {
       taskLabelShowText: 1,
       taskShowContentSize: 3,
       taskDueDateVisibility: true,
-      codeParserConfig: ''
+      codeParserConfig: '',
+      listVisibleTaskConfig: [],
     },
   };
   
