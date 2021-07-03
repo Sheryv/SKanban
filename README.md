@@ -19,4 +19,4 @@ Template based on https://github.com/dalenguyen/todo-app-electron-angular
 
 
 -----
-License: GNU General Public License v3.0
+License: [AGPL-3.0](LICENSE)
