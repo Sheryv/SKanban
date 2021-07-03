@@ -202,9 +202,13 @@ function Test() {
     this.editMode = true;
     if (control) {
       setTimeout(() => {
-        const elementRef = this.render.selectRootElement(control);
-        if (elementRef) {
-          elementRef.focus();
+        try {
+          const elementRef = this.render.selectRootElement(control);
+          if (elementRef) {
+            elementRef.focus();
+          }
+        } catch (e) {
+        
         }
       }, 10);
     }

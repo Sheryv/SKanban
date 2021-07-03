@@ -5,6 +5,10 @@ declare let marked: any;
 declare let hljs: any;
 
 export class MarkdownUtils {
+  private static readonly REG_EXP_CARET_RETURN = /\r/g;
+  private static readonly REG_EXP_NEW_LINE_PAIR = /\n\n\n/g;
+  
+  
   static prepareMarkedRenderer(renderType: 'image' | 'table' | 'code' | 'listitem') {
     switch (renderType) {
       case 'image':
@@ -44,13 +48,15 @@ export class MarkdownUtils {
           }
         };
     }
-    throw Error('Unknow rebnder type');
+    throw Error('Unknown render type');
   }
+  
   
   static preProcessContent(content: string, settings: UiSettings): string {
     const config = settings.codeParserConfig;
+    let normalized = content.replace(this.REG_EXP_CARET_RETURN, '').replace(this.REG_EXP_NEW_LINE_PAIR, '<br/> \n\n');
     if (config) {
-      const lines = config.replace(/\r/g, '').split('\n');
+      const lines = normalized.split('\n');
       for (const line of lines) {
         const indexOf = line.lastIndexOf(';');
         if (indexOf > 0) {
@@ -59,11 +65,11 @@ export class MarkdownUtils {
           if (!url.includes('$')) {
             url += '$&';
           }
-          content = content.replace(new RegExp(reg, 'g'), '[$&](' + url + ')');
+          normalized = normalized.replace(new RegExp(reg, 'g'), '[$&](' + url + ')');
         }
       }
     }
-    return content;
+    return normalized;
   }
   
   static editorOptions(): MdEditorOption {
@@ -75,7 +81,11 @@ export class MarkdownUtils {
       // scrollPastEnd?: number        // The option for ace editor. Default is 0
       enablePreviewContentClick: true,  // Allow user fire the click event on the preview panel, like href etc. Default is false
       resizable: true,          // Allow resize the editor
-      // markedjsOpt?: MarkedjsOption  // The markedjs option, see https://marked.js.org/#/USING_ADVANCED.md#options
+      markedjsOpt: {
+        gfm: true,
+        // headerPrefix: '_H_',
+        breaks: true,
+      },  // The markedjs option, see https://marked.js.org/#/USING_ADVANCED.md#options
       // customRender?: {              // Custom markedjs render
       //   image?: Function     // Image Render
       //   table?: Function     // Table Render

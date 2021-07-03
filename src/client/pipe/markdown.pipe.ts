@@ -16,6 +16,7 @@ export class MarkdownPipe implements PipeTransform {
   transform(value): string {
     value = MarkdownUtils.preProcessContent(value.toString(), this.settings.base.ui);
     
+    console.log(value);
     const html = marked(value, this.options);
     console.log(html);
     return DOMPurify.sanitize(html);
