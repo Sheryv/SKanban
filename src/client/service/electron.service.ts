@@ -4,8 +4,8 @@ import { Injectable } from '@angular/core';
 // the resulting javascript file will look as if you never imported the module at all.
 import { ipcRenderer, webFrame, remote, shell } from 'electron';
 import * as childProcess from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+// import * as fs from 'fs';
+// import * as path from 'path';
 import { Bridge } from '../../shared/service/bridge';
 
 @Injectable({
@@ -18,8 +18,8 @@ export class ElectronService {
   // remote: typeof remote;
   shell: typeof shell;
   childProcess: typeof childProcess;
-  fs: typeof fs;
-  path: typeof path;
+  // fs: any;
+  // path: any;
   
   constructor() {
     // Conditional imports
@@ -30,8 +30,8 @@ export class ElectronService {
       this.shell = window.require('electron').shell;
       
       this.childProcess = window.require('child_process');
-      this.fs = window.require('fs');
-      this.path = window.require('path');
+      // this.fs = window.require('fs');
+      // this.path = window.require('path');
     }
   }
   

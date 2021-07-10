@@ -5,9 +5,11 @@
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "target": "es5",
     "skipLibCheck": true,
     "typeRoots": [
+      "node",
       "node_modules/@types"
     ],
     "lib": [

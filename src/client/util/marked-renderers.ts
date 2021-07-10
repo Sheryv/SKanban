@@ -1,5 +1,5 @@
 import { UiSettings } from '../model/settings';
-import { MdEditorOption } from 'ngx-markdown-editor/src/lib/md-editor.types';
+import { MdEditorOption } from 'ngx-markdown-editor';
 
 declare let marked: any;
 declare let hljs: any;

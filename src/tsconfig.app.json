@@ -4,8 +4,11 @@
     "outDir": "../out-tsc/app",
     "module": "es2015",
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": "",
-    "types": []
+    "types": [
+      "node"
+    ]
   },
   "exclude": [
     "**/*.spec.ts"

@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "typeRoots": [
+      "node",
       "node_modules/@types"
     ],
     "lib": [
