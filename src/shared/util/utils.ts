@@ -1,5 +1,4 @@
 import { app } from 'electron';
-import { AppConfig } from '../../environments/environment';
 
 export class Utils {
   
@@ -33,6 +32,13 @@ export class Utils {
 }
 
 export function isDev() {
+  let AppConfig;
+  try {
+    AppConfig = require('../../environments/environment');
+  } catch (e) {
+    console.log('Cannot load module', e);
+  }
+  
   return (app && !app.isPackaged) || (AppConfig && !AppConfig.production);
 }
 

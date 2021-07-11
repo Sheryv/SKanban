@@ -23,19 +23,19 @@
     "!**/*.ts"
   ],
   "win": {
-    "icon": "dist",
+    "icon": "dist/favicon.pack.ico",
     "target": [
       "zip"
     ]
   },
   "mac": {
-    "icon": "dist",
+    "icon": "dist/favicon.256x256.png",
     "target": [
       "dmg"
     ]
   },
   "linux": {
-    "icon": "dist",
+    "icon": "dist/favicon.256x256.png",
     "target": [
       "AppImage"
     ]
