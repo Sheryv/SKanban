@@ -2,9 +2,13 @@
     <form [formGroup]="form" *ngIf="form" id="task-details">
         <div class="field-title">
             <span>Name</span>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit('#task-name')">edit</i>
-            <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+            <div>
+                <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+                   (click)="startEdit('#task-name')">edit</i>
+                <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel" (click)="cancel()">close</i>
+                <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+                   (click)="save()">done</i>
+            </div>
         </div>
         <div class="mb-2">
             <div *ngIf="!editMode" (dblclick)="startEdit('#task-name')">
@@ -21,9 +25,13 @@
 
         <div class="field-title">
             <span>Labels</span>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit()">edit</i>
-            <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+            <div>
+                <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+                   (click)="startEdit()">edit</i>
+                <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel" (click)="cancel()">close</i>
+                <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+                   (click)="save()">done</i>
+            </div>
         </div>
         <div class="mb-2">
             <div class="mb-2">
@@ -45,9 +53,13 @@
 
         <div class="field-title">
             <span>Content</span>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit('#task-content')">edit</i>
-            <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+            <div>
+                <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+                   (click)="startEdit('#task-content')">edit</i>
+                <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel" (click)="cancel()">close</i>
+                <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept (Ctrl + Enter)"
+                   (click)="save()">done</i>
+            </div>
         </div>
         <div class="mb-2">
             <div *ngIf="!editMode" class="markdown-content" (dblclick)="startEdit(null)"
@@ -59,26 +71,30 @@
                            [height]="'400px'"
                            [mode]="'editor'"
                            [options]="options"
-                           (onEditorLoaded)="$event.setOptions({theme: 'ace/theme/monokai'})"
+                           (onEditorLoaded)="$event.setOptions({theme: 'ace/theme/twilight'})"
                            [preRender]="preRenderPreviewCallback"
                            maxlength="10000">
                 </md-editor>
                 <div class="mat-hint font-8">Markdown supported</div>
             </ng-container>
-<!--            <mat-form-field class="w-100 field-small mb-2" appearance="outline" *ngIf="editMode">-->
-<!--      <textarea matInput maxlength="10000" rows="5" formControlName="content" (keydown.control.enter)="save()"-->
-<!--                id="task-content"-->
-<!--                #content></textarea>-->
-<!--                <mat-hint>Submit with 'Ctrl + Enter'. Markdown supported</mat-hint>-->
-<!--                <mat-hint align="end">{{content.value?.length || 0}} / 10000</mat-hint>-->
-<!--            </mat-form-field>-->
+            <!--            <mat-form-field class="w-100 field-small mb-2" appearance="outline" *ngIf="editMode">-->
+            <!--      <textarea matInput maxlength="10000" rows="5" formControlName="content" (keydown.control.enter)="save()"-->
+            <!--                id="task-content"-->
+            <!--                #content></textarea>-->
+            <!--                <mat-hint>Submit with 'Ctrl + Enter'. Markdown supported</mat-hint>-->
+            <!--                <mat-hint align="end">{{content.value?.length || 0}} / 10000</mat-hint>-->
+            <!--            </mat-form-field>-->
         </div>
 
         <div class="field-title">
             <span>Due day</span>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit('#task-due-date')">edit</i>
-            <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+            <div>
+                <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+                   (click)="startEdit('#task-due-date')">edit</i>
+                <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel" (click)="cancel()">close</i>
+                <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+                   (click)="save()">done</i>
+            </div>
         </div>
         <div class="mb-3">
             <div *ngIf="!editMode" (dblclick)="startEdit('#task-due-date')">
@@ -107,9 +123,13 @@
 
         <div class="field-title">
             <span>Task type</span>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit(null)">edit</i>
-            <i class="ml-1 material-icons icon-btn fg" *ngIf="editMode" matTooltip="Accept" (click)="save()">done</i>
+            <div>
+                <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+                   (click)="startEdit(null)">edit</i>
+                <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel" (click)="cancel()">close</i>
+                <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+                   (click)="save()">done</i>
+            </div>
         </div>
         <div class="mb-3">
             <div *ngIf="!editMode" (dblclick)="startEdit(null)">

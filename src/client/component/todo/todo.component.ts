@@ -8,6 +8,7 @@ import {
 import { DatabaseService } from '../../service/database.service';
 import { Task } from '../../model/task';
 import { Factory } from '../../service/factory';
+import { isDev } from '../../../shared/util/utils';
 
 export interface Todo {
   title: string;
@@ -89,7 +90,7 @@ export class TodoComponent implements OnInit {
       if (type === 'todo') {
         moveItemInArray(this.todo, event.previousIndex, event.currentIndex);
         // this.dataService.set('todo', this.todo);
-        console.log(this.todo);
+        if (isDev()) { console.log(this.todo); }
       } else {
         moveItemInArray(this.done, event.previousIndex, event.currentIndex);
         // this.dataService.set('done', this.done);

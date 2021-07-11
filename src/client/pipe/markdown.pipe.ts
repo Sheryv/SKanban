@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 import * as DOMPurify from 'dompurify';
 import { MarkdownUtils, prepareMarkedOptions } from '../util/marked-renderers';
 import { SettingsService } from '../service/settings.service';
+import { isDev } from '../../shared/util/utils';
 
 declare let marked: any;
 
@@ -15,10 +16,10 @@ export class MarkdownPipe implements PipeTransform {
   
   transform(value): string {
     value = MarkdownUtils.preProcessContent(value.toString(), this.settings.base.ui);
-    
-    console.log(value);
+  
+    if (isDev()) { console.log(value); }
     const html = marked(value, this.options);
-    console.log(html);
+    if (isDev()) { console.log(html); }
     return DOMPurify.sanitize(html);
   }
 }

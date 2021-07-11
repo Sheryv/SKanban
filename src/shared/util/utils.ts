@@ -1,3 +1,6 @@
+import { app } from 'electron';
+import { AppConfig } from '../../environments/environment';
+
 export class Utils {
   
   private static readonly CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -19,14 +22,18 @@ export class Utils {
   
   static toUnderscoreCase(inputString) {
     return inputString.split('').map((character, index) => {
-        if (character === character.toUpperCase()) {
-          return (index !== 0 ? '_' : '') + character.toLowerCase();
-        } else {
-          return character;
-        }
-      })
+      if (character === character.toUpperCase()) {
+        return (index !== 0 ? '_' : '') + character.toLowerCase();
+      } else {
+        return character;
+      }
+    })
       .join('');
   }
+}
+
+export function isDev() {
+  return (app && !app.isPackaged) || (AppConfig && !AppConfig.production);
 }
 
 export function notNull(ob, msg: string) {

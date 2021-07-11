@@ -2,7 +2,7 @@ import { Context } from './context';
 import { DatabaseProvider } from './provider/database-provider';
 import { Bridge } from '../shared/service/bridge';
 import { of } from 'rxjs';
-import { Utils } from '../shared/util/utils';
+import { isDev, Utils } from '../shared/util/utils';
 
 const {app, shell} = require('electron');
 const path = require('path');
@@ -15,6 +15,8 @@ export class ProvidersBuilder {
   }
   
   static prepareProviders() {
+    console.log('Running in DEV env: ', isDev());
+    
     Bridge.registerServerListener('dbp', (a) => {
       const fun = a[0];
       const methods = Object.keys(Object.getPrototypeOf(this.dbp)).filter(k => typeof this.dbp[k] === 'function');
@@ -31,7 +33,7 @@ export class ProvidersBuilder {
       
       if (fun === 'showDbFile') {
         const fullPath = path.join(path.dirname(app.getPath('exe')), Utils.DB_NAME);
-        console.log('showing file ', fullPath);
+        if (isDev()) { console.log('showing file ', fullPath); }
         shell.showItemInFolder(fullPath);
       }
       

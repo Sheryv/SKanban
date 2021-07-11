@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import { app, remote, ipcRenderer, ipcMain } from 'electron';
-import { Utils } from '../util/utils';
+import { isDev, Utils } from '../util/utils';
 
 export class Bridge {
   
@@ -15,8 +15,8 @@ export class Bridge {
     }
     
     ipcRenderer.on('asynchronous-reply', (event, arg) => {
-      
-      console.debug('>> client received', arg, this.LISTENERS);
+  
+      if (isDev()) { console.debug('>> client received', arg, this.LISTENERS); }
       const id = arg[0] as string;
       const listener = this.LISTENERS.findIndex(l => l.key === id);
       if (listener < 0) {
@@ -24,7 +24,7 @@ export class Bridge {
       } else {
         const params = (<any[]>arg).slice(1);
         const receiver = this.LISTENERS[listener].receiver;
-        // console.debug('Exec: ', receiver, params);
+        // if (isDev()) console.debug('Exec: ', receiver, params);
         try {
           receiver.next(params);
         } catch (e) {
@@ -47,7 +47,7 @@ export class Bridge {
     const fullId = id + '/' + Utils.generateId();
     this.LISTENERS.push({key: fullId, receiver: receiver});
     args = [fullId, ...args];
-    console.debug('>> client send', fullId, args);
+    if (isDev()) { console.debug('>> client send', fullId, args); }
     
     ipcRenderer.send('asynchronous-message', args);
     return receiver;
@@ -62,7 +62,7 @@ export class Bridge {
     
     ipcMain.on('asynchronous-message', (event, arg) => {
       const fullId = arg[0] as string;
-      console.debug('>> server received:', fullId, '; ', arg, this.PROCESSORS.map(p => p.key).join(','));
+      if (isDev()) { console.debug('>> server received:', fullId, '; ', arg, this.PROCESSORS.map(p => p.key).join(',')); }
       const id = fullId.split('/')[0];
       const i = this.PROCESSORS.findIndex(l => l.key === id);
       if (i < 0) {
@@ -98,7 +98,7 @@ export class Bridge {
     if (this.getServer() == null) {
       throw Error('It is not server process. Cannot register');
     }
-    console.debug('>> server register', id);
+    if (isDev()) { console.debug('>> server register', id); }
     
     this.PROCESSORS.push({key: id, processor: process});
   }

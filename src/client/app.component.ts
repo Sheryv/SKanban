@@ -22,6 +22,7 @@ import { BoardSettingsDialogComponent } from './component/dialog/board-settings-
 import { SettingsComponent } from './component/dialog/settings-dialog/settings.component';
 import { Settings } from './model/settings';
 import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
+import { isDev } from '../shared/util/utils';
 
 
 @Component({
@@ -50,15 +51,18 @@ export class AppComponent implements OnInit {
               private keyService: KeyCommandsService,
   ) {
     translate.setDefaultLang(ClientUtils.getLang());
-    console.log('AppConfig', AppConfig);
+    console.log('Running in DEV env: ', isDev());
+    
     this.shortcuts = keyService.prepareShortcuts();
     
-    if (electronService.isElectron()) {
-      console.log('Mode electron');
-      console.log('Electron IPC_RENDERER', electronService.ipcRenderer);
-      console.log('NodeJS childProcess', electronService.childProcess);
-    } else {
-      console.log('Mode web');
+    if (isDev()) {
+      if (electronService.isElectron()) {
+        console.log('Mode electron');
+        console.log('Electron IPC_RENDERER', electronService.ipcRenderer);
+        console.log('NodeJS childProcess', electronService.childProcess);
+      } else {
+        console.log('Mode web');
+      }
     }
     Bridge.initClient();
     
@@ -77,11 +81,10 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.settings.refresh().subscribe(s => {
       this.loaded = true;
-      console.log('Initialized');
     });
     this.state.boardChanged.subscribe(b => {
       this.currentBoard = b;
-      console.log('on change board:', b.title, this.boards);
+      if (isDev()) { console.log('on change board:', b.title, this.boards); }
     });
     this.keyService.searchEvent.emitter.subscribe(e => this.searchMode = true);
     this.keyService.escapeEvent.emitter.subscribe(e => this.closeSearch());
@@ -96,7 +99,7 @@ export class AppComponent implements OnInit {
   }
   
   boardChange(b: Board) {
-    console.log('init change board:', b && b.title, this.boards);
+    if (isDev()) { console.log('init change board:', b && b.title, this.boards); }
     if (b) {
       this.closeSearch();
       this.state.boardChanged.next(b);
@@ -183,7 +186,7 @@ export class AppComponent implements OnInit {
         take(1),
         filter(settings => settings),
         mergeMap(settings => {
-          console.log('save settings', settings);
+          if (isDev()) { console.log('save settings', settings); }
           const s: Settings = JSON.parse(JSON.stringify(this.settings.base));
           s.ui = settings;
           return this.settings.save(s);

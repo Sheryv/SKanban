@@ -1,5 +1,5 @@
 import { UiSettings } from '../model/settings';
-import { MdEditorOption } from 'ngx-markdown-editor/src/lib/md-editor.types';
+import { MdEditorOption } from 'ngx-markdown-editor';
 
 declare let marked: any;
 declare let hljs: any;
@@ -54,14 +54,15 @@ export class MarkdownUtils {
   
   static preProcessContent(content: string, settings: UiSettings): string {
     const config = settings.codeParserConfig;
-    let normalized = content.replace(this.REG_EXP_CARET_RETURN, '').replace(this.REG_EXP_NEW_LINE_PAIR, '<br/> \n\n');
+    let normalized = content.replace(this.REG_EXP_CARET_RETURN, '');
     if (config) {
-      const lines = normalized.split('\n');
-      for (const line of lines) {
-        const indexOf = line.lastIndexOf(';');
+      const lines = config.split('\n');
+      console.log(normalized);
+      for (const pattern of lines) {
+        const indexOf = pattern.lastIndexOf(';');
         if (indexOf > 0) {
-          const reg = line.substring(0, indexOf);
-          let url = line.substring(indexOf + 1);
+          const reg = pattern.substring(0, indexOf);
+          let url = pattern.substring(indexOf + 1);
           if (!url.includes('$')) {
             url += '$&';
           }
@@ -69,7 +70,7 @@ export class MarkdownUtils {
         }
       }
     }
-    return normalized;
+    return normalized.replace(this.REG_EXP_NEW_LINE_PAIR, '<br/> \n\n');
   }
   
   static editorOptions(): MdEditorOption {

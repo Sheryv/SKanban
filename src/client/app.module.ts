@@ -62,7 +62,7 @@ import { FormErrorsComponent } from './component/form-errors/form-errors.compone
 import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSelectModule } from '@angular/material/select';
-import { LMarkdownEditorModule } from 'ngx-markdown-editor/dist';
+import { LMarkdownEditorModule } from 'ngx-markdown-editor';
 import { AutofocusDirective } from './directive/auto-focus.directive';
 
 // AoT requires an exported function for factories

@@ -10,4 +10,5 @@ export interface TaskList extends Entity {
   board_id: number;
   
   $tasks?: Task[];
+  $filteredTasks?: Task[];
 }

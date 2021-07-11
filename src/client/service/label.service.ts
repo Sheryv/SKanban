@@ -8,6 +8,7 @@ import { Label } from '../model/label';
 import { Factory } from './factory';
 import { TaskLabel } from '../model/task-label';
 import { HistoryType } from '../model/history-type';
+import { isDev } from '../../shared/util/utils';
 
 @Injectable({
   providedIn: 'root',
@@ -41,12 +42,10 @@ export class LabelService {
   }
   
   setLabelsForTask(task: Task, labels: Label[]): Observable<DbExecResult[]> {
-    let lb = labels.slice();
-    console.log('lb to set ', lb);
+    const lb = labels.slice();
     return this.db.findAll({table: 'task_labels', clauses: {deleted_date: DatabaseService.IS_NULL, task_id: task.id}})
       .pipe(
         map((all: TaskLabel[]) => {
-          console.log('current lb ', all.slice());
           return all.filter(a => {
             const res = lb.every(n => n.id !== a.label_id);
             if (!res) {
@@ -58,7 +57,11 @@ export class LabelService {
             return n;
           });
         }),
-        tap((d) => console.log('lb delete', d)),
+        tap((d) => {
+          if (isDev()) {
+            console.log('lb delete', d);
+          }
+        }),
         mergeMap(d => {
           let ob: Observable<TaskLabel[]>;
           if (d.length > 0) {
@@ -74,7 +77,7 @@ export class LabelService {
           toArray(),
         )),
         take(1),
-        tap(() => console.log('lb save', lb)),
+        tap(() => {if (isDev()) {console.log('lb save', lb); }}),
         mergeMap(() => {
           if (lb.length <= 0) {
             return of(null);

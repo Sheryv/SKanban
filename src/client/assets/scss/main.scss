@@ -115,7 +115,7 @@ html, body {
   padding-right: 1px;
   text-align: center;
   border-radius: 50%;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .icon-btn:hover, .icon-btn-30:hover, .icon-btn-18:hover, .icon-btn-40:hover {
@@ -204,6 +204,11 @@ html, body {
   @extend .fg;
 }
 
+.message-warning {
+  background-color: $warn-bg;
+  @extend .fg;
+}
+
 .message-success .mat-button, .message-error .mat-button, .message-success .mat-button {
   border: 1px solid rgba(255, 255, 255, 0.12)
 }
@@ -243,6 +248,8 @@ mat-form-field.field-small {
 }
 
 .markdown-content, md-editor {
+  line-height: 1.35rem;
+
   li {
     margin-left: 0.5rem;
     display: list-item;
@@ -273,21 +280,27 @@ mat-form-field.field-small {
   }
 
   h1 {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     padding-left: 0.75rem;
-    border-bottom: 1px solid $foreground-tertiary;
+    border-bottom: 1px solid map_get($mat-cyan, 100);
     margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    color: lighten(map_get($mat-cyan, 100), 15%);
   }
 
   h2 {
-    margin-top: 0.5rem;
-    margin-left: 0.75rem;
-    margin-bottom: 0.25rem;
+    margin-top: 0.25rem;
+    padding-left: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-top: 0.5rem;
+    background: darken(desaturate(map_get($mat-light-blue, 500), 85%), 25%);
+    border-radius: 0.4rem;
   }
 
   h3 {
-    margin-top: 0.25rem;
+    margin-top: 0.75rem;
     font-size: 1.25rem;
+    //background: darken($background, 5%);
   }
 
   h4 {
@@ -296,6 +309,14 @@ mat-form-field.field-small {
 
   hr {
     margin-top: 0.5rem
+  }
+
+  table {
+    background: darken(desaturate(map_get($mat-light-blue, 500), 90%), 30%);
+  }
+
+  .ace-twilight {
+    background-color: #272822;
   }
 }
 

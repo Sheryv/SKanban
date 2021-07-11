@@ -19,6 +19,7 @@ import { DbExecResult } from '../../../shared/model/db-exec-result';
 import { TaskHistory } from '../../model/task-history';
 import { TaskType } from '../../model/task-type';
 import { MarkdownUtils } from '../../util/marked-renderers';
+import { isDev } from '../../../shared/util/utils';
 
 @Component({
   selector: 'app-task-details',
@@ -56,7 +57,7 @@ export class TaskDetailsComponent implements OnInit {
   @Input()
   set task(value: Task) {
     if (this._task && value == null) {
-      this.cancel();
+      this.close();
     }
     if (this._task) {
       if (this.form && this.form.dirty) {
@@ -91,7 +92,7 @@ export class TaskDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.reset();
     
-    this.state.boardChanged.subscribe(b => this.cancel());
+    this.state.boardChanged.subscribe(b => this.close());
   }
   
   reset() {
@@ -114,27 +115,13 @@ export class TaskDetailsComponent implements OnInit {
         content: [this._task.content, [Validators.max(10000)]],
         due_date: [date],
         type: [this._task.type, [Validators.required]],
-        $md: [
-          `# Hello, Markdown Editor!
-\`\`\`javascript
-function Test() {
-\tconsole.log("Test");
-}
-\`\`\`
- Name | Type
- ---- | ----
- A | Test
-![](favicon.png)
-
-- [ ] Task A
-- [x] Task B
-- test
-
-[Link](https://www.google.com)`],
+        $md: [''],
       });
       this.selectedLabels = (this._task.$labels && this._task.$labels.slice()) || [];
       this.labels = this.allLabels.slice().filter(a => this.selectedLabels.every(s => a.id !== s.id));
-      console.log('reset to ', this.allLabels);
+      if (isDev()) {
+        console.log('reset to ', this.allLabels);
+      }
     });
   }
   
@@ -160,7 +147,9 @@ function Test() {
         runInZone(this.zone),
         tap(r => {
           const strings = this.selectedLabels.map(l => l.title);
-          console.log('lb after save', strings);
+          if (isDev()) {
+            console.log('lb after save', strings);
+          }
           t.$labels = this.selectedLabels;
           const prevList = this.state.currentBoard.$lists.find(l => l.id === t.list_id);
           if (prevList) {
@@ -183,7 +172,14 @@ function Test() {
   }
   
   cancel() {
-    (this.form && this.form.dirty ? this.saveAsync(this.task) : of(null)).subscribe(v => this.closed.emit(this.task));
+    this.editMode = false;
+    if (this.form && this.form.dirty) {
+      this.message.warn('Closed without saving');
+    }
+  }
+  
+  close() {
+    (this.form && this.form.dirty ? this.saveAsync(this.task) : of(null)).subscribe(v => this.editMode = false);
   }
   
   addLabel(lbl: Label) {
@@ -266,6 +262,13 @@ function Test() {
   handleEditKey2(event: KeyboardEvent) {
     if (!this.editMode) {
       this.startEdit();
+    }
+  }
+  
+  @HostListener('window:keydown.control.enter', ['$event'])
+  handleSaveKey(event: KeyboardEvent) {
+    if (this.editMode) {
+      this.save();
     }
   }
   

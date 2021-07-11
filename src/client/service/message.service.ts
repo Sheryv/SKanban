@@ -24,4 +24,8 @@ export class MessageService {
   info(msg: string) {
     this.snackbar.open(msg, 'Dismiss', {duration: 10000, panelClass: 'message-info'});
   }
+  
+  warn(msg: string) {
+    this.snackbar.open(msg, 'Dismiss', {duration: 5000, panelClass: 'message-warning'});
+  }
 }

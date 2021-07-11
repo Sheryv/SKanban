@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ShortcutEventOutput, ShortcutInput } from 'ng-keyboard-shortcuts';
 import { Subject } from 'rxjs';
+import { isDev } from '../../shared/util/utils';
 
 export class KeyEvent {
   public readonly def: ShortcutInput;
@@ -18,7 +19,7 @@ export class KeyCommandsService {
     return {
       key: 'ctrl + shift + a',
       command(event: ShortcutEventOutput): any {
-        console.debug('KEY: ', event.key);
+        if (isDev()) { console.debug('KEY: ', event.key); }
         e.next(event);
       },
       description: 'Create task (target list have to be selected)',
@@ -59,7 +60,7 @@ export class KeyCommandsService {
     return {
       key: 'esc',
       command(event: ShortcutEventOutput): any {
-        console.debug('KEY: ', event.key);
+        if (isDev()) { console.debug('KEY: ', event.key); }
         e.next(event);
       },
       description: 'Exit current task',

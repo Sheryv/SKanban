@@ -22,6 +22,7 @@ import { TaskType } from '../../model/task-type';
 import { DateTime } from 'luxon';
 import { SortDirection } from '../../model/sort-direction';
 import { TaskSortField } from '../../model/task-sort-field';
+import { isDev } from '../../../shared/util/utils';
 
 @Component({
   selector: 'app-lists',
@@ -49,7 +50,6 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
   
   ngOnInit(): void {
-    console.log('Config: ', this.ui);
     this.keyService.addEvent.emitter.pipe(takeUntil(this.activeState)).subscribe(e => {
       if (this.selectedList && this.selectedList.title) {
         this.addTask(this.selectedList);
@@ -79,7 +79,9 @@ export class ListsComponent implements OnInit, OnDestroy {
   changeBoard(b: Board) {
     this.board = b;
     this.loading = true;
-    console.log('loading list');
+    if (isDev()) {
+      console.log('loading list');
+    }
     this.loadLists().subscribe();
   }
   
@@ -109,9 +111,11 @@ export class ListsComponent implements OnInit, OnDestroy {
         
         this.selectedList = this.lists && this.lists[0];
         this.loading = false;
-        console.log('loaded list ', this.lists, this.ui, this.lists[0].$tasks.map(t => {
-          return {n: t.title, d: new Date(t.create_date).toLocaleDateString(), c: t.content};
-        }));
+        if (isDev()) {
+          console.log('loaded list ', this.lists, this.ui, this.lists[0].$tasks.map(t => {
+            return {n: t.title, d: new Date(t.create_date).toLocaleDateString(), c: t.content};
+          }));
+        }
       }));
   }
   
@@ -191,7 +195,9 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
   
   selectTask(task: Task) {
-    console.log('Change task', task);
+    if (isDev()) {
+      console.log('Change task', task);
+    }
     this.visibleTask = task;
   }
   
@@ -312,8 +318,11 @@ export class ListsComponent implements OnInit, OnDestroy {
       const baseList = tasks.filter(t => t.title.includes(this.searchTerm) || t.content.includes(this.searchTerm));
       if (config) {
         const sort = config.sortBy;
-        return  baseList.sort((a, b) => this.sortTasks(a, b, sort, config));
+        const filtered = baseList.sort((a, b) => this.sortTasks(a, b, sort, config));
+        list.$filteredTasks = filtered;
+        return filtered;
       }
+      list.$filteredTasks = baseList;
       return baseList;
     } else {
       if (config) {
@@ -323,11 +332,13 @@ export class ListsComponent implements OnInit, OnDestroy {
         const sorted = tasks.sort((a, b) => this.sortTasks(a, b, sort, config));
         // const first = sorted.slice(0, config.minVisible);
         if (config.minVisible >= sorted.length) {
+          list.$filteredTasks = sorted;
           return sorted;
         }
         
         const recent = sorted.filter(t => t.create_date >= past);
         if (recent.length === sorted.length) {
+          list.$filteredTasks = sorted;
           return sorted;
         }
         
@@ -348,8 +359,10 @@ export class ListsComponent implements OnInit, OnDestroy {
           
           return sorted.filter(t => recent.some(o => o.id === t.id));
         }
+        list.$filteredTasks = recent;
         return recent;
       }
+      list.$filteredTasks = tasks;
       return tasks;
     }
   }

@@ -328,10 +328,10 @@ $mat-blue-grey: (
 );
 
 $background: rgb(47, 49, 54);
-$background-secondary: rgba(54, 57, 63);
+$background-secondary: rgb(54, 57, 63);
 $background-tertiary: rgb(64, 67, 73);
 $background-quaternary: rgb(75, 78, 84);
-$background-alt: rgba(32, 34, 37);
+$background-alt: rgb(32, 34, 37);
 $background-dark: rgb(15, 17, 20);
 $background-full: black;
 
@@ -339,9 +339,9 @@ $foreground: white;
 $foreground-secondary: #dddddd;
 $foreground-tertiary: #a0a0a0;
 $foreground-quaternary: #7e7e7e;
-$light-secondary-text: rgba($foreground, 0.6);
+$light-secondary-text: darken($foreground, 10%);
 
-$background-hover: rgb(170, 170, 170, 0.2);
+$background-hover: rgba(170, 170, 170, 0.2);
 
 $elevate-1: rgba(4, 4, 5, 0.2) 0px 1px 0px 0px, rgba(6, 6, 7, 0.05) 0px 1.5px 0px 0px, rgba(4, 4, 5, 0.05) 0px 2px 0px 0px;
 $elevate-2: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
@@ -352,6 +352,7 @@ $warn: map_get($mat-red, 500);
 
 $success-bg: map_get($mat-green, 900);
 $success-bg-alt: map_get($mat-teal, 900);
-$success: map_get($mat-green, 500);
+$success: map_get($mat-green, 400);
 $error-bg: map_get($mat-deep-orange, 900);
 $accent-bg: map_get($mat-blue, 900);
+$warn-bg: darken(map_get($mat-yellow, 600), 30%);

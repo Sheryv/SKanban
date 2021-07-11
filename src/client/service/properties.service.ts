@@ -4,6 +4,7 @@ import { map, mergeMap, take } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { DbExecResult } from '../../shared/model/db-exec-result';
 import { Row } from '../../typings';
+import { isDev } from '../../shared/util/utils';
 
 @Injectable({
   providedIn: 'root',
@@ -35,7 +36,7 @@ export class PropertiesService {
         if (v != null) {
           row.id = v.id;
         }
-        console.log('get-set prop', row);
+        if (isDev()) { console.log('get-set prop', row); }
         return this.db.save({table: 'properties', findId: null, row: row});
         // else {
         //   return this.db.exec({table: 'properties', findId: null, sql: 'insert into properties (key, value) values (?,?)', params: [key, value]});
