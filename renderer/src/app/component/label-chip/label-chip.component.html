@@ -1,0 +1,6 @@
+<div class="task-label fg mt-1 d-inline-flex align-items-center" [ngClass]="{'fg-dark': label.$fgInvert}"
+     [style]="label.bg_color  ? 'background-color: ' + label.bg_color : ''">
+     <span *ngIf="showText">{{label.title}}</span>
+  <i *ngIf="editable" class="material-icons icon-btn-18" style="float: right" [ngClass]="{'fg-dark': label.$fgInvert}"
+     (click)="removed.emit(label)">close</i>
+</div>

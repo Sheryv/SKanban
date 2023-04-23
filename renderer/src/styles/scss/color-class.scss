@@ -1,0 +1,105 @@
+@import "colors";
+
+.bg-success {
+  background-color: $success-bg;
+}
+
+.bg-success-alt {
+  background-color: $success-bg-alt;
+}
+
+.bg-error {
+  background-color: $error-bg;
+}
+
+.bg-accent {
+  background-color: $accent-bg;
+}
+
+.fg {
+  color: $foreground;
+}
+
+.fg-2 {
+  color: $foreground-secondary;
+}
+
+.fg-3 {
+  color: $foreground-tertiary;
+}
+
+.fg-4 {
+  color: $foreground-quaternary;
+}
+
+.fg-dark {
+  color: $background-alt;
+}
+
+.fg-dark-2 {
+  color: $background-full;
+}
+
+.fg-warn {
+  color: $warn;
+}
+
+.fg-accent {
+  color: $accent;
+}
+
+.fg-primary {
+  color: $primary;
+}
+
+.fg-success {
+  color: $success;
+}
+
+.fg-success-vibrant {
+  color: $success-vibrant;
+}
+
+.bg {
+  background-color: $background;
+}
+
+.bg-2 {
+  background-color: $background-2;
+}
+
+.bg-3 {
+  background-color: $background-3;
+}
+
+.bg-4 {
+  background-color: $background-4;
+}
+
+.bg-alt {
+  background-color: $background-alt;
+}
+
+.bg-alt-2 {
+  background-color: $background-alt-2;
+}
+
+.bg-alt-3 {
+  background-color: $background-alt-3;
+}
+
+.elevate-bottom {
+  box-shadow: $elevate-1;
+}
+
+.elevate-bottom-2 {
+  box-shadow: $elevate-2;
+}
+
+.mat-success {
+  @extend .bg-success;
+  --mdc-protected-button-container-color: #{$success-bg};
+  --mdc-outlined-button-label-text-color: #{$success};
+
+  --mat-mdc-button-persistent-ripple-color: #{$success-bg};
+}

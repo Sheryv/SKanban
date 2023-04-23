@@ -1,0 +1,50 @@
+<h1 mat-dialog-title>Select date and time</h1>
+<div mat-dialog-content>
+  <!--  <div class="container">-->
+
+  <div class="row">
+    <div class="col-12  mt-3">
+      <span class="fg-4 mr-2">Date:</span>
+      <span>{{date | dateUser}}</span>
+      <div class="line my-3">
+      </div>
+      <!--    <div class="col">-->
+      <!--    </div>-->
+    </div>
+    <div class="col-12">
+      <div class="row">
+        <div class="col-12 col-sm-5">
+          <mat-calendar [selected]="date" (selectedChange)="onChangeDay($event)" [dateClass]="dateClass" [dateFilter]="dateFilter"></mat-calendar>
+        </div>
+        <div class="col-12 col-sm-7">
+          <div class="row mt-3">
+            <div class="col-12">Fill the time manually or choose from the list:</div>
+            <div class="col-12 col-sm-6">
+              <ngx-mat-timepicker class="d-block mt-3"
+                                  (ngModelChange)="onChangeTime($event)"
+                                  [ngModel]="time"
+                                  [enableMeridian]="meridian"
+                                  [showSeconds]="data?.showSeconds">
+              </ngx-mat-timepicker>
+            </div>
+            <div class="col-12 col-sm-5 col-md-4 mt-3">
+              <div class="d-flex flex-column overflow-auto" style="max-height: 400px">
+                <ng-container *ngFor="let t of predefined">
+                  <button mat-button class="btn-small" (click)="onChangeTimeSpecific(t.hour, t.minute)">{{t.date}}</button>
+                  <div class="separator"></div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="warn" (click)="clear()">Clear</button>
+  <div class="flex-grow-1"></div>
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="accent" (click)="save()">Accept</button>
+</div>

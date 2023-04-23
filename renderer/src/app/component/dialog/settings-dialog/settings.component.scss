@@ -1,0 +1,9 @@
+@import "../../../../styles/scss/colors";
+
+hr {
+  border-color: #b5b5b5;
+}
+
+.mat-dialog-content {
+  max-height: calc(100% - 80px);
+}

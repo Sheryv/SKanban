@@ -1,0 +1,70 @@
+<div class="main-panel">
+  <div class="top-bar d-flex">
+    <div *ngIf="currentBoard" class="d-flex align-items-center" style="max-width: calc(100% - 28px)">
+      <span class="text-ellipsis">{{currentBoard.title}}</span><i
+      class="material-icons icon-btn ml-3" matTooltip="Board settings" (click)="boardSettings(currentBoard)">build</i>
+      <i class="material-icons icon-btn ml-1" matTooltip="Import list from file" (click)="importList(currentBoard.id)">sim_card_download</i>
+      <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">local_offer</i>
+      <div *ngIf="searchMode" class="ml-4 d-flex align-items-center">
+        <!--                <mat-form-field class="field-small" appearance="outline">-->
+        <input class="small-input" #searchBox appAutofocus maxlength="100" (keydown.escape)="closeSearch()"
+               (change)="search(searchBox.value)">
+        <!--                    <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="search(searchBox.value)">-->
+        <!--                        <mat-icon>search</mat-icon>-->
+        <!--                    </button>-->
+        <!--                </mat-form-field>-->
+        <i class="material-icons icon-btn icon-btn-fill ml-1 fg-primary" matTooltip="Find"
+           (click)="search(searchBox.value)">search</i>
+        <i class="material-icons icon-btn ml-1" matTooltip="Exit search" (click)="closeSearch()">clear</i>
+      </div>
+      <i *ngIf="!searchMode" class="material-icons icon-btn ml-1" matTooltip="Find"
+         (click)="searchMode = true">search</i>
+    </div>
+    <div class="flex-grow-1"></div>
+    <i class="material-icons icon-btn" matTooltip="System menu" [matMenuTriggerFor]="systemMenu">settings</i>
+    <mat-menu #systemMenu="matMenu">
+      <button mat-menu-item (click)="systemSettings()">
+        <mat-icon>tune</mat-icon>
+        <span>Settings</span>
+      </button>
+      <button mat-menu-item (click)="aboutDialog()">
+        <mat-icon>code</mat-icon>
+        <span>About</span>
+      </button>
+      <button mat-menu-item (click)="showDbFile()">
+        <mat-icon>storage</mat-icon>
+        <span>Show DB file in explorer</span>
+      </button>
+      <button mat-menu-item (click)="disableAllFileSync()">
+        <mat-icon>sync_disabled</mat-icon>
+        <span>Disable all file sync</span>
+      </button>
+      <button mat-menu-item disabled>
+        <mat-icon>help</mat-icon>
+        <span>Keyboard shortcuts</span>
+      </button>
+    </mat-menu>
+  </div>
+  <router-outlet *ngIf="loaded && currentBoard"></router-outlet>
+
+  <div *ngIf="!loaded" class="mt-5">
+    <mat-spinner [diameter]="40" class="mx-auto"></mat-spinner>
+  </div>
+  <div *ngIf="!currentBoard && loaded">
+    <div class="text-center p-4 fg-4">No boards yet. Create first in left panel.</div>
+  </div>
+  <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
+</div>
+<div class="boards-bar">
+  <div *ngFor="let b of boards" class="boards-item" (click)="boardChange(b)" matRipple>
+    <div matTooltip="{{b.title}}">
+      {{b.title | avatarPipe}}
+    </div>
+
+  </div>
+  <div class="boards-item-add " matRipple matTooltip="Create board" (click)="createBoard()">
+    <div>
+      +
+    </div>
+  </div>
+</div>

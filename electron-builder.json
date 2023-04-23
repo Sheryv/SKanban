@@ -1,11 +1,14 @@
 {
+  "asar": false,
   "productName": "SKanban",
+  "appId": "SKanban",
   "directories": {
-    "output": "release/"
+    "output": "release/",
+    "buildResources": "renderer/dist",
+    "app": "main"
   },
-  "appId": "com.sheryv.${name}",
+  "artifactName": "SKanban-${version}.${ext}",
   "files": [
-    "**/*",
     "!*.code-workspace",
     "!LICENSE.md",
     "!package.json",
@@ -13,29 +16,49 @@
     "!src/",
     "!e2e/",
     "!hooks/",
+    "!renderer/",
     "!angular.json",
     "!_config.yml",
     "!karma.conf.js",
     "!tsconfig.json",
     "!tslint.json",
-    "src/server/",
-    "src/shared/",
-    "!**/*.ts"
+    "!**/*.ts",
+    "renderer/dist",
+    "main/dist/**/*.js",
+    "dist/**/*.js",
+    "dist-main/preload/**/*.js",
+    "dist-main/renderer/shared/**/*.js"
+  ],
+  "asarUnpack": [
+    "./node_modules/node-notifier/**/*"
+  ],
+  "extraFiles": [
+    {
+      "from": "renderer/dist/",
+      "to": "resources/app/"
+    },
+    {
+      "from": "renderer/dist/assets/",
+      "to": "resources/app/assets",
+      "filter": [
+        "*.*"
+      ]
+    }
   ],
   "win": {
-    "icon": "dist/favicon.pack.ico",
+    "icon": "favicon.pack.ico",
     "target": [
       "zip"
     ]
   },
   "mac": {
-    "icon": "dist/favicon.256x256.png",
+    "icon": "favicon.pack.ico",
     "target": [
       "dmg"
     ]
   },
   "linux": {
-    "icon": "dist/favicon.256x256.png",
+    "icon": "favicon.256x256.png",
     "target": [
       "AppImage"
     ]

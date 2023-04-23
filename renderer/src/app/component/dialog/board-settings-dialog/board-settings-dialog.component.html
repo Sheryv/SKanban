@@ -1,0 +1,14 @@
+<h1 mat-dialog-title>Board settings</h1>
+<div mat-dialog-content>
+  <mat-form-field class="w-100" appearance="fill">
+    <mat-label>Name</mat-label>
+    <input cdkFocusInitial matInput [formControl]="name">
+    <mat-error *ngIf="name.hasError('required')">Cannot be empty</mat-error>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button color="warn" (click)="delete()">Delete</button>
+  <div class="flex-grow-1"></div>
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="accent" (click)="save()">Save</button>
+</div>

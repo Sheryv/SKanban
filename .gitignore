@@ -2,21 +2,25 @@
 
 # compiled output
 /dist
+main/dist
+renderer/dist
+/dist-main
 /tmp
 /out-tsc
 /app-builds
 /release
 main.js
 src/**/*.js
-!src/client/assets/**/*.js
 !src/karma.conf.js
 *.js.map
+.angular
+database.db
 
 # dependencies
-/node_modules
+node_modules
 
 # IDEs and editors
-/.idea
+.idea
 .project
 .classpath
 .c9/
@@ -26,12 +30,13 @@ src/**/*.js
 
 # IDE - VSCode
 .vscode/*
-!.vscode/settings.json
+.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
 # misc
+/.angular/cache
 /.sass-cache
 /connect.lock
 /coverage
@@ -39,13 +44,13 @@ src/**/*.js
 npm-debug.log
 testem.log
 /typings
-package-lock.json
-/database.db
 
 # e2e
 /e2e/*.js
 !/e2e/protractor.conf.js
 /e2e/*.map
+/e2e/tracing
+/e2e/screenshots
 
 # System Files
 .DS_Store

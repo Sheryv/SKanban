@@ -1,0 +1,142 @@
+@use '@angular/material' as mat;
+@import 'styles/scss/colors';
+@import 'styles/scss/sizes';
+
+@include mat.core();
+
+//@font-face {
+//  font-family: 'Roboto';
+//  font-style: normal;
+//  font-weight: 400;
+//  src: url(./assets/fonts/Roboto-Regular.ttf) format('truetype');
+//}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(fonts/OpenSans.ttf) format('truetype');
+}
+
+//@font-face {
+//  font-family: 'Roboto-Thin';
+//  font-style: normal;
+//  font-weight: 300;
+//  src: url(./assets/fonts/Roboto-Thin.ttf) format('truetype');
+//}
+
+//@font-face {
+//  font-family: 'Material Icons';
+//  font-style: normal;
+//  font-weight: 400;
+//  src: url(./assets/fonts/material-icons.woff2) format('woff2');
+//}
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  src: url(fonts/material-symbols-outlined.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Material Symbols';
+  font-style: normal;
+  font-weight: 300;
+  src: url(fonts/material-symbols-filled.woff2) format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Symbols';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -moz-font-feature-settings: 'liga';
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.material-icons-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -moz-font-feature-settings: 'liga';
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+$dark-primary: mat.define-palette(mat.$orange-palette);
+$dark-accent: mat.define-palette(mat.$blue-palette, A200, A100, A400);
+
+// The warn palette is optional (defaults to red).
+$dark-warn: mat.define-palette(mat.$red-palette);
+
+// Create the theme object (a Sass map containing all of the palettes).
+//$cdark-theme: mat-dark-theme($dark-primary, $dark-accent, $dark-warn);
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+//@include angular-material-theme($cdark-theme);
+
+
+$my-theme: mat.define-dark-theme((
+  color: (
+    primary:$dark-primary,
+    accent: $dark-accent,
+    warn: $dark-warn,
+    background: $background-2,
+    foreground: $foreground,
+  ),
+  typography: mat.define-typography-config(
+    $font-family: 'Open Sans',
+    $headline-1: mat.define-typography-level(2.25rem, 2.25rem, 300),
+    $headline-2: mat.define-typography-level(1.75rem, 1.75rem, 400),
+    $headline-3: mat.define-typography-level(1.3rem, 1.3rem, 500),
+    $headline-4: mat.define-typography-level(1.2rem, 1.2rem, 500),
+    $body-1: mat.define-typography-level($font-size, $font-size, 400, $letter-spacing: 0.25px),
+    $body-2: mat.define-typography-level($font-size - 2px, $font-size - 2px, 400, $letter-spacing: 0.25px),
+    $button: mat.define-typography-level($font-size - 1px, $font-size - 1px, 500, $letter-spacing: 1px),
+    $caption: mat.define-typography-level(max($font-size - 4px, 11px), max($font-size - 4px, 11px), 400, $letter-spacing: 0.1px),
+    $subtitle-1: mat.define-typography-level($font-size, $font-size, 400, $letter-spacing: 0.15px),
+    $subtitle-2: mat.define-typography-level($font-size - 2px, $font-size - 2px, 400, $letter-spacing: 0.1px),
+  ),
+  density: -1,
+));
+
+$my-theme-normal-density: mat.define-dark-theme((
+  density: 0,
+));
+
+
+
+
+@include mat.all-component-themes($my-theme);
+@include mat.button-density($my-theme-normal-density);
+
+@import "styles/css/bootstrap-grid.min.css";
+@import "styles/scss/utils";
+//@import "assets/scss/fontawesome/fontawesome";
+//@import "assets/scss/fontawesome/solid";
+@import "styles/scss/main";
+
+.sd {
+  slide-out-background: linear-gradient(270deg, #222b45 0%, #151a30 100%);
+  slide-out-shadow-color: 0 4px 14px 0 #8f9bb3;
+  slide-out-shadow-color-rtl: 0 4px 14px 0 #8f9bb3;
+
+}
