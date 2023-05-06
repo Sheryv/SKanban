@@ -1,80 +1,139 @@
 <h1 mat-dialog-title>System settings</h1>
 <div mat-dialog-content>
   <div class="container">
+    <div class="row">
+      <h3 class="col-12 col-md-5 align-items-center d-flex pb-3">
+        Application locale
+      </h3>
+      <mat-form-field class="col-12 col-md-7 w-100" appearance="outline">
+        <mat-select [ngModel]="locale" (ngModelChange)="changeLocale($event)">
+          <mat-option *ngFor="let e of locales" [value]="e">{{e.toUpperCase()}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
     <form>
       <ng-container *ngTemplateOutlet="rowTemplate; context: {'data': defs, 'level': 0, 'parent': form}"></ng-container>
 
-      <ng-template #rowTemplate let-def="data" let-level="level" let-parent="parent">
+      <ng-template #rowTemplate let-def="data" let-level="level" let-parent="parent"
+                   let-inlineControls="inlineControls">
         <div [formGroup]="parent" class="row">
           <ng-container *ngFor="let p of def">
             <ng-container *ngIf="asField(p.value) as f">
               <ng-container [ngSwitch]="p.value.type">
-                <div class="col-12 mb-3" *ngSwitchCase="'number'" [ngClass]="f.customCssClasses">
+                <div class="col-12 mb-3" *ngSwitchCase="'number'" [ngClass]="f.view.customCssClasses">
                   <div class="row">
-                    <div class="col-12 col-md-7  align-items-center d-flex pb-3">{{f.label}}</div>
-                    <mat-form-field class="col-12 col-md-5  field-small" appearance="outline">
-                      <input matInput type="number" maxlength="100" [formControlName]="p.key">
-                      <mat-error *ngFor="let e of (parent.get(p.key).errors | keyvalue) || []" app-form-errors
+                    <div class="col-12 align-items-center d-flex pb-3"
+                         [ngClass]="!inlineControls ? 'col-md-7' : 'col-sm-auto'">{{f.label}}</div>
+                    <mat-form-field class="col field-small" appearance="outline"
+                                    [ngClass]="!inlineControls ? 'col-12 col-md-5' : 'w-100'">
+                      <input matInput type="number" maxlength="100" [formControlName]="f.code">
+                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
                                  [error]="e"></mat-error>
                       <mat-hint
-                        *ngIf="f.hint || f.defaultValue != null">{{f.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
+                        *ngIf="f.view.hint || f.defaultValue !== null">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
                     </mat-form-field>
                   </div>
                 </div>
-                <div class="col-12 mb-3" *ngSwitchCase="'text'" [ngClass]="f.customCssClasses">
+                <div class="col-12 mb-3" *ngSwitchCase="'text'" [ngClass]="f.view.customCssClasses">
                   <div class="row" *ngIf="asText(p.value).lines > 1">
-                    <div class="col-12 col-md-5 col-lg-6 align-items-top d-flex pt-2 pb-3">{{f.label}}</div>
-                    <mat-form-field class="col-12 col-md-7 col-lg-6 field-small field-textarea" appearance="outline">
+                    <div class="col-12 align-items-top d-flex pt-2 pb-3"
+                         [ngClass]="!inlineControls ? 'col-md-5 col-lg-6' : 'col-sm-auto'">{{f.label}}</div>
+                    <mat-form-field class="col field-small field-textarea" appearance="outline"
+                                    [ngClass]="!inlineControls ? 'col-12 col-md-7 col-lg-6' : 'w-100'">
                     <textarea matInput type="text" class="text-monospace" maxlength="{{f['maxLength']}}"
-                              rows="{{f['lines']}}" [formControlName]="p.key"></textarea>
-                      <mat-error *ngFor="let e of (parent.get(p.key).errors | keyvalue) || []" app-form-errors
+                              rows="{{f['lines']}}" [formControlName]="f.code"></textarea>
+                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
                                  [error]="e"></mat-error>
-                      <mat-hint *ngIf="f.hint || f.defaultValue">{{f.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
-                      <mat-hint align="end">{{parent.get(p.key).value?.length || 0}} / {{f['maxLength']}}</mat-hint>
+                      <mat-hint
+                        *ngIf="f.view.hint || f.defaultValue">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
+                      <mat-hint align="end">{{parent.controls[f.code].value?.length || 0}} / {{f['maxLength']}}</mat-hint>
                     </mat-form-field>
                   </div>
-                  <div class="row" *ngIf="asText(p.value).lines == 1">
-                    <div class="col-12 col-md-7  align-items-top d-flex pt-2 pb-3">{{f.label}}</div>
-                    <mat-form-field class="col-12 col-md-5 field-small" appearance="outline">
-                      <input matInput type="text" maxlength="{{f['maxLength']}}" [formControlName]="p.key">
-                      <mat-error *ngFor="let e of (parent.get(p.key).errors | keyvalue) || []" app-form-errors
+                  <div class="row" *ngIf="asText(p.value).lines === 1">
+                    <div class="col-12 align-items-center d-flex pb-3"
+                         [ngClass]="!inlineControls ? 'col-md-7' : 'col-sm-auto'">{{f.label}}</div>
+                    <mat-form-field class="col field-small" appearance="outline"
+                                    [ngClass]="!inlineControls ? 'col-12 col-md-5' : 'w-100'">
+                      <input matInput type="text" maxlength="{{f['maxLength']}}" [formControlName]="f.code">
+                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
                                  [error]="e"></mat-error>
-                      <mat-hint *ngIf="f.hint || f.defaultValue">{{f.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
+                      <mat-hint
+                        *ngIf="f.view.hint || f.defaultValue">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
                     </mat-form-field>
                   </div>
                 </div>
-                <div class="col-12 mb-3 pt-2" *ngSwitchCase="'bool'" [ngClass]="f.customCssClasses">
+                <div class="col-12 mb-3 pt-2" *ngSwitchCase="'bool'" [ngClass]="f.view.customCssClasses">
                   <div class="row">
-                    <div class="col-12 col-md-7  align-items-center d-flex pb-3">{{f.label}}</div>
-                    <div class="col-12 col-md-5  d-flex justify-content-between">
-                      <mat-slide-toggle [formControlName]="p.key"></mat-slide-toggle>
+                    <div class="col-12 align-items-center d-flex pb-3"
+                         [ngClass]="!inlineControls ? 'col-md-7' : 'col-sm-auto'">{{f.label}}</div>
+                    <div class="col d-flex justify-content-between"
+                         [ngClass]="!inlineControls ? 'col-12 col-md-5' : ''">
+                      <mat-slide-toggle [formControlName]="f.code"></mat-slide-toggle>
                       <mat-hint class="hint" *ngIf="f.defaultValue">
                         Default: {{f.defaultValue ? 'enabled' : 'disabled'}}</mat-hint>
                     </div>
                   </div>
                 </div>
-                <div class="col-12 mb-3" *ngSwitchCase="'select'" [ngClass]="f.customCssClasses">
+                <div class="col-12 mb-3" *ngSwitchCase="'select'" [ngClass]="f.view.customCssClasses">
                   <div class="row">
-                    <div class="col-12 col-md-7 c align-items-center d-flex pb-3">{{f.label}}</div>
-                    <mat-form-field class="col-12 col-md-5  w-100" appearance="outline">
-                      <mat-select [formControlName]="p.key">
-                        <mat-option *ngFor="let e of asSelect(p.value).values | keyvalue"
-                                    [value]="e.key">{{e.value}}</mat-option>
+                    <div class="col-12 align-items-center d-flex pb-3"
+                         [ngClass]="!inlineControls ? 'col-md-7' : 'col-sm-auto'">{{f.label}}</div>
+                    <mat-form-field class="col  w-100" appearance="outline"
+                                    [ngClass]="!inlineControls ? 'col-12 col-md-5' : ''">
+                      <mat-select [formControlName]="f.code">
+                        <mat-option *ngFor="let e of asSelect(p.value).listValues"
+                                    [value]="e[0]">{{e[1]}}</mat-option>
                       </mat-select>
-                      <mat-hint *ngIf="f.hint || f.defaultValue">
-                        {{f.hint ?? 'Default: ' + (asSelect(p.value).values.get(f.defaultValue) || f.defaultValue)}}</mat-hint>
+                      <mat-hint *ngIf="f.view.hint || f.defaultValue">
+                        {{f.view.hint ?? 'Default: ' + (asSelect(p.value).values.get(f.defaultValue) || f.defaultValue)}}</mat-hint>
                     </mat-form-field>
                   </div>
                 </div>
-                <div class="col-12 mb-3" *ngSwitchCase="'object' || 'object_array'" [ngClass]="f.customCssClasses">
-                  <div [formArrayName]="p.key">
-                    <ng-container
-                      *ngTemplateOutlet="nestedObjTemplate; context: {data: p, parent: parent}"></ng-container>
+                <div class="col-12 mb-3" *ngSwitchCase="'date'" [ngClass]="f.view.customCssClasses">
+                  <div class="row">
+                    <div class="col-12 align-items-center d-flex pb-3"
+                         [ngClass]="!inlineControls ? 'col-md-7' : 'col-sm-auto'">{{f.label}}</div>
+                    <mat-form-field class="col field-small" appearance="outline"
+                                    [ngClass]="!inlineControls ? 'col-12 col-md-5' : 'w-100'">
+                      <input matInput [min]="f['min']" [max]="f['max']" maxlength="100" [formControlName]="f.code"
+                             [matDatepicker]="picker">
+                      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                      <mat-datepicker #picker disabled="false"></mat-datepicker>
+                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
+                                 [error]="e"></mat-error>
+                      <mat-hint
+                        *ngIf="f.view.hint || f.defaultValue !== null">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
+                    </mat-form-field>
                   </div>
                 </div>
-                <div class="col-12 w-100" *ngSwitchDefault [ngClass]="f.customCssClasses">
+                <div class="col-12 mb-3" *ngSwitchCase="'object_array'" [ngClass]="f.view.customCssClasses">
+                  <div [formArrayName]="f.code" [ngSwitch]="f['uiTemplate']">
+                    <ng-container *ngSwitchCase="'holidaysCalendar'">
+                      <mat-calendar [dateClass]="calendarDayClassProvider"
+                                    [dateFilter]="calendarDayFilter"></mat-calendar>
+                      <button mat-stroked-button (click)="loadPublicHolidays(countrySelection)">Load holidays from online service
+                      </button>
+                      <ng-template #countrySelection let-data="data">
+                        <mat-form-field class="w-100">
+                          <mat-select [(ngModel)]="data.selection" [ngModelOptions]="{standalone: true}">
+                            <mat-option *ngFor="let e of countries" [value]="e.code">{{e.name}}</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </ng-template>
+                    </ng-container>
+                    <ng-container *ngSwitchDefault>
+                      <ng-container
+                        *ngTemplateOutlet="nestedObjTemplate; context: {data: p, parent: parent}"></ng-container>
+                    </ng-container>
+                  </div>
+                </div>
+                <div class="col-12 mb-3" *ngSwitchCase="'object'" [ngClass]="f.view.customCssClasses">
+                  Not implemented for {{f.code}}
+                </div>
+                <div class="col-12 w-100" *ngSwitchDefault [ngClass]="f['customCssClasses']">
                   <ng-container *ngIf="p.children">
-                    <div class="pb-2">
+                    <div class="pb-2" *ngIf="f.label">
                       <div [ngClass]="'h'+(level+2)">{{f.label}}</div>
                     </div>
                     <div class="line pb-2"></div>
@@ -97,21 +156,24 @@
             <div class="col mt-2 mb-1">{{f.label}}</div>
             <div class="col-auto mt-2 mb-1">
               <i class="material-icons icon-btn-30" matTooltip="Add row"
-                 (click)="addRow(def, parent.get(def.key))">add</i>
+                 (click)="addRow(def, parent.controls[f.code])">add</i>
             </div>
           </div>
-          <div *ngFor="let formRow of parent.get(def.key)['controls']; index as i"
-               class="w-100 mt-2 panel">
-            <div class="text-right mb-2" style="margin-right: -0.5rem; margin-top: -0.5rem">
+          <div *ngFor="let formRow of parent.controls[f.code]?.['controls']; index as i"
+               class="w-100 panel d-flex p-2 mt-2"
+               [ngClass]="f['inlineRemoveRowButton'] ? 'flex-row-reverse' : 'flex-column' ">
+            <div class="text-right mb-2" style="margin-left: 0.8rem; margin-right: -0.5rem; margin-top: -0.5rem">
               <i class="material-icons icon-btn-30 icon-btn-fill fg-warn" matTooltip="Remove row"
-                 (click)="deleteRow(parent.get(def.key), i)">clear</i>
+                 (click)="deleteRow(parent.controls[f.code], i)">clear</i>
               <!--              <button mat-icon-button color="warn" matTooltip="Remove row"-->
               <!--                      (click)="addRow(def, parent.get(def.key))"><mat-icon>clear</mat-icon></button>-->
             </div>
-            <ng-container
-              *ngTemplateOutlet="rowTemplate; context: {'data': def.children, 'level': 3, 'parent': formRow}"></ng-container>
+            <div class="mt-2 w-100">
+              <ng-container
+                *ngTemplateOutlet="rowTemplate; context: {'data': def.children, 'level': 3, 'parent': formRow, 'inlineControls': f['inlineRemoveRowButton']}"></ng-container>
+            </div>
           </div>
-          <div *ngIf="parent.get(def.key)['controls']?.length == 0" class="hint d-flex align-items-center">
+          <div *ngIf="parent.controls[f.code]?.['controls']?.length === 0" class="hint d-flex align-items-center">
             <span>Nothing is configured. Use </span><span class="font-10 material-icons-outlined">add</span><span> button to add</span>
           </div>
         </ng-container>

@@ -438,6 +438,11 @@ mat-hint, .mat-hint {
 }
 
 .calendar-highlight-day {
-  background-color: $accent-bg !important;
+  background-color: #854410 !important;
   border-radius: 100%;
+}
+
+.calendar-highlight-day-weekend {
+  @extend .calendar-highlight-day;
+  background-color: #1d273a !important;
 }

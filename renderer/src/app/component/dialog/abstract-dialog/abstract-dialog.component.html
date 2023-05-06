@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>{{data.params.title}}</h1>
+<div mat-dialog-content>
+  <ng-container *ngTemplateOutlet="data.params.template;  context: {'data': data.templateData, 'dialog': dialogRef}"></ng-container>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="accent" (click)="accept()">{{data.params.acceptButtonLabel ?? 'Save'}}</button>
+</div>

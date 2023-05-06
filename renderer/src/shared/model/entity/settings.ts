@@ -1,45 +1,36 @@
-import { TaskSortField } from './task-sort-field';
-import { SortDirection } from './sort-direction';
-
-export interface Settings {
-  ui: UiSettings;
-  dateFormat: string;
-}
-
-export interface UiSettings {
-  detailsWith: number;
-  taskListWidth: number;
-  taskItemPadding: number;
-  taskItemSize: number;
-  taskLabelShowText: number;
-  taskShowContentSize: number;
-  taskDueDateVisibility: boolean;
-  codeParserConfig: string;
-  listVisibleTaskConfig: { name: string, minVisible: number, lastVisibleDays: number, sortBy: TaskSortField, sortDir: SortDirection } [];
-}
-
+import { AbstractControl, FormGroup } from '@angular/forms';
+import { DateTime } from 'luxon';
 
 export type FieldType = typeof Field.FIELD_TYPES[number];
+
 export abstract class Field<T> {
-  static FIELD_TYPES = ['number', 'text', 'bool', 'select', 'object', 'object_array'] as const;
-  static isValueField(obj) {
-    return !!obj['type'] && Field.FIELD_TYPES.includes(obj['type']);
-  }
-
-  static isContainerField(obj) {
-    return !!obj['type'] && (obj['type'] == 'object' || obj['type'] == 'object_array');
-  }
-
-  private value?: T;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  static FIELD_TYPES = ['number', 'text', 'bool', 'select', 'object', 'object_array', 'date'] as const;
 
   readonly type: FieldType;
 
   readonly code: string;
   readonly label: string;
   readonly defaultValue: T | null;
-  hint?: string;
 
-  customCssClasses: string[] = [];
+  view: {
+    hint?: string;
+    customCssClasses?: string[];
+    onValueChangeListener?: (controlValue: T, control: AbstractControl, form: FormGroup) => void;
+  } = {
+    customCssClasses: [],
+  };
+
+  protected value?: T;
+
+
+  static isValueField(obj) {
+    return !!obj['type'] && Field.FIELD_TYPES.includes(obj['type']);
+  }
+
+  static isContainerField(obj) {
+    return !!obj['type'] && (obj['type'] === 'object' || obj['type'] === 'object_array');
+  }
 
   replaceValue(v: T) {
     this.value = v;
@@ -49,18 +40,8 @@ export abstract class Field<T> {
     return this.value || this.defaultValue;
   }
 
-  withHint(hint: string): Field<T> {
-    this.hint = hint;
-    return this;
-  }
-
-  withCssClasses(...classes: string[]): Field<T> {
-    this.customCssClasses.push(...classes);
-    return this;
-  }
-
-  withUiGridColumnSpecifier(gridSpecifier: number): Field<T> {
-    return this.withCssClasses('col-md-' + gridSpecifier);
+  updateOptions(options: typeof Field.prototype.view) {
+    this.view = Object.assign(this.view, options);
   }
 
   validate(value: T): string[] {
@@ -71,17 +52,18 @@ export abstract class Field<T> {
     return '' + this.getValue();
   }
 
-  abstract deserialize(value: string): T
+  // protected findFields(obj: any, onFound: (field: Field<any>) => void) {
+  //   if (obj['type'] && Field.FIELD_TYPES.includes(obj['type'])) {
+  //     onFound(obj);
+  //   } else if (typeof obj == 'object') {
+  //     for (const field in obj) {
+  //       this.findFields(obj[field], onFound);
+  //     }
+  //   }
+  // }
 
-  protected findFields(obj: any, onFound: (field: Field<any>) => void) {
-    if (obj['type'] && Field.FIELD_TYPES.includes(obj['type'])) {
-      onFound(obj);
-    } else if (typeof obj == 'object') {
-      for (const field in obj) {
-        this.findFields(obj[field], onFound);
-      }
-    }
-  }
+  abstract deserialize(value: string): T;
+
 }
 
 
@@ -110,7 +92,7 @@ export class Num extends Field<number> {
       if (isNaN(num)) {
         errors.push(`Field '${this.label}' [${this.code}] is not a number. '${value}' cannot be parsed as number`);
       } else {
-        if (this.integer && Math.round(num) != num) {
+        if (this.integer && Math.round(num) !== num) {
           errors.push(`Field '${this.label}' [${this.code}] is not an integer. '${value}' cannot be parsed as whole integer`);
         }
 
@@ -123,6 +105,11 @@ export class Num extends Field<number> {
       }
     }
     return errors;
+  }
+
+  withOptions(options: typeof Field.prototype.view): Num {
+    this.updateOptions(options);
+    return this;
   }
 
   deserialize(value: string): number {
@@ -166,12 +153,21 @@ export class Text extends Field<string> {
   deserialize(value: string): string {
     return value;
   }
+
+  withOptions(options: typeof Field.prototype.view): Text {
+    this.updateOptions(options);
+    return this;
+  }
 }
 
 
 export class Select extends Field<string> {
 
   readonly type: FieldType = 'select';
+
+  getKey = this.getValue;
+
+  listValues: [string, string][];
 
   constructor(
     readonly label: string,
@@ -182,13 +178,13 @@ export class Select extends Field<string> {
     readonly lines: number = 1,
   ) {
     super();
+    this.listValues = [...values.entries()];
   }
 
   getSelectedValue(): string {
     return this.values.get(this.getValue());
   }
 
-  getKey = this.getValue;
 
   override validate(value: string): string[] {
     const errors: string[] = [];
@@ -202,6 +198,11 @@ export class Select extends Field<string> {
 
   deserialize(value: string): string {
     return value;
+  }
+
+  withOptions(options: typeof Field.prototype.view): Select {
+    this.updateOptions(options);
+    return this;
   }
 }
 
@@ -230,6 +231,72 @@ export class Bool extends Field<boolean> {
   deserialize(value: string): boolean {
     return Boolean(value);
   }
+
+  withOptions(options: typeof Field.prototype.view): Bool {
+    this.updateOptions(options);
+    return this;
+  }
+}
+
+export class DateField extends Field<DateTime> {
+
+  readonly type: FieldType = 'date';
+
+  constructor(
+    readonly label: string,
+    readonly code: string,
+    readonly defaultValue: DateTime | null = null,
+    readonly required: boolean = true,
+    readonly max: DateTime = DateTime.now().plus({year: 100}),
+    readonly min: DateTime = DateTime.now().minus({year: 100}),
+  ) {
+    super();
+  }
+
+  override validate(value: DateTime): string[] {
+    const errors: string[] = [];
+    if (value == null && this.required) {
+      errors.push(`Field '${this.label}' [${this.code}] is required and cannot be null`);
+    } else {
+      let v = value;
+      if (typeof value == 'string') {
+        v = DateTime.fromISO(value);
+      }
+
+      if (!DateTime.isDateTime(v)) {
+        errors.push(`Field '${this.label}' [${this.code}] is not a date. '${v}' cannot be parsed as date (type ${typeof v})`);
+      } else {
+        if (v.toMillis() < this.min.toMillis()) {
+          errors.push(`Field '${this.label}' [${this.code}] value is too low. ${v} < ${this.min}`);
+        }
+        if (v.toMillis() > this.max.toMillis()) {
+          errors.push(`Field '${this.label}' [${this.code}] value is too high. ${v} > ${this.max}`);
+        }
+      }
+    }
+    return errors;
+  }
+
+  getValue() {
+    if (this.value && typeof this.value == 'string') {
+      this.value = DateTime.fromISO(this.value);
+    }
+
+    return this.value || this.defaultValue;
+  }
+
+  serialize(): string {
+    return this.getValue().toISO();
+  }
+
+  deserialize(value: string): DateTime {
+    return DateTime.fromISO(value);
+  }
+
+  withOptions(options: typeof Field.prototype.view): DateField {
+    this.updateOptions(options);
+    return this;
+  }
 }
 
 
@@ -241,19 +308,20 @@ export class Obj<V extends Record<string, Field<any>>> extends Field<Map<keyof V
 
   readonly defaultValue: Map<keyof V, any>[];
 
+
   constructor(
     readonly label: string,
     readonly code: string,
     def: V,
-    readonly uiTemplate: string,
-    readonly isArray: boolean = false,
+    readonly uiTemplate: string = '',
+    readonly inlineRemoveRowButton = false,
   ) {
     super();
-    this.type = isArray ? 'object_array' : 'object';
+    this.type = 'object_array';
     this.def = new Map(Object.entries(def));
 
     const defaults = new Map<string, any>();
-    for (let [, field] of this.def) {
+    for (const [, field] of this.def) {
       defaults.set(field.code, field.defaultValue);
     }
     this.defaultValue = [defaults];
@@ -264,7 +332,7 @@ export class Obj<V extends Record<string, Field<any>>> extends Field<Map<keyof V
     const arr = this.getValue();
     if (arr != null) {
       arr.forEach((value, index) => {
-        for (let [k, d] of this.def.entries()) {
+        for (const [k, d] of this.def.entries()) {
           errors.push(...d.validate(value.get(k)).map(m => `${m} (at index ${index})`));
         }
       });
@@ -275,25 +343,30 @@ export class Obj<V extends Record<string, Field<any>>> extends Field<Map<keyof V
 
   override serialize(): string {
     return JSON.stringify(this.getValue().map(value => {
-      let result = {};
-      for (let [k, v] of value?.entries() || []) {
+      const result = {};
+      for (const [k, v] of value?.entries() || []) {
         result[this.def.get(k).code] = v;
       }
       return result;
     }));
   }
 
-  override deserialize(value: string): Map<keyof V, any>[] {
-    const parsed: any[] = JSON.parse(value);
+  override deserialize(json: string): Map<keyof V, any>[] {
+    const parsed: any[] = JSON.parse(json);
 
     return parsed.map(p => {
       const map = new Map<keyof V, any>();
       const d = [...this.def.entries()];
-      for (let [field, value] of p.entries()) {
-        const key = d.find(([, v]) => v.code == field)[0];
+      for (const [field, value] of Object.entries(p)) {
+        const key = d.find(([, v]) => v.code === field)[0];
         map.set(key, value);
       }
       return map;
     });
+  }
+
+  withOptions(options: typeof Field.prototype.view): Obj<V> {
+    this.updateOptions(options);
+    return this;
   }
 }

@@ -15,7 +15,7 @@ export class MarkdownPipe implements PipeTransform {
   }
 
   transform(value): string {
-    value = MarkdownUtils.preProcessContent(value.toString(), this.settings.base.ui);
+    value = MarkdownUtils.preProcessContent(value.toString(), this.settings.settingsDef);
 
     // if (NODE_CTX.isDevEnvironment) { console.log(value); }
     const html = marked(value, this.options);

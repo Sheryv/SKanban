@@ -21,7 +21,6 @@ import {
 } from './component/dialog/single-input-dialog/single-input-dialog.component';
 import { BoardSettingsDialogComponent } from './component/dialog/board-settings-dialog/board-settings-dialog.component';
 import { SettingsComponent } from './component/dialog/settings-dialog/settings.component';
-import { Settings } from '../shared/model/entity/settings';
 import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
 import { IS_ELECTRON, NODE_CTX } from './global';
 import { Ipcs } from '../shared/model/ipcs';
@@ -60,11 +59,12 @@ export class AppComponent implements OnInit {
     translate.setDefaultLang(ClientUtils.getLang());
     LuxonSettings.defaultLocale = ClientUtils.getLangCode();
 
-    console.log('Running in DEV env: ', NODE_CTX?.isDevEnvironment, ' | ', IS_ELECTRON ? 'Mode electron' : 'Mode web', ' | Locale: ', ClientUtils.getLangCode());
+    console.log('Running in DEV env: ', NODE_CTX?.isDevEnvironment, ' | ',
+      IS_ELECTRON ? 'Mode electron' : 'Mode web', ' | Locale: ', ClientUtils.getLangCode());
 
     this.shortcuts = keyService.prepareShortcuts();
 
-    document.addEventListener('click', function (event) {
+    document.addEventListener('click', (event) => {
       const target = event.target;
       if (target) {
         const t = target as HTMLElement;
@@ -201,22 +201,7 @@ export class AppComponent implements OnInit {
       width: '90%',
     });
 
-    dialogRef.afterClosed()
-      .pipe(
-        take(1),
-        filter(settings => settings),
-        mergeMap(settings => {
-          if (NODE_CTX.isDevEnvironment) {
-            console.log('save settings', settings);
-          }
-          const s: Settings = JSON.parse(JSON.stringify(this.settings.base));
-          s.ui = settings;
-          return this.settings.save(s);
-        }),
-      )
-      .subscribe(s => {
-        this.msg.successShort('Settings saved');
-      }, error1 => this.msg.error('Cannot save ' + error1));
+    dialogRef.afterClosed().subscribe();
   }
 
   aboutDialog() {
@@ -228,7 +213,7 @@ export class AppComponent implements OnInit {
   }
 
   search(term: string) {
-    this.state.search.next({term: term, enabled: true});
+    this.state.search.next({term, enabled: true});
   }
 
   closeSearch() {

@@ -9,6 +9,7 @@ export type Shell =
   | { op: 'showOpenFileDialog', defaultPath?: string }
   | { op: 'showNotification', options: NotificationTemplate }
   | { op: 'flashFrame' }
+  | { op: 'bringWindowToTop' }
 
 export type Job =
   { op: 'import', boardId: number }

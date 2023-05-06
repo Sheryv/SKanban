@@ -1,9 +1,12 @@
-import { DateTime, Settings } from 'luxon';
+/* eslint-disable @typescript-eslint/naming-convention */
+import { DateTime } from 'luxon';
 import { DateFormatDef } from '../model/date-format-def';
 
 export class Utils {
   static readonly DB_NAME = 'database.db';
   static readonly APP = 'SKanban';
+
+  static readonly START_TIME = DateTime.now();
 
   private static readonly CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -17,17 +20,40 @@ export class Utils {
     ),
     new DateFormatDef(
       'local_med',
-      'Local short',
+      'Local medium',
       DateTime.DATETIME_MED_WITH_SECONDS,
       // (date: DateTime) => date.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
       // DateTime.parseFormatForOpts(DateTime.DATETIME_MED_WITH_SECONDS),
     ),
     new DateFormatDef(
       'local_long',
-      'Local short',
+      'Local long',
       DateTime.DATETIME_FULL_WITH_SECONDS,
       // (date: DateTime) => date.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS),
       // DateTime.parseFormatForOpts(DateTime.DATETIME_FULL_WITH_SECONDS),
+    ),
+    new DateFormatDef(
+      'local_eu',
+      'EU',
+      'dd.MM.yyyy HH:mm:ss',
+      'yyyy.MM.dd HH:mm',
+      // (date: DateTime) => date.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS),
+      // DateTime.parseFormatForOpts(DateTime.DATETIME_FULL_WITH_SECONDS),
+    ),
+    new DateFormatDef(
+      'local_us',
+      'US',
+      'MM/dd/yyyy hh:mm:ss a',
+      'MM/dd/yyyy HH:mm a',
+      // (date: DateTime) => date.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS),
+      // DateTime.parseFormatForOpts(DateTime.DATETIME_FULL_WITH_SECONDS),
+    ),
+    new DateFormatDef(
+      'iso_like',
+      'ISO like',
+      // (date: DateTime) => date.toISO(),
+      'yyyy-MM-dd HH:mm:ss ZZZZ',
+      'yyyy-MM-dd HH:mm ZZZZ',
     ),
     new DateFormatDef(
       'global_iso',

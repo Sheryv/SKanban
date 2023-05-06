@@ -12,11 +12,10 @@
       ],
       "parserOptions": {
         "project": [
-          "./src/main/tsconfig.json",
-          "./src/preload/tsconfig.json",
-          "./src/renderer/tsconfig.app.json",
-          "./src/renderer/tsconfig.spec.json",
-          "./e2e/tsconfig.e2e.json"
+          "./main/src/tsconfig.json",
+          "./renderer/src/tsconfig.app.json",
+          "./renderer/src/tsconfig.spec.json",
+          "./renderer/e2e/tsconfig.e2e.json"
         ],
         "createDefaultProgram": true
       },
@@ -35,7 +34,10 @@
             "prefix": "app",
             "style": "kebab-case"
           }
-        ]
+        ],
+        "@typescript-eslint/dot-notation": 0,
+        "@typescript-eslint/member-ordering": "warn",
+        "guard-for-in": "warn"
       }
     },
     {

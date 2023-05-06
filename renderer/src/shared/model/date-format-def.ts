@@ -21,7 +21,7 @@ export class DateFormatDef implements LabeledRow {
     }
 
     if (formatWithoutSeconds == null && typeof format == 'object') {
-      const f = {...format}
+      const f = {...format};
       f.second = undefined;
       this.formatWithoutSeconds = f;
     }
@@ -35,7 +35,7 @@ export class DateFormatDef implements LabeledRow {
     return DateTime.fromFormat(text, this.stringFormat, {locale: Settings.defaultLocale});
   }
 
-  public dateToString(date: DateTime, withoutSeconds: boolean = false): string {
+  public dateTimeToString(date: DateTime, withoutSeconds: boolean = false): string {
     let f = this.format;
     if (withoutSeconds && this.formatWithoutSeconds == null) {
       console.error(`withoutSeconds is not supported by this format '${this.code}'`);
@@ -47,6 +47,20 @@ export class DateFormatDef implements LabeledRow {
       return date.toFormat(f, {locale: Settings.defaultLocale});
     } else {
       return date.toLocaleString(f);
+    }
+  }
+
+  public dateToString(date: DateTime): string {
+    if (typeof this.format == 'string') {
+      return date.toFormat(this.format, {locale: Settings.defaultLocale});
+    } else {
+      const n: Intl.DateTimeFormatOptions = {
+        ...this.format,
+        hour: undefined,
+        minute: undefined,
+        second: undefined,
+      };
+      return date.toLocaleString(n);
     }
   }
 }

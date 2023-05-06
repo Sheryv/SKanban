@@ -53,14 +53,14 @@
 
         <mat-form-field class="w-100 field-small mb-1" appearance="fill">
           <mat-label>Due date</mat-label>
-          <input matInput placeholder="dd.mm.yyyy" [value]="form.get('due_date').value | dateUser" readonly="true"
-                 (click)="viewService.openDatepicker(form.get('due_date'), false)">
-          <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('due_date'), false)">
+          <input matInput placeholder="dd.mm.yyyy" [value]="form.get('dueDate').value | dateUser" readonly="true"
+                 (click)="viewService.openDatepicker(form.get('dueDate'), false)">
+          <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('dueDate'), false)">
             <mat-icon>calendar_month</mat-icon>
           </button>
           <mat-hint>Click icon to select</mat-hint>
         </mat-form-field>
-        <input hidden formControlName="due_date">
+        <input hidden formControlName="dueDate">
       </div>
       <div class="col-sm-7 col-md-8 col-lg-9 col-12">
         <div class="mb-2">

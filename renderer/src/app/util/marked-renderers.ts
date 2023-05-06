@@ -1,5 +1,6 @@
-import { UiSettings } from '../../shared/model/entity/settings';
+/* eslint-disable @typescript-eslint/naming-convention */
 import { MdEditorOption } from 'ngx-markdown-editor';
+import { Settings } from '../service/settings.service';
 
 declare let marked: any;
 declare let hljs: any;
@@ -12,7 +13,7 @@ export class MarkdownUtils {
   static prepareMarkedRenderer(renderType: 'image' | 'table' | 'code' | 'listitem') {
     switch (renderType) {
       case 'image':
-        return function (href: string, title: string, text: string) {
+        return function(href: string, title: string, text: string) {
           let out = `<img style="max-width: 100%;" src="${href}" alt="${text}"`;
           if (title) {
             out += ` title="${title}"`;
@@ -21,17 +22,17 @@ export class MarkdownUtils {
           return out;
         };
       case 'code':
-        return function (code: any, language: any) {
+        return function(code: any, language: any) {
           const validLang = !!(language && hljs.getLanguage(language));
           const highlighted = validLang ? hljs.highlight(language, code).value : code;
           return `<pre style="padding: 0; border-radius: 0;"><code class="hljs ${language}">${highlighted}</code></pre>`;
         };
       case 'table':
-        return function (header: string, body: string) {
+        return function(header: string, body: string) {
           return `<table class="table table-bordered">\n<thead>\n${header}</thead>\n<tbody>\n${body}</tbody>\n</table>\n`;
         };
       case 'listitem':
-        return function (text: any, task: boolean, checked: boolean) {
+        return function(text: any, task: boolean, checked: boolean) {
           if (/^\s*\[[x ]\]\s*/.test(text) || text.startsWith('<input')) {
             if (text.startsWith('<input')) {
               text = text
@@ -52,8 +53,8 @@ export class MarkdownUtils {
   }
 
 
-  static preProcessContent(content: string, settings: UiSettings): string {
-    const config = settings.codeParserConfig;
+  static preProcessContent(content: string, settings: Settings): string {
+    const config = settings.ui.editor.codeParserConfig.getValue();
     let normalized = content.replace(this.REG_EXP_CARET_RETURN, '');
     if (config) {
       const lines = config.split('\n');
@@ -77,7 +78,8 @@ export class MarkdownUtils {
     return {
       showPreviewPanel: false,   // Show preview panel, Default is true
       // showBorder?: boolean          // Show editor component's border. Default is true
-      hideIcons: ['Heading', 'Image'],   // ['Bold', 'Italic', 'Heading', 'Refrence', 'Link', 'Image', 'Ul', 'Ol', 'Code', 'TogglePreview', 'FullScreen']. Default is empty
+      // ['Bold', 'Italic', 'Heading', 'Refrence', 'Link', 'Image', 'Ul', 'Ol', 'Code', 'TogglePreview', 'FullScreen']. Default is empty
+      hideIcons: ['Heading', 'Image'],
       usingFontAwesome5: true,   // Using font awesome with version 5, Default is false
       // scrollPastEnd?: number        // The option for ace editor. Default is 0
       enablePreviewContentClick: true,  // Allow user fire the click event on the preview panel, like href etc. Default is false

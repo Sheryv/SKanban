@@ -1,4 +1,4 @@
-<app-label-chip *ngFor="let lbl of labels" [label]="lbl" [editable]="editable" [showText]="editable || settings.taskLabelShowText > 0"
+<app-label-chip *ngFor="let lbl of labels" [label]="lbl" [editable]="editable" [showText]="editable || ui.itemLabelTextVisibility"
                 [class]="!editable ? 'no-shadow' : ''"
-                [ngStyle]="{ 'font-size.rem': (editable ? 0.9 : settings.taskItemSize/100*0.7)}"
+                [ngStyle]="{ 'font-size.rem': (editable ? 0.9 :ui.itemFontSize/100*0.7)}"
 ></app-label-chip>

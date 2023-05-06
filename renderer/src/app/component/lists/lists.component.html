@@ -6,8 +6,8 @@
       <div class="list m-1 d-flex flex-column" *ngFor="let l of lists" style="max-height: 100%"
            cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListData]="l.$tasks"
            (click)="selectedList = l"
-           [ngClass]="{'list-selected': selectedList == l}"
-           [ngStyle]="{'width.px': ui.taskListWidth, 'min-width.px': ui.taskListWidth}">
+           [ngClass]="{'list-selected': selectedList === l}"
+           [ngStyle]="{'width.px': ui.listWidth, 'min-width.px': ui.listWidth}">
         <div class="px-2 pb-2 w-100 d-flex align-items-center elevate-bottom-2">
           <h4 class="p-0 m-0 text-ellipsis">{{l.title}}</h4>
           <span class="font-9 fg-4 mr-1" style="padding-top: 0.1rem;">&nbsp;({{filterTasks(l.$tasks, l).length}}
@@ -21,11 +21,11 @@
              matTooltip="Move right" (click)="moveList(l, l.position+1)">keyboard_arrow_right</i>
           <i class="material-icons icon-btn mr-1 secondary-btn" [matMenuTriggerFor]="listDetailsMenu">more_vert</i>
           <mat-menu #listDetailsMenu="matMenu">
-            <button *ngIf="l.synchronized_file == null" mat-menu-item (click)="enableFileSync(l)">
+            <button *ngIf="l.synchronized_file === null" mat-menu-item (click)="enableFileSync(l)">
               <mat-icon>sync</mat-icon>
               <span>Enable file synchronization</span>
             </button>
-            <button *ngIf="l.synchronized_file != null" mat-menu-item (click)="disableFileSync(l)">
+            <button *ngIf="l.synchronized_file !== null" mat-menu-item (click)="disableFileSync(l)">
               <mat-icon>sync_disabled</mat-icon>
               <span>Disable file synchronization</span>
             </button>
@@ -40,36 +40,35 @@
           </mat-menu>
           <i class="material-icons icon-btn" (click)="addTask(l)" matTooltip="Add task (^⇧ A)">add</i>
         </div>
-        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100)}"
+        <div class="overflow-auto flex-grow-1" [ngStyle]="{ 'font-size.rem': (ui.itemFontSize/100)}"
              style="min-height: 3rem">
           <div *ngFor="let task of filterTasks(l.$tasks, l)" class="list-item separator"
-               [ngClass]="{'selected': task == visibleTask}"
+               [ngClass]="{'selected': task === visibleTask}"
                cdkDrag
-               [ngStyle]="{ 'padding-top.rem': (ui.taskItemPadding/100 * 0.5), 'padding-bottom.rem': (ui.taskItemPadding/100 * 0.5)}"
+               [ngStyle]="{ 'padding-top.rem': (ui.itemPadding/100 * 0.5), 'padding-bottom.rem': (ui.itemPadding/100 * 0.5)}"
                tabindex="-1" (click)="selectTask(task);">
 
-            <ng-container *ngIf="task.type == types.STANDARD; else noteModeBlock">
+            <ng-container *ngIf="task.type === types.STANDARD; else noteModeBlock">
               <div class="d-flex flex-wrap">
                 <span class="flex-grow-1">{{task.title}}</span>
-                <span [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.85)}"
-                      *ngIf="ui.taskDueDateVisibility && task.due_date"
+                <span [ngStyle]="{ 'font-size.rem': (ui.itemFontSize/100*0.85)}"
+                      *ngIf="ui.itemDueDateVisibility && task.due_date"
                       class="fg-3 d-flex justify-content-end align-items-center">
                                   <span>{{task.due_date | dateMillis}}</span></span>
-                <span *ngIf="task.handled == null && task.due_date > now"><mat-icon class="material-icons-outlined inline-icon">notifications</mat-icon></span>
+                <span *ngIf="task.handled <= 0 && task.due_date > now"><mat-icon class="material-icons-outlined inline-icon">notifications</mat-icon></span>
               </div>
-              <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"
-                                  [settings]="ui"></app-label-chip-row>
+              <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"></app-label-chip-row>
               <div class="fg-4 text-ellipsis mt-1 markdown-content-preview"
-                   *ngIf="ui.taskShowContentSize > 0 && task.content"
-                   [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.8), 'max-height.rem': (ui.taskShowContentSize+0.6)*(ui.taskItemSize/100*0.8)}">{{task.content}}</div>
+                   *ngIf="ui.itemContentVisibleLines > 0 && task.content"
+                   [ngStyle]="{ 'font-size.rem': (ui.itemFontSize/100*0.8), 'max-height.rem': (ui.itemContentVisibleLines+0.6)*(ui.itemFontSize/100*0.8)}">{{task.content}}</div>
             </ng-container>
             <ng-template #noteModeBlock>
               <div class="fg-2 mt-1 markdown-content text-ellipsis"
                    [innerHTML]="task.content | markdown"
-                   [ngStyle]="{ 'font-size.rem': (ui.taskItemSize/100*0.9), 'max-height.rem': (ui.taskShowContentSize+0.6)*(ui.taskItemSize/100*0.9*2.5)}">{{task.content}}</div>
+                   [ngStyle]="{ 'font-size.rem': (ui.itemFontSize/100*0.9), 'max-height.rem': (ui.itemContentVisibleLines+0.6)*(ui.itemFontSize/100*0.9*2.5)}">{{task.content}}</div>
 
               <app-label-chip-row class="d-block" *ngIf="task.$labels?.length > 0" [labels]="task.$labels"
-                                  [settings]="ui"></app-label-chip-row>
+                                 ></app-label-chip-row>
 
             </ng-template>
 
@@ -85,7 +84,7 @@
     </div>
     <div>&nbsp;</div>
   </div>
-  <div as-split-area [size]="ui.detailsWith" [minSize]="5" *ngIf="visibleTask != null"
+  <div as-split-area [size]="ui.detailsWith" [minSize]="5" *ngIf="visibleTask !== null"
        class="d-flex bg flex-column align-items-stretch overflow-hidden">
     <div class="task-details-panel-header px-2 d-flex align-items-center">
       <i class="mr-2 material-icons icon-btn bg-6" matRipple (click)="visibleTask = null"
@@ -123,7 +122,7 @@
   No board selected. <br><span class="font-9">Use left bar to manage.</span>
 </div>
 
-<div *ngIf="!loading && (lists == null || lists.length == 0)" class="text-center p-4 fg-4">
+<div *ngIf="!loading && (lists === null || lists.length === 0)" class="text-center p-4 fg-4">
   No lists available.
   <br>
   Create first

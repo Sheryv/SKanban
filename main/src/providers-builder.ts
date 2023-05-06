@@ -73,6 +73,10 @@ export class ProvidersBuilder {
           return await this.notification.show(args.options);
         case 'flashFrame':
           return this.flashFrame();
+        case 'bringWindowToTop':
+          console.log('bringWindowToTop');
+          this.window.hide();
+          return this.window.show();
       }
     });
 
@@ -104,8 +108,8 @@ export class ProvidersBuilder {
   }
 
   private static flashFrame() {
-    this.window.once('focus', () => this.window.flashFrame(false))
-    this.window.flashFrame(true)
+    this.window.once('focus', () => this.window.flashFrame(false));
+    this.window.flashFrame(true);
   }
 }
 

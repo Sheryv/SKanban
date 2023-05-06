@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Board } from '../model/entity/board';
 import { Task } from '../model/entity/task';
 import { TaskList } from '../model/entity/task-list';
@@ -60,7 +61,7 @@ export class Factory {
       deleted,
       list_id,
       type,
-      handled: null,
+      handled: 0,
       uuid: Utils.generateId(),
     };
   }

@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Task } from '../../../../shared/model/entity/task';
 import { DateTime } from 'luxon';
 import { ClientUtils } from '../../../util/client-utils';
-import { TaskService } from '../../../service/task.service';
+import { ReminderService } from '../../../service/reminder.service';
 
 @Component({
   selector: 'app-reminders-list',
@@ -14,24 +14,22 @@ export class RemindersListComponent implements OnInit {
   @Output()
   closed = new EventEmitter<any>();
 
-  rows: { task: Task, inPast: boolean, dateLine: string }[];
+  rows: { task: Task; inPast: boolean; dateLine: string }[];
 
   private now = DateTime.now().toMillis();
 
-  private changes: { task: Task, complete?: boolean, snooze?: number }[] = [];
+  // private changes: { task: Task, complete?: boolean, snooze?: number }[] = [];
 
   @Input()
   set tasks(tasks: Task[]) {
-    this.rows = tasks.map(task => {
-      return {
-        task,
-        inPast: task.due_date < this.now,
-        dateLine: ClientUtils.formatDateForNextDay(DateTime.fromMillis(task.due_date)),
-      };
-    }).sort((a, b) => a.task.due_date - b.task.due_date);
+    this.rows = tasks.map(task => ({
+      task,
+      inPast: task.due_date < this.now,
+      dateLine: ClientUtils.formatOverdueDuration(DateTime.fromMillis(task.due_date)),
+    })).sort((a, b) => a.task.due_date - b.task.due_date);
   }
 
-  constructor(private taskService: TaskService) {
+  constructor(private remindersService: ReminderService) {
 
   }
 
@@ -39,34 +37,34 @@ export class RemindersListComponent implements OnInit {
   }
 
   complete(task: Task) {
-    this.changes.push({task, complete: true});
-    this.rows.splice(this.rows.findIndex(r => r.task.id == task.id), 1);
-    if (this.rows.length == 0) {
-      this.apply();
+    this.rows.splice(this.rows.findIndex(r => r.task.id === task.id), 1);
+    this.remindersService.completeAll([task]);
+    if (this.rows.length === 0) {
+      this.closed.emit();
     }
   }
 
   snooze(task: Task, minutes: number) {
-    this.changes.push({task, snooze: minutes});
-    this.rows.splice(this.rows.findIndex(r => r.task.id == task.id), 1);
-    if (this.rows.length == 0) {
-      this.apply();
+    this.rows.splice(this.rows.findIndex(r => r.task.id === task.id), 1);
+    this.remindersService.snoozeAll([task], minutes);
+    if (this.rows.length === 0) {
+      this.closed.emit();
     }
   }
 
   snoozeAll(minutes: number) {
-    for (let row of this.rows.slice()) {
-      this.snooze(row.task, minutes);
+    const tasks = this.rows.map(r => r.task).slice();
+    this.remindersService.snoozeAll(tasks, minutes);
+    for (const t of tasks) {
+      this.snooze(t, minutes);
     }
   }
 
   completeAll() {
-    for (let row of this.rows.slice()) {
-      this.complete(row.task);
+    const tasks = this.rows.map(r => r.task).slice();
+    this.remindersService.completeAll(tasks);
+    for (const t of tasks) {
+      this.complete(t);
     }
-  }
-
-  private apply() {
-    this.closed.emit()
   }
 }

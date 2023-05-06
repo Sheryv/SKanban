@@ -1,7 +1,7 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../src/tsconfig.app.json",
   "compilerOptions": {
-    "outDir": "../out-tsc/e2e",
+    "outDir": "../dist/e2e",
     "module": "commonjs",
     "types": [
       "node"

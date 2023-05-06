@@ -50,20 +50,21 @@ export class ClientUtils {
     return this.getLangCode().substr(0, 2);
   }
 
-  static formatDateForNextDay(date: DateTime): string {
+  static formatOverdueDuration(date: DateTime): string {
     let line = date.toLocaleString(DateTime.TIME_SIMPLE);
-    const diff = date.diffNow('minutes').minutes;
-    if (diff > 60*24 || diff < -60*24) {
+    const diffSeconds = date.diffNow('seconds').seconds;
+    const diff = Math.round(diffSeconds / 60);
+    if (diff > 60 * 24 || diff < -60 * 24) {
       line += ', ' + date.toLocaleString(DateTime.DATE_MED);
-    }
-    else if(diff < 0){
-      if (diff > -60) {
+    } else if (diffSeconds < 1) {
+      if (diffSeconds > -60) {
+        line += `, now`;
+      } else if (diff > -60) {
         line += `, ${-Math.ceil(diff)} minutes overdue`;
       } else if (diff > -240) {
         line += `, ${-Math.ceil(diff / 60)} hours overdue`;
       }
-    }
-    else {
+    } else {
       if (diff < 60) {
         line += `, within ${Math.ceil(diff)} minutes`;
       } else if (diff < 240) {

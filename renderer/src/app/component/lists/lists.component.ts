@@ -4,8 +4,7 @@ import { Board } from '../../../shared/model/entity/board';
 import { TaskList } from '../../../shared/model/entity/task-list';
 import { Task } from '../../../shared/model/entity/task';
 import { Factory } from '../../../shared/./support/factory';
-import { SettingsService } from '../../service/settings.service';
-import { UiSettings } from '../../../shared/model/entity/settings';
+import { ListTasksVisibilityConfig, Settings, SettingsService } from '../../service/settings.service';
 import { KeyCommandsService } from '../../service/key-commands.service';
 import { filter, map, mergeMap, switchMap, take, takeUntil, takeWhile, tap } from 'rxjs/operators';
 import { combineLatest, forkJoin, Observable, of, Subject } from 'rxjs';
@@ -36,20 +35,50 @@ export class ListsComponent implements OnInit, OnDestroy {
   board: Board;
   lists: TaskList[];
   visibleTask: Task;
-  ui: UiSettings;
   selectedList: TaskList;
   activeState = new Subject<any>();
   loading: boolean;
   types = TaskType;
   restrictedMode = false;
+  ui: {
+    listWidth: number;
+    itemFontSize: number;
+    itemPadding: number;
+    itemLabelTextVisibility: boolean;
+    itemContentVisibleLines: number;
+    itemDueDateVisibility: boolean;
+    detailsWith: number;
+  };
   private searchTerm = '';
 
 
-  constructor(private state: State, private factory: Factory, public settingsService: SettingsService, private keyService: KeyCommandsService,
-              private taskService: TaskService, private msg: MessageService, private dialog: MatDialog, private zone: NgZone, private electron: ElectronService,
+  constructor(private state: State,
+              private factory: Factory,
+              public settingsService: SettingsService,
+              private keyService: KeyCommandsService,
+              private taskService: TaskService,
+              private msg: MessageService,
+              private dialog: MatDialog,
+              private zone: NgZone,
+              private electron: ElectronService,
   ) {
+    settingsService.changed.subscribe(s => {
+      this.updateSettings(s);
+    });
+    this.updateSettings(settingsService.settingsDef);
     state.boardChanged.subscribe((b) => this.changeBoard(b));
     this.changeBoard(state.currentBoard);
+    state.taskChanged.subscribe(task => {
+      this.lists.forEach(l => {
+        const found = l.$tasks?.find(t => t.id === task.id);
+        if (found) {
+          Object.assign(found, task);
+        }
+      });
+      // if (this.lists.some(l => l.$tasks?.some(t => t.id === task.id) ?? false)) {
+      //   this.changeBoard(state.currentBoard);
+      // }
+    });
   }
 
   ngOnInit(): void {
@@ -83,7 +112,7 @@ export class ListsComponent implements OnInit, OnDestroy {
       if (event.op === 'refreshBoard') {
 
 
-        if (this.state.currentBoard.id == event.boardId) {
+        if (this.state.currentBoard.id === event.boardId) {
           this.loadLists().subscribe(() => {
               // if (this.visibleTask) {
               //   const prev = this.visibleTask;
@@ -104,7 +133,7 @@ export class ListsComponent implements OnInit, OnDestroy {
     if (NODE_CTX.isDevEnvironment) {
       console.log('loading list');
     }
-    if (old != b) {
+    if (old?.id !== b.id) {
       this.loadLists().pipe(
         switchMap(() => this.electron.send(Ipcs.JOB, {op: 'disableAllSync'})),
         switchMap(() => forkJoin(
@@ -124,7 +153,6 @@ export class ListsComponent implements OnInit, OnDestroy {
   private loadLists() {
     const b = this.board;
     const fc = this.factory;
-    this.ui = this.settingsService.base.ui;
     return this.taskService.getLists(b).pipe(
       runInZone(this.zone),
       take(1),
@@ -158,20 +186,25 @@ export class ListsComponent implements OnInit, OnDestroy {
 
         this.loading = false;
         if (NODE_CTX.isDevEnvironment) {
-          console.log('loaded list ', this.lists, this.ui, this.lists?.[0]?.$tasks?.map(t => {
-            return {n: t.title, d: new Date(t.create_date).toLocaleDateString(), c: t.content};
-          }));
+          console.log('loaded list ',
+            this.lists,
+            this.lists?.[0]?.$tasks?.map(t => ({
+              n: t.title,
+              d: new Date(t.create_date).toLocaleDateString(),
+              c: t.content,
+            })),
+          );
         }
       }));
   }
 
   randomLabel(): Label[] {
     const la: Label[] = [];
-    let number = Math.floor(Math.random() * 15) - 5;
-    if (number < 0) {
-      number = 0;
+    let num = Math.floor(Math.random() * 15) - 5;
+    if (num < 0) {
+      num = 0;
     }
-    for (let i = 0; i < number; i++) {
+    for (let i = 0; i < num; i++) {
       const random = Math.random();
       if (random < 0.1) {
       } else if (random < 0.4) {
@@ -389,7 +422,7 @@ export class ListsComponent implements OnInit, OnDestroy {
     if (this.searchTerm) {
       const baseList = tasks.filter(t => t.title.includes(this.searchTerm) || t.content.includes(this.searchTerm));
       if (config) {
-        const sort = config.sortBy;
+        const sort = config.get('sortBy');
         const filtered = baseList.sort((a, b) => this.sortTasks(a, b, sort, config));
         list.$filteredTasks = filtered;
         return filtered;
@@ -399,11 +432,11 @@ export class ListsComponent implements OnInit, OnDestroy {
     } else {
       if (config) {
         const now = DateTime.fromMillis(Date.now());
-        const past = now.minus({days: config.lastVisibleDays}).toMillis();
-        const sort = config.sortBy;
+        const past = now.minus({days: config.get('lastVisibleDays')}).toMillis();
+        const sort = config.get('sortBy');
         const sorted = tasks.sort((a, b) => this.sortTasks(a, b, sort, config));
         // const first = sorted.slice(0, config.minVisible);
-        if (config.minVisible >= sorted.length) {
+        if (config.get('minVisible') >= sorted.length) {
           list.$filteredTasks = sorted;
           return sorted;
         }
@@ -414,7 +447,7 @@ export class ListsComponent implements OnInit, OnDestroy {
           return sorted;
         }
 
-        const missing = Math.min(config.minVisible, sorted.length) - recent.length;
+        const missing = Math.min(config.get('minVisible'), sorted.length) - recent.length;
         if (missing > 0) {
           // const left = sorted.filter(t => t.create_date < past);
           let i = 0;
@@ -439,11 +472,15 @@ export class ListsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private isListAutoSorted(list: TaskList) {
-    return this.ui.listVisibleTaskConfig.find(c => c.name === list.title);
+  private isListAutoSorted(list: TaskList): ReturnType<ListTasksVisibilityConfig['getValue']>[0] {
+    return this.settingsService.settingsDef.ui.lists.itemVisibilityConfig.getValue().find(c => c.get('name') === list.title);
   }
 
-  private sortTasks(a: Task, b: Task, sort: TaskSortField, config: { name: string; minVisible: number; lastVisibleDays: number; sortBy: TaskSortField; sortDir: SortDirection }): number {
+  private sortTasks(
+    a: Task, b: Task,
+    sort: TaskSortField,
+    config: ReturnType<ListTasksVisibilityConfig['getValue']>[0],
+  ): number {
     if (a[sort] == null) {
       return 1;
     }
@@ -454,11 +491,11 @@ export class ListsComponent implements OnInit, OnDestroy {
     if (typeof a[sort] === 'string') {
       const field1 = a[sort] as string;
       const field2 = b[sort] as string;
-      return config.sortDir === SortDirection.DESC ? field1.localeCompare(field2) : field2.localeCompare(field1);
+      return config.get('sortDir') === SortDirection.DESC ? field1.localeCompare(field2) : field2.localeCompare(field1);
     } else if (typeof a[sort] === 'number') {
       const field1 = a[sort] as number;
       const field2 = b[sort] as number;
-      return config.sortDir === SortDirection.DESC ? field2 - field1 : field1 - field2;
+      return config.get('sortDir') === SortDirection.DESC ? field2 - field1 : field1 - field2;
     } else {
       throw new Error('Unsupported type: ' + (typeof a[sort]));
     }
@@ -476,7 +513,7 @@ export class ListsComponent implements OnInit, OnDestroy {
           this.electron.send(Ipcs.JOB, {
             op: 'enableSync',
             listId: l.id,
-            path: path,
+            path,
           }),
         ),
       )
@@ -507,5 +544,17 @@ export class ListsComponent implements OnInit, OnDestroy {
         ),
       )
       .subscribe(b => b && this.msg.success('Disabled synchronization'));
+  }
+
+  private updateSettings(s: Settings) {
+    this.ui = {
+      listWidth: s.ui.lists.listWidth.getValue(),
+      itemFontSize: s.ui.lists.itemFontSize.getValue(),
+      itemPadding: s.ui.lists.itemPadding.getValue(),
+      itemLabelTextVisibility: s.ui.lists.itemLabelTextVisibility.getValue(),
+      itemContentVisibleLines: s.ui.lists.itemContentVisibleLines.getValue(),
+      itemDueDateVisibility: s.ui.lists.itemDueDateVisibility.getValue(),
+      detailsWith: s.ui.lists.detailsWith.getValue(),
+    };
   }
 }

@@ -6,7 +6,7 @@ import { TaskList } from '../../../../shared/model/entity/task-list';
 import { LabelService } from '../../../service/label.service';
 import { TaskService } from '../../../service/task.service';
 import { Factory } from '../../../../shared/./support/factory';
-import { flatMap, mergeMap, take } from 'rxjs/operators';
+import { mergeMap, take } from 'rxjs/operators';
 import { ClientUtils, runInZone } from '../../../util/client-utils';
 import { TaskType } from '../../../../shared/model/entity/task-type';
 import { MarkdownUtils } from '../../../util/marked-renderers';
@@ -43,14 +43,12 @@ export class CreateTaskDialogComponent implements OnInit {
     const tomorrow = DateTime.local().plus({days: 1});
     this.taskTypes = ClientUtils.TASK_TYPES_LABELS;
 
-    this.preRenderPreviewCallback = (md) => {
-      return MarkdownUtils.preProcessContent(md, this.settings.base.ui);
-    };
+    this.preRenderPreviewCallback = (md) => MarkdownUtils.preProcessContent(md, this.settings.settingsDef);
 
     this.form = fb.group({
       name: ['T' + (Math.floor(Math.random() * 90) + 10), [Validators.max(100)]],
       content: ['', [Validators.max(10000)]],
-      due_date: [tomorrow],
+      dueDate: [tomorrow],
       type: [{value: TaskType.STANDARD, disabled: true}, [Validators.required]],
     });
 
@@ -64,13 +62,13 @@ export class CreateTaskDialogComponent implements OnInit {
     this.form.updateValueAndValidity();
     if (this.form.valid) {
       const v = this.form.value;
-      const millisecond = DateTime.fromJSDate(v.due_date).toMillis();
+      const millisecond = DateTime.fromJSDate(v.dueDate).toMillis();
       const task = this.fc.createTask(v.name, v.content, this.list.id, 0, millisecond, this.form.get('type').value);
       this.taskService.getTasks(this.list.id)
         .pipe(
           mergeMap(tasks => {
-            for (let i = 0; i < tasks.length; i++) {
-              tasks[i].position = tasks[i].position + 1;
+            for (const item of tasks) {
+              item.position = item.position + 1;
             }
             return this.taskService.updatePosition(tasks);
           }),
@@ -113,6 +111,6 @@ export class CreateTaskDialogComponent implements OnInit {
     this.dialog.open<SingleInputDialogComponent, DialogParams>(SingleInputDialogComponent, {
       width: '450px',
       data: {title: 'Test d'},
-    })
+    });
   }
 }

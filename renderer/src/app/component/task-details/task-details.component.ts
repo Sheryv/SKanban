@@ -1,9 +1,9 @@
+/* eslint-disable no-underscore-dangle */
 import { Component, EventEmitter, HostListener, Input, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { State } from '../../service/state';
 import { Task } from '../../../shared/model/entity/task';
 import { Factory } from '../../../shared/./support/factory';
-import { SettingsService } from '../../service/settings.service';
-import { UiSettings } from '../../../shared/model/entity/settings';
+import { Settings, SettingsService } from '../../service/settings.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { LabelService } from '../../service/label.service';
@@ -29,15 +29,7 @@ import { ViewService } from '../../service/view.service';
   styleUrls: ['./task-details.component.scss'],
 })
 export class TaskDetailsComponent implements OnInit, OnDestroy {
-
-  private _task: Task;
-  private _history: TaskHistory[];
-  private loading: boolean = false;
-
-  private closeSb = new Subject<any>();
-  private destroy = new Subject<any>();
-
-  ui: UiSettings;
+  settings: Settings;
   @Input()
   list: TaskList;
   form: FormGroup;
@@ -46,8 +38,8 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
   allLabels: Label[] = [];
   selectedLabels: Label[] = [];
   editMode = false;
-  showHistory: boolean = false;
-  showJson: boolean = false;
+  showHistory = false;
+  showJson = false;
   taskTypes: Map<TaskType, string> = ClientUtils.TASK_TYPES_LABELS;
 
   @Output()
@@ -60,6 +52,15 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
   stateAttrs = TASK_STATE_ATTR;
 
   preRenderPreviewCallback: (s: string) => string;
+
+
+  private _task: Task;
+  private _history: TaskHistory[];
+  private loading = false;
+
+  private closeSb = new Subject<any>();
+  private destroy = new Subject<any>();
+
 
   get task(): Task {
     return this._task;
@@ -94,10 +95,8 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
               private dialog: MatDialog,
               private fc: Factory,
               private fb: FormBuilder) {
-    this.ui = settingsService.base.ui;
-    this.preRenderPreviewCallback = (md) => {
-      return MarkdownUtils.preProcessContent(md, this.ui);
-    };
+    this.settings = settingsService.settingsDef;
+    this.preRenderPreviewCallback = (md) => MarkdownUtils.preProcessContent(md, this.settings);
   }
 
 
@@ -123,11 +122,12 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
       this.form = this.fb.group({
         title: [this._task.title, [Validators.required]],
         content: [this._task.content, [Validators.max(10000)]],
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         due_date: [date],
         type: [this._task.type, [Validators.required]],
         priority: [this._task.priority, [Validators.required]],
         state: [this._task.state, [Validators.required]],
-        handled: [this._task.handled != null],
+        handled: [this._task.handled > 0],
         $md: [''],
       });
       this.selectedLabels = (this._task.$labels && this._task.$labels.slice()) || [];
@@ -148,15 +148,13 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
     if (t.due_date <= 0) {
       t.due_date = null;
     }
-    t.handled = this.form.value.handled ? (t.handled || DateTime.now().toMillis()) : null;
+    t.handled = this.form.value.handled ? (t.handled || DateTime.now().toMillis()) : 0;
     t.modify_date = DateTime.now().toMillis();
     return this.taskService.addHistoryEntryOptional(t, prev)
       .pipe(
         take(1),
         mergeMap(res => this.taskService.saveTask(t)),
-        mergeMap(res => {
-          return this.labelService.setLabelsForTask(t, this.selectedLabels);
-        }),
+        mergeMap(res => this.labelService.setLabelsForTask(t, this.selectedLabels)),
         take(1),
         runInZone(this.zone),
         tap(r => {
@@ -217,7 +215,7 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
           const elementRef = document.querySelector(control) as HTMLElement;
 
           if (elementRef) {
-            if (elementRef.tagName.toLowerCase() == 'app-monaco-editor') {
+            if (elementRef.tagName.toLowerCase() === 'app-monaco-editor') {
               (window as any).monaco?.editor?.focus();
               console.log('focused', (window as any).monaco?.editor);
             } else {

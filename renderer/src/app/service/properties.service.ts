@@ -23,7 +23,7 @@ export class PropertiesService {
   }
 
   getAllWithPrefix(prefix: string): Observable<Property[]> {
-    return this.db.findAll({
+    return this.db.query({
       table: 'properties',
       sql: `select *
             from properties

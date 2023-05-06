@@ -1,7 +1,7 @@
 {
   "name": "skanban",
   "version": "0.2.0",
-  "description": "Simple Kanban tool using Electron 23 and Angular 15. Based on https://github.com/maximegris/angular-electron",
+  "description": "Simple Kanban tool",
   "homepage": "https://github.com/Sheryv/SKanban",
   "author": {
     "name": "Sheryv",

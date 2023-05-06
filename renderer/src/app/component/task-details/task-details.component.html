@@ -68,7 +68,7 @@
           </div>
         </div>
         <div *ngIf="!editMode">
-          <div *ngIf="task.handled != null" class="d-flex align-items-center">
+          <div *ngIf="task.handled" class="d-flex align-items-center">
             <mat-icon class="fg-success inline-icon mr-1">check_circle</mat-icon>
             Yes
           </div>
@@ -163,8 +163,8 @@
           <!--            </div>-->
           <mat-form-field class="w-100 field-small mb-1" appearance="outline" *ngIf="editMode">
             <input matInput placeholder="dd.mm.yyyy" [value]="form.get('due_date').value | dateUser" readonly="true"
-                   (click)="viewService.openDatepicker(form.get('due_date'), false)">
-            <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('due_date'), false)">
+                   (click)="viewService.openDatepicker(form.get('due_date'), false, true)">
+            <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('due_date'), false, true)">
               <mat-icon>calendar_month</mat-icon>
             </button>
             <mat-hint>Click icon to select</mat-hint>

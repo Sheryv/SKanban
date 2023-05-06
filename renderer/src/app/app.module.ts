@@ -28,7 +28,7 @@ import { AppComponent } from './app.component';
 import { Factory } from '../shared/./support/factory';
 import { BoardAvatarPipe } from './pipe/board-avatar.pipe';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MAT_DATE_LOCALE, MatRippleModule } from '@angular/material/core';
+import { DateAdapter, MAT_DATE_LOCALE, MatRippleModule } from '@angular/material/core';
 import { ListsComponent } from './component/lists/lists.component';
 import { State } from './service/state';
 import { MatButtonModule } from '@angular/material/button';
@@ -80,6 +80,8 @@ import { RemindersListComponent } from './component/common/reminders-list/remind
 import { ReminderService } from './service/reminder.service';
 import { TaskSupport } from '../shared/support/task.support';
 import { RemindersDialogComponent } from './component/dialog/reminders-dialog/reminders-dialog.component';
+import { CustomDateAdapter } from './util/custom-date-adapter';
+import { AbstractDialogComponent } from './component/dialog/abstract-dialog/abstract-dialog.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -112,7 +114,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     DateUserPipe,
     DateTimeDialogComponent,
     RemindersListComponent,
-    RemindersDialogComponent
+    RemindersDialogComponent,
+    AbstractDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -167,7 +170,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     MessageService,
     ReminderService,
     TaskSupport,
-    {provide: MAT_DATE_LOCALE, useFactory: ClientUtils.getLangCode},
+    {provide: DateAdapter, useClass: CustomDateAdapter},
   ],
   bootstrap: [AppComponent],
 })

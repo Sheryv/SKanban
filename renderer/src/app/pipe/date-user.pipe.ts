@@ -12,7 +12,7 @@ export class DateUserPipe implements PipeTransform {
   transform(value, withSeconds?: boolean): string {
     if (value instanceof DateTime) {
       // const format = withSeconds === true ? DateTime.DATETIME_SHORT_WITH_SECONDS : DateTime.DATETIME_SHORT;
-      return this.settings.dateFormat.dateToString(value, !withSeconds);
+      return this.settings.calculated.dateFormat.dateTimeToString(value, !withSeconds);
     }
     return '-';
   }

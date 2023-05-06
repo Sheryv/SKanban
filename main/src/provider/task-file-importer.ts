@@ -126,7 +126,7 @@ export class TaskFileImporter {
             due_date: task.due_date?.toMillis(),
             state: task.state ?? TaskState.OPEN,
             uuid: task.uuid ?? Utils.generateId(),
-            handled: null,
+            handled: 0,
           };
           resultTasks.push(t);
 
@@ -156,7 +156,6 @@ export class TaskFileImporter {
           row: row,
         });
       }
-
     }
     return resultTasks;
   }

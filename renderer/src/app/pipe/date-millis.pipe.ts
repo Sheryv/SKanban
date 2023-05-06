@@ -11,7 +11,7 @@ export class DateMillisPipe implements PipeTransform {
   transform(value, withSeconds?: boolean): string {
     const s = Number(value);
     if (s) {
-      return this.settings.dateFormat.dateToString(DateTime.fromMillis(s), !withSeconds)
+      return this.settings.calculated.dateFormat.dateTimeToString(DateTime.fromMillis(s), !withSeconds);
       // const format = withSeconds === true ? DateTime.DATETIME_SHORT_WITH_SECONDS : DateTime.DATETIME_SHORT;
       // const dateTime = DateTime.fromMillis(s);
       // return dateTime.toLocaleString(format);

@@ -1,4 +1,4 @@
-import { Component, ElementRef, NgZone } from '@angular/core';
+import { Component, ElementRef, NgZone, TemplateRef, ViewChild } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -9,16 +9,21 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Field, Num, Obj, Select, Text, UiSettings } from '../../../../shared/model/entity/settings';
+import { Field, Num, Obj, Select, Text } from '../../../../shared/model/entity/settings';
 import { State } from '../../../service/state';
 import { MessageService } from '../../../service/message.service';
 import { SettingsService } from '../../../service/settings.service';
 import { MatDialogRef } from '@angular/material/dialog';
+import { MatCalendar, MatCalendarCellClassFunction } from '@angular/material/datepicker';
+import { DateTime } from 'luxon';
 import { ClientUtils } from '../../../util/client-utils';
-import { TaskSortField } from '../../../../shared/model/entity/task-sort-field';
-import { SortDirection } from '../../../../shared/model/entity/sort-direction';
+import { DialogTemplateParams } from '../abstract-dialog/abstract-dialog.component';
+import { ViewService } from '../../../service/view.service';
+import { COUNTRY_CODES } from '../../../../shared/util/country-codes';
+import { switchMap } from 'rxjs';
+import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 
-type Row = { key: string, value: any, children?: Row[] }
+type Row = { key: string; value: any; children?: Row[] };
 
 
 @Component({
@@ -28,63 +33,73 @@ type Row = { key: string, value: any, children?: Row[] }
 })
 export class SettingsComponent {
 
-  ui: UiSettings;
+  @ViewChild(MatCalendar)
+  calendar: MatCalendar<DateTime>;
   form: FormGroup;
-  readonly numberPattern = /^\d+$/;
-  taskOrders: Map<TaskSortField, string> = ClientUtils.TASK_ORDER_FIELD_LABELS;
-  sortDir = SortDirection;
+  defs: { key: string; value: any }[];
 
-  defs: { key: string, value: any }[];
+  countries = COUNTRY_CODES;
+  locale: string;
+
+  locales = ['pl', 'en'];
+
+  calendarDayClassProvider: MatCalendarCellClassFunction<DateTime>;
+  calendarDayFilter: (d: DateTime | null) => boolean;
+
+  private customHolidaysControls: FormArray;
 
   constructor(private state: State,
               private message: MessageService,
               public settingsService: SettingsService,
               private dialogRef: MatDialogRef<SettingsComponent>,
               private zone: NgZone,
+              private view: ViewService,
               private el: ElementRef,
               private fb: FormBuilder) {
 
     const def = settingsService.settingsDef;
     this.defs = this.toKeyValue(def);
+    this.locale = ClientUtils.getLangCode();
 
-    console.log(this.defs);
+    console.log(def, this.defs);
 
     const record = new FormRecord({});
     this.buildForm(def, record);
+    const notificationSettings = this.settingsService.settingsDef.ui.notifications;
+    this.customHolidaysControls = record.controls[notificationSettings.customHolidays.code] as FormArray;
+    record.controls[notificationSettings.saturdaysAreHolidays.code].valueChanges.subscribe(() => this.calendarDayFilterFactory());
+    record.controls[notificationSettings.sundaysAreHolidays.code].valueChanges.subscribe(() => this.calendarDayFilterFactory());
     this.form = record;
+    this.calendarDayClassProviderFactory();
+    this.calendarDayFilterFactory();
   }
 
 
-
   save() {
-    console.log('value', this.form.value)
+    console.log('value', this.form.value);
     if (this.form.valid) {
-      console.log('valid');
-      // const u: UiSettings = {
-      //   detailsWith: this.toNumber(this.form.value.detailsWith),
-      //   taskListWidth: this.toNumber(this.form.value.taskListWidth),
-      //   taskItemPadding: this.toNumber(this.form.value.taskItemPadding),
-      //   taskItemSize: this.toNumber(this.form.value.taskItemSize),
-      //   taskLabelShowText: this.toNumber(this.form.value.taskLabelShowText),
-      //   taskShowContentSize: this.toNumber(this.form.value.taskShowContentSize),
-      //   taskDueDateVisibility: this.toBool(this.form.value.taskDueDateVisibility),
-      //   codeParserConfig: this.form.value.codeParserConfig,
-      //   listVisibleTaskConfig: this.form.get('listVisibleTaskConfig').value,
-      // };
-      // this.dialogRef.close(u);
+      this.readForm(this.settingsService.settingsDef, this.form.value);
+
+      this.settingsService.save().subscribe(s => {
+        this.message.successShort('Settings saved');
+        this.dialogRef.close(this.settingsService.settingsDef);
+      }, error1 => this.message.error('Cannot save ' + error1));
+
     } else {
-      this.form.markAllAsTouched()
-      this.message.error("Found errors in form")
-      this.scrollToFirstInvalidControl()
+      this.form.markAllAsTouched();
+      this.message.error('Found errors in form');
+      this.scrollToFirstInvalidControl();
     }
   }
 
   deleteRow(array: FormArray, index: number) {
     array.removeAt(index);
+    this.calendarDayClassProviderFactory();
   }
 
   addRow(field: Row, array: FormArray) {
-    array.push(this.createObjFormRow(field.value, field.value.defaultValue[0]));
+    array.push(this.createControlsFormObj(field.value, field.value.defaultValue[0]));
+    this.calendarDayClassProviderFactory();
   }
 
   asField<T>(value: Record<string, any>): Field<any> {
@@ -99,16 +114,96 @@ export class SettingsComponent {
     return value as Text;
   }
 
+  calendarDayClassProviderFactory() {
+    const dates: DateTime[] = this.customHolidaysControls.value?.filter(r => r.date)?.map(row => DateTime.fromISO(row.date));
+    this.calendarDayClassProvider = (cellDate, view) => {
+      if (view === 'month') {
+        return dates.some(d => d.day === cellDate.day && d.month === cellDate.month && d.year === cellDate.year)
+          ? 'calendar-highlight-day'
+          : '';
+      }
+
+      return '';
+    };
+    this.refreshCalendar();
+  }
+
+
+
+  calendarDayFilterFactory() {
+    const sundays = this.form.controls[this.settingsService.settingsDef.ui.notifications.sundaysAreHolidays.code].value;
+    const saturdays = this.form.controls[this.settingsService.settingsDef.ui.notifications.saturdaysAreHolidays.code].value;
+    this.calendarDayFilter = (d: DateTime | null): boolean => {
+      const day = (d || DateTime.now()).weekday;
+
+      if ((sundays && day === 7) || (saturdays && day === 6)){
+        return false;
+      }
+      return true;
+    };
+    this.refreshCalendar();
+  }
+
+  changeLocale(locale: string) {
+    localStorage.setItem('lang', locale);
+    window.location.reload();
+  }
+
+  loadPublicHolidays(template: TemplateRef<DialogTemplateParams>) {
+    this.view.openAbstractDialog(template, {
+      params: {
+        title: 'Select country',
+        template,
+        acceptButtonLabel: 'Load holidays',
+      },
+      templateData: {
+        selection: COUNTRY_CODES.find(c => c.code === this.locale.toUpperCase())?.code ?? COUNTRY_CODES.find(c => c.code === 'GB').code,
+      },
+    }).pipe(
+      switchMap((result) => {
+        const url = `https://date.nager.at/api/v3/publicholidays/${DateTime.now().year}/${result.selection}`;
+        return fromPromise(fetch(url).then(r => r.json()).then(r => r as PublicHoliday[]));
+      }),
+    ).subscribe((result) => {
+      const obj = this.settingsService.settingsDef.ui.notifications.customHolidays;
+      for (const holiday of result.filter(h => h.global && h.types.includes('Public'))) {
+        const date = DateTime.fromFormat(holiday.date, 'yyyy-MM-dd');
+        const current = this.customHolidaysControls.controls
+          .find(c => DateTime.fromISO(c.value.date).toMillis() === date.toMillis()) as FormRecord;
+        if (current) {
+          current.controls['name'].setValue(holiday.name);
+        } else {
+          const v = obj.defaultValue[0];
+          v.set('name', holiday.name);
+          v.set('date', date);
+          const control = this.createControlsFormObj(obj, v);
+          this.customHolidaysControls.push(control);
+        }
+      }
+      this.calendarDayClassProviderFactory();
+    });
+  }
+
   private scrollToFirstInvalidControl() {
     const firstInvalidControl: HTMLElement = this.el.nativeElement.querySelector(
-      "form .ng-invalid"
+      'form .ng-invalid',
     );
 
     firstInvalidControl.focus(); //without smooth behavior
   }
 
-  private toKeyValue(s: any): Row[] {
-    return Object.entries(s).map(([key, value]) => {
+  private refreshCalendar() {
+    const d = this.calendar?.activeDate as DateTime;
+    if (d) {
+      this.calendar.activeDate = d.plus({month: 1});
+      setTimeout(() => {
+        this.calendar.activeDate = d;
+      }, 10);
+    }
+  }
+
+  private toKeyValue(obj: any): Row[] {
+    return Object.entries(obj).map(([key, value]) => {
         if (Field.isContainerField(value)) {
           return {key, value, children: this.toKeyValue(Object.fromEntries((value as Obj<any>).def))};
         } else if (Field.isValueField(value)) {
@@ -123,26 +218,35 @@ export class SettingsComponent {
   }
 
 
-  private buildForm(obj: any, record: FormRecord) {
-    for (let [k, v] of Object.entries(obj)) {
+  private buildForm(def: any, record: FormRecord) {
+    for (const [_, v] of Object.entries(def)) {
 
       if (Field.isContainerField(v)) {
         const field = v as Obj<any>;
         const forms: AbstractControl[] = [];
 
-        for (let inner of field.getValue() || []) {
-          const items = this.createObjFormRow(field, inner);
+        for (const inner of field.getValue() || []) {
+          const items = this.createControlsFormObj(field, inner);
 
           forms.push(items);
         }
 
         const formArray = new FormArray(forms);
-        formArray['fieldDef'] = field;
-        record.addControl(k, formArray);
-        // this.buildForm(v, formRecord);
+        // formArray['fieldDef'] = field;
+        record.addControl(field.code, formArray);
+        if (field.view.onValueChangeListener) {
+          formArray.valueChanges.subscribe(formValue => field.view.onValueChangeListener(formValue, formArray, this.form));
+        }
       } else if (Field.isValueField(v)) {
         const field = v as Field<any>;
-        record.addControl(k, new FormControl(field.getValue(), this.validators(field)));
+        const control = new FormControl(field.getValue(), this.validators(field));
+        // if (v instanceof DateField) {
+        //   control.disable();
+        // }
+        record.addControl(field.code, control);
+        if (field.view.onValueChangeListener) {
+          control.valueChanges.subscribe(formValue => field.view.onValueChangeListener(formValue, control, this.form));
+        }
       } else if (v != null && typeof v == 'object') {
         // console.log('inner ', Field.isContainerField(v), Field.isValueField(v), k, v);
         this.buildForm(v, record);
@@ -150,32 +254,57 @@ export class SettingsComponent {
     }
   }
 
-  private createObjFormRow<T extends Record<string, Field<any>>>(field: Obj<T>, value: Map<keyof T, any>) {
-    const row = this.fb.record(Object.fromEntries(value));
-    for (let controlsKey in row.controls) {
-      const control = row.get(controlsKey);
-      control.setValidators(this.validators(field.def.get(controlsKey)))
+  private readForm(def: Record<string, any>, form: Record<string, any>) {
+    for (const [_, v] of Object.entries(def)) {
+
+      if (Field.isContainerField(v)) {
+        const field = v as Obj<any>;
+
+        field.replaceValue(form[field.code].map(a => new Map(Object.entries(a))));
+      } else if (Field.isValueField(v)) {
+        const field = v as Field<any>;
+        field.replaceValue(form[field.code]);
+      } else if (v != null && typeof v == 'object') {
+        // console.log('inner ', Field.isContainerField(v), Field.isValueField(v), k, v);
+        this.readForm(v, form);
+      }
     }
-    return row
+  }
+
+  private createControlsFormObj<T extends Record<string, Field<any>>>(field: Obj<T>, value: Map<keyof T, any>) {
+    const row = this.fb.record({});
+    for (const [k, v] of value) {
+
+      const inner = field.def.get(k);
+      row.addControl(inner.code, new FormControl(v, this.validators(inner)));
+    }
+    return row;
   }
 
   private validators(field: Field<any>): ValidatorFn[] {
     const v = [];
     if (field instanceof Num) {
-      field.required && v.push(Validators.required);
+      if (field.required) {
+        v.push(Validators.required);
+      }
       v.push(Validators.min(field.min));
       v.push(Validators.max(field.max));
       v.push((control: AbstractControl) =>
-        control.value == null || (typeof control.value === 'number' && isFinite(control.value) && Math.floor(control.value) === control.value)
+        control.value == null
+        || (typeof control.value === 'number' && isFinite(control.value) && Math.floor(control.value) === control.value)
           ? null
           : {notInt: 'Provided value is not an integer'},
       );
     } else if (field instanceof Text) {
-      field.required && v.push(Validators.required);
+      if (field.required) {
+        v.push(Validators.required);
+      }
       v.push(Validators.minLength(field.minLength));
       v.push(Validators.maxLength(field.maxLength));
     } else if (field instanceof Select) {
-      field.required && v.push(Validators.required);
+      if (field.required) {
+        v.push(Validators.required);
+      }
     }
 
     v.push((control: AbstractControl) => {
@@ -189,3 +318,16 @@ export class SettingsComponent {
     return v;
   }
 }
+
+type PublicHoliday = {
+
+  date: string;
+  localName: string;
+  name: string;
+  countryCode: string;
+  fixed: boolean;
+  global: boolean;
+  counties: string[];
+  launchYear: number;
+  types: ('Bank' | 'School' | 'Authorities' | 'Optional' | 'Observance' | 'Public')[];
+};
