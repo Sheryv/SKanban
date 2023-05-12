@@ -18,13 +18,13 @@ export class TaskSupport {
 
 
   doTaskChangedSimple(task: ImportedTask, prev: Task): boolean {
-    return  prev.title !== task.title
+    return prev.title !== task.title
       || prev.content !== task.content
       || prev.state !== task.state
       || prev.due_date !== task.due_date?.toMillis()
-      || prev.priority !== task.priority
-      // || prev.deleted !== task.deleted
-      // || prev.position !== task.position
-      // || prev.handled !== task.handled;
+      || prev.priority !== task.priority;
+    // || prev.deleted !== task.deleted
+    // || prev.position !== task.position
+    // || prev.handled !== task.handled;
   }
 }

@@ -1,32 +1,33 @@
-import { Component, Inject, NgZone, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, NgZone, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DateTime } from 'luxon';
 import { TaskList } from '../../../../shared/model/entity/task-list';
 import { LabelService } from '../../../service/label.service';
 import { TaskService } from '../../../service/task.service';
 import { Factory } from '../../../../shared/./support/factory';
 import { mergeMap, take } from 'rxjs/operators';
 import { ClientUtils, runInZone } from '../../../util/client-utils';
-import { TaskType } from '../../../../shared/model/entity/task-type';
-import { MarkdownUtils } from '../../../util/marked-renderers';
 import { SettingsService } from '../../../service/settings.service';
 import { Label } from '../../../../shared/model/entity/label';
-import { DialogParams, SingleInputDialogComponent } from '../single-input-dialog/single-input-dialog.component';
 import { ViewService } from '../../../service/view.service';
+import { TASK_PRIORITY_ATTR, TaskPriority } from '../../../../shared/model/entity/task-priority';
+import { TASK_STATE_ATTR, TaskState } from '../../../../shared/model/entity/task-state';
 
 @Component({
   selector: 'app-create-task-dialog',
   templateUrl: 'create-task-dialog.component.html',
 })
-export class CreateTaskDialogComponent implements OnInit {
+export class CreateTaskDialogComponent implements OnInit, AfterViewInit {
 
+  @ViewChild('name', { static: true })
+  nameInput: ElementRef;
   form: FormGroup;
   labels: Label[] = [];
   selectedLabels: Label[] = [];
-  taskTypes: Map<TaskType, string>;
-  options = MarkdownUtils.editorOptions();
-  preRenderPreviewCallback: (s: string) => string;
+  // options = MarkdownUtils.editorOptions();
+  // preRenderPreviewCallback: (s: string) => string;
+  priorityAttrs = TASK_PRIORITY_ATTR;
+  stateAttrs = TASK_STATE_ATTR;
 
   constructor(
     fb: FormBuilder,
@@ -40,20 +41,15 @@ export class CreateTaskDialogComponent implements OnInit {
     public viewService: ViewService,
     @Inject(MAT_DIALOG_DATA) public list: TaskList) {
 
-    const tomorrow = DateTime.local().plus({days: 1});
-    this.taskTypes = ClientUtils.TASK_TYPES_LABELS;
 
-    this.preRenderPreviewCallback = (md) => MarkdownUtils.preProcessContent(md, this.settings.settingsDef);
+    // this.preRenderPreviewCallback = (md) => MarkdownUtils.preProcessContent(md, this.settings.settingsDef);
 
     this.form = fb.group({
-      name: ['T' + (Math.floor(Math.random() * 90) + 10), [Validators.max(100)]],
-      content: ['', [Validators.max(10000)]],
-      dueDate: [tomorrow],
-      type: [{value: TaskType.STANDARD, disabled: true}, [Validators.required]],
-    });
-
-    this.form.get('name').valueChanges.subscribe(n => {
-      this.form.get('type').setValue(n ? TaskType.STANDARD : TaskType.NOTE);
+      name: ['T' + (Math.floor(Math.random() * 90) + 10), Validators.compose([Validators.required, Validators.maxLength(100)])],
+      content: ['', Validators.maxLength(30000)],
+      dueDate: [],
+      priority: [TaskPriority.MAJOR, Validators.required],
+      state: [TaskState.OPEN, Validators.required],
     });
   }
 
@@ -62,8 +58,10 @@ export class CreateTaskDialogComponent implements OnInit {
     this.form.updateValueAndValidity();
     if (this.form.valid) {
       const v = this.form.value;
-      const millisecond = DateTime.fromJSDate(v.dueDate).toMillis();
-      const task = this.fc.createTask(v.name, v.content, this.list.id, 0, millisecond, this.form.get('type').value);
+
+      const task = this.fc.createTask(v.name, v.content, this.list.id, 0, v.dueDate?.toMillis() || null);
+      task.state = v.state;
+      task.priority = v.priority;
       this.taskService.getTasks(this.list.id)
         .pipe(
           mergeMap(tasks => {
@@ -107,10 +105,9 @@ export class CreateTaskDialogComponent implements OnInit {
     this.labels = this.labels.sort((a, b) => a.title.localeCompare(b.title));
   }
 
-  open() {
-    this.dialog.open<SingleInputDialogComponent, DialogParams>(SingleInputDialogComponent, {
-      width: '450px',
-      data: {title: 'Test d'},
-    });
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.nameInput.nativeElement.select();
+    }, 5);
   }
 }

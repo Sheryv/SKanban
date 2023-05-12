@@ -1,6 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Task } from '../../../../shared/model/entity/task';
+import { TaskWithBoard } from '../../../service/reminder.service';
+import { State } from '../../../service/state';
 
 @Component({
   selector: 'app-reminders-dialog',
@@ -8,8 +9,7 @@ import { Task } from '../../../../shared/model/entity/task';
 })
 export class RemindersDialogComponent {
 
-
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { tasks: Task[] }, private dialog: MatDialogRef<any>) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: { tasks: TaskWithBoard[] }, private dialog: MatDialogRef<any>) {
   }
 
   close() {

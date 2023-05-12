@@ -28,7 +28,7 @@ export class TaskService {
   }
 
   getBoards(): Observable<Board[]> {
-    return this.db.findAll({table: 'boards', clauses: {deleted: DatabaseService.IS_NULL}})
+    return this.db.findAll({ table: 'boards', clauses: { deleted: DatabaseService.IS_NULL } })
       .pipe(
         take(1),
         map(r => r as Board[]),
@@ -36,7 +36,7 @@ export class TaskService {
   }
 
   getLists(board: Board): Observable<TaskList[]> {
-    return this.db.findAll({table: 'lists', clauses: {board_id: board.id, deleted: DatabaseService.IS_NULL}})
+    return this.db.findAll({ table: 'lists', clauses: { board_id: board.id, deleted: DatabaseService.IS_NULL } })
       .pipe(
         take(1),
         mergeMap((ls: TaskList[]) => {
@@ -54,8 +54,20 @@ export class TaskService {
       );
   }
 
+  getAllTasks(): Observable<{ board: Board; list: TaskList; tasks: Task[] }[]> {
+    return this.getBoards()
+      .pipe(
+        mergeMap(boards =>
+          forkJoin(boards.filter(b => b && b.id).flatMap(b => this.getLists(b).pipe(
+            map(lists => ({ l: lists, b })),
+          ))),
+        ),
+        map(all => all.flatMap(a => a.l.map(l => ({ board: a.b, list: l, tasks: l.$tasks })))),
+      );
+  }
+
   getTasks(listId: number): Observable<Task[]> {
-    return this.db.findAll({table: 'tasks', clauses: {list_id: listId, deleted: DatabaseService.IS_NULL}})
+    return this.db.findAll({ table: 'tasks', clauses: { list_id: listId, deleted: DatabaseService.IS_NULL } })
       .pipe(
         mergeMap((ls: Task[]) => {
           if (ls.length > 0) {
@@ -83,23 +95,23 @@ export class TaskService {
   }
 
   saveBoard(b: Board): Observable<DbExecResult> {
-    return this.db.save({table: 'boards', row: b});
+    return this.db.save({ table: 'boards', row: b });
   }
 
   saveList(b: TaskList): Observable<DbExecResult> {
-    return this.db.save({table: 'lists', row: b});
+    return this.db.save({ table: 'lists', row: b });
   }
 
   saveTask(b: Task): Observable<DbExecResult> {
     this.state.taskChanged.next(b);
-    return this.db.save({table: 'tasks', row: b});
+    return this.db.save({ table: 'tasks', row: b });
   }
 
   updatePosition(tasks: Task[]): Observable<DbExecResult[]> {
     return concat(tasks.map(t => {
       const prevList = t.$prevList;
       const list = t.list_id;
-      const ob = prevList ? this.addHistoryEntryOptional({...t, list_id: prevList}) : of(true);
+      const ob = prevList ? this.addHistoryEntryOptional({ ...t, list_id: prevList }) : of(true);
       t.$prevList = null;
 
       this.state.taskChanged.next(t);
@@ -134,9 +146,9 @@ export class TaskService {
   }
 
   addHistoryEntryOptional(task: Task, prev: Task | null = null): Observable<DbExecResult> {
-    if (this.taskHistorySupport.doTaskChanged(prev, task)) {
+    if (this.taskHistorySupport.doTaskChanged(task, prev)) {
       const h = this.fc.createHistoryEntrySerialize(task);
-      return this.db.save({table: 'task_history', row: h});
+      return this.db.save({ table: 'task_history', row: h });
     }
     return of(null);
   }
@@ -145,7 +157,7 @@ export class TaskService {
   getHistory(taskId: number): Observable<TaskHistory[]> {
     return this.db.findAll({
       table: 'task_history',
-      clauses: {task_id: taskId},
+      clauses: { task_id: taskId },
     }).pipe(map(r => (r as TaskHistory[]).map(h => {
       h.$task = JSON.parse(h.json);
       return h;
@@ -153,7 +165,7 @@ export class TaskService {
   }
 
   disableAllFileSync(): Observable<any> {
-    return this.db.findAll({table: 'lists'}).pipe(
+    return this.db.findAll({ table: 'lists' }).pipe(
       map(r => r as TaskList[]),
       switchMap(lists => {
         return forkJoin(lists.map(l => {
@@ -161,7 +173,7 @@ export class TaskService {
           return this.saveList(l);
         }));
       }),
-      switchMap(() => this.electron.send(Ipcs.JOB, {op: 'disableAllSync'})),
+      switchMap(() => this.electron.send(Ipcs.JOB, { op: 'disableAllSync' })),
     );
   }
 }

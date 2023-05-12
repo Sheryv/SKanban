@@ -36,14 +36,14 @@ export class MarkdownUtils {
           if (/^\s*\[[x ]\]\s*/.test(text) || text.startsWith('<input')) {
             if (text.startsWith('<input')) {
               text = text
-                .replace('<input disabled="" type="checkbox">', '<i class="fa fa-square-o"></i>')
-                .replace('<input checked="" disabled="" type="checkbox">', '<i class="fa fa-check-square"></i>');
+                .replace('<input disabled="" type="checkbox">', '<i class="material-icons-outlined font-13 fg-success">check_box</i>')
+                .replace('<input checked="" disabled="" type="checkbox">', '<i class="material-icons-outlined font-13">check_box_outline_blank</i>');
             } else {
               text = text
-                .replace(/^\s*\[ \]\s*/, '<i class="fa fa-square-o"></i> ')
-                .replace(/^\s*\[x\]\s*/, '<i class="fa fa-check-square"></i> ');
+                .replace(/^\s*\[ \]\s*/, '<i class="material-icons-outlined font-13 fg-success">check_box</i> ')
+                .replace(/^\s*\[x\]\s*/, '<i class="material-icons-outlined font-13">check_box_outline_blank</i> ');
             }
-            return `<li>${text}</li>`;
+            return `<li>${text}<span class="d-inline-flex align-items-center"></span></li>`;
           } else {
             return `<li>${text}</li>`;
           }
@@ -74,29 +74,29 @@ export class MarkdownUtils {
     return normalized.replace(this.REG_EXP_NEW_LINE_PAIR, '<br/> \n\n');
   }
 
-  static editorOptions(): MdEditorOption {
-    return {
-      showPreviewPanel: false,   // Show preview panel, Default is true
-      // showBorder?: boolean          // Show editor component's border. Default is true
-      // ['Bold', 'Italic', 'Heading', 'Refrence', 'Link', 'Image', 'Ul', 'Ol', 'Code', 'TogglePreview', 'FullScreen']. Default is empty
-      hideIcons: ['Heading', 'Image'],
-      usingFontAwesome5: true,   // Using font awesome with version 5, Default is false
-      // scrollPastEnd?: number        // The option for ace editor. Default is 0
-      enablePreviewContentClick: true,  // Allow user fire the click event on the preview panel, like href etc. Default is false
-      resizable: true,          // Allow resize the editor
-      markedjsOpt: {
-        gfm: true,
-        // headerPrefix: '_H_',
-        breaks: true,
-      },  // The markedjs option, see https://marked.js.org/#/USING_ADVANCED.md#options
-      // customRender?: {              // Custom markedjs render
-      //   image?: Function     // Image Render
-      //   table?: Function     // Table Render
-      //   code?: Function      // Code Render
-      //   listitem?: Function  // Listitem Render
-      // }
-    };
-  }
+  // static editorOptions(): MdEditorOption {
+  //   return {
+  //     showPreviewPanel: false,   // Show preview panel, Default is true
+  //     // showBorder?: boolean          // Show editor component's border. Default is true
+  //     // ['Bold', 'Italic', 'Heading', 'Refrence', 'Link', 'Image', 'Ul', 'Ol', 'Code', 'TogglePreview', 'FullScreen']. Default is empty
+  //     hideIcons: ['Heading', 'Image'],
+  //     usingFontAwesome5: true,   // Using font awesome with version 5, Default is false
+  //     // scrollPastEnd?: number        // The option for ace editor. Default is 0
+  //     enablePreviewContentClick: true,  // Allow user fire the click event on the preview panel, like href etc. Default is false
+  //     resizable: true,          // Allow resize the editor
+  //     markedjsOpt: {
+  //       gfm: true,
+  //       // headerPrefix: '_H_',
+  //       breaks: true,
+  //     },  // The markedjs option, see https://marked.js.org/#/USING_ADVANCED.md#options
+  //     // customRender?: {              // Custom markedjs render
+  //     //   image?: Function     // Image Render
+  //     //   table?: Function     // Table Render
+  //     //   code?: Function      // Code Render
+  //     //   listitem?: Function  // Listitem Render
+  //     // }
+  //   };
+  // }
 }
 
 

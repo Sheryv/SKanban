@@ -4,18 +4,18 @@ import { Task } from '../../shared/model/entity/task';
 import { State } from './state';
 import { Ipcs } from '../../shared/model/ipcs';
 import { ElectronService } from './electron.service';
-import { debounceTime, forkJoin, mergeMap } from 'rxjs';
+import { debounceTime } from 'rxjs';
 import { TaskService } from './task.service';
 import { DatabaseService } from './database.service';
-import { take } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import { Settings, SettingsService } from './settings.service';
 import { ViewService } from './view.service';
-import { ClientUtils } from '../util/client-utils';
 import { TaskPriority } from '../../shared/model/entity/task-priority';
+import { Board } from '../../shared/model/entity/board';
+import { TaskList } from '../../shared/model/entity/task-list';
 
 interface Reminder {
-  task: Task,
+  task: Task;
   handlerId: number;
 }
 
@@ -57,36 +57,28 @@ export class ReminderService {
 
 
   calculateReminders() {
-
-    (
-      // boardId ? this.db.find({
-      //   table: 'boards',
-      //   findId: boardId,
-      // }).pipe(map(r => [r] as Board[])) :
-      this.taskService.getBoards()
-    )
-      .pipe(
-        take(1),
-        mergeMap(boards => forkJoin(boards.filter(b => b && b.id).flatMap(b => this.taskService.getLists(b)))),
-      )
-      .subscribe(lists => {
-          this.calculateReminderForTasks(lists.flatMap(l => l).flatMap(l => l.$tasks));
-        },
-      );
+    this.taskService.getAllTasks().subscribe(lists => {
+        this.calculateReminderForTasks(lists.flatMap(({ board, list, tasks }) => tasks.map(task => ({
+          board,
+          list,
+          task,
+        }))));
+      },
+    );
   }
 
-  calculateReminderForTasks(tasks: Task[]) {
+  calculateReminderForTasks(tasks: TaskWithBoard[]) {
     this.addReminders(tasks);
   }
 
-  addReminders(tasks: Task[]) {
+  addReminders(tasks: TaskWithBoard[]) {
     // upcoming
     const found = this.findTasksWithNotifications(tasks);
-    console.log('Calculated reminders of tasks', found);
-    const {future, inNotificationTimeRange, overdue} = found;
+    console.debug('Calculated reminders of tasks', found);
+    const { inNotificationTimeRange, overdue } = found;
 
 
-    let min: Task;
+    let min: TaskWithBoard;
     if (overdue.length > 0 || inNotificationTimeRange.length > 0) {
 
       let body = 'You have ';
@@ -118,17 +110,18 @@ export class ReminderService {
       }
 
       this.showDialog([...overdue, ...inNotificationTimeRange]);
-      min = inNotificationTimeRange.length > 0 && inNotificationTimeRange.reduce((p, v) => (p.due_date < v.due_date ? p : v)) || null;
+      min = inNotificationTimeRange.length > 0
+        && inNotificationTimeRange.reduce((p, v) => (p.task.due_date < v.task.due_date ? p : v)) || null;
     }
 
-    if (this.nextHandlerDate == null || min == null || this.nextHandlerDate.toMillis() <= min.due_date) {
+    if (this.nextHandlerDate == null || min == null || this.nextHandlerDate.toMillis() <= min.task.due_date) {
       if (this.nextHandlerId) {
         clearTimeout(this.nextHandlerId);
       }
 
-      this.nextHandlerDate = min ? DateTime.fromMillis(min.due_date) : DateTime.now().plus({minute: 1});
+      this.nextHandlerDate = min ? DateTime.fromMillis(min.task.due_date) : DateTime.now().plus({ minute: 1 });
       const wait = this.nextHandlerDate.diffNow('milliseconds').milliseconds;
-      console.log('Scheduling next check to ', this.nextHandlerDate.toISO(), ' what is', wait, 'ms from now');
+      console.debug('Scheduling next check to ', this.nextHandlerDate.toISO(), ' what is', wait, 'ms from now');
       this.nextHandlerId = Number(setTimeout(this.calculateReminders.bind(this), wait));
     }
     // for (const task of other) {
@@ -141,7 +134,8 @@ export class ReminderService {
     //     const minutes = DateTime.fromMillis(task.due_date).diffNow('milliseconds');
     //
     //     const calc = minutes.minus({minute: 5});
-    //     console.log(`Scheduled noti for '${task.title}' in ${Math.round(calc.as('minutes'))} minutes at ${DateTime.now().plus(calc).toISO()}`);
+    //     console.log(`Scheduled noti for '${task.title}' in ${Math.round(calc.as('minutes'))}
+    //     minutes at ${DateTime.now().plus(calc).toISO()}`);
     //
     //     const handlerId = Number(setTimeout(this.scheduleHandler.bind(this), calc.toMillis(), task));
     //
@@ -152,15 +146,16 @@ export class ReminderService {
     // }
   }
 
-  findTasksWithNotifications(tasks: Task[]): { overdue: Task[]; inNotificationTimeRange: Task[]; future: Task[] } {
-    const overdue: Task[] = [];
-    const inNotificationTimeRange: Task[] = [];
-    const future: Task[] = [];
+  findTasksWithNotifications(tasks: TaskWithBoard[]):
+    { overdue: TaskWithBoard[]; inNotificationTimeRange: TaskWithBoard[]; future: TaskWithBoard[] } {
+    const overdue: TaskWithBoard[] = [];
+    const inNotificationTimeRange: TaskWithBoard[] = [];
+    const future: TaskWithBoard[] = [];
 
     tasks
-      .filter(task => task.due_date != null && (task.handled == null || task.handled === 0))
-      .map(t => ({t, d: DateTime.fromMillis(t.due_date).diffNow('milliseconds')}))
-      .forEach(({t, d}) => {
+      .filter(w => w.task.due_date != null && (w.task.handled == null || w.task.handled === 0))
+      .map(w => ({ t: w, d: DateTime.fromMillis(w.task.due_date).diffNow('milliseconds') }))
+      .forEach(({ t, d }) => {
         if (d.milliseconds >= this.settings.reminderAheadShowTime.getValue() * 60 * 1000) {
           future.push(t);
         } else if (d.milliseconds >= 0) {
@@ -170,24 +165,24 @@ export class ReminderService {
         }
       });
 
-    return {overdue, inNotificationTimeRange, future};
+    return { overdue, inNotificationTimeRange, future };
   }
 
-  completeAll(tasks: Task[]) {
+  completeAll(tasks: TaskWithBoard[]) {
     const now = DateTime.now().toMillis();
     for (const task of tasks) {
-      task.handled = now;
-      this.taskService.saveTask(task);
+      task.task.handled = now;
+      this.taskService.saveTask(task.task);
     }
   }
 
-  snoozeAll(tasks: Task[], minutes: number) {
+  snoozeAll(tasks: TaskWithBoard[], minutes: number) {
     const holidays: DateTime[] = this.settings.customHolidays.getValue().map(r => DateTime.fromISO(r.get('date')));
     const now = DateTime.now();
-    let newDate = now.plus({minute: minutes});
+    let newDate = now.plus({ minute: minutes });
     if (!newDate.hasSame(now, 'day')) {
       const found = holidays.filter(h => h.toMillis() <= newDate.toMillis() && h.toMillis() >= now.toMillis());
-      let d = now.plus({day: 1});
+      let d = now.plus({ day: 1 });
       while (d.year < newDate.year
         || (d.year === newDate.year && (d.month < newDate.month
           || (d.month === newDate.month && d.day <= newDate.day)))
@@ -198,45 +193,29 @@ export class ReminderService {
         } else if (this.settings.sundaysAreHolidays.getValue() && d.weekday === 7) {
           found.push(d);
         }
-        d = d.plus({day: 1});
+        d = d.plus({ day: 1 });
       }
 
       if (found.length > 0) {
-        console.log('Holidays in range', found.map(h=>h.toISO()));
-        newDate = newDate.plus({day: found.length});
+        console.debug('Holidays in range', found.map(h => h.toISO()));
+        newDate = newDate.plus({ day: found.length });
       }
     }
 
     for (const task of tasks) {
-      task.due_date = newDate.toMillis();
-      this.taskService.saveTask(task);
+      task.task.due_date = newDate.toMillis();
+      this.taskService.saveTask(task.task);
     }
   }
 
-  private showDialog(tasks: Task[]) {
+  private showDialog(tasks: TaskWithBoard[]) {
     this.viewService.showRemindersListDialog(tasks);
-    if (this.settings.enableBringWindowToTop.getValue() && tasks.some(t => t.priority >= TaskPriority.CRITICAL)) {
-      this.electron.send(Ipcs.SHELL, {op: 'bringWindowToTop'}).subscribe(() => this.electron.send(Ipcs.SHELL, {op: 'flashFrame'}));
+    if (this.settings.enableBringWindowToTop.getValue() && tasks.some(t => t.task.priority >= TaskPriority.CRITICAL)) {
+      this.electron.send(Ipcs.SHELL, { op: 'bringWindowToTop' }).subscribe(() => this.electron.send(Ipcs.SHELL, { op: 'flashFrame' }));
     } else {
-      this.electron.send(Ipcs.SHELL, {op: 'flashFrame'});
+      this.electron.send(Ipcs.SHELL, { op: 'flashFrame' });
     }
-  }
-
-  private scheduleHandler(task: Task) {
-    const reminder = this.reminders.findIndex(r => r.task.id === task.id);
-    this.reminders.splice(reminder, 1);
-    clearTimeout(this.reminders[reminder].handlerId);
-
-    const date = DateTime.fromMillis(task.due_date);
-    const line = ClientUtils.formatOverdueDuration(date);
-    this.electron.send(Ipcs.SHELL, {
-      op: 'showNotification',
-      options: {
-        title: 'Task reminder:',
-        body: `${task.title}\n${line}`,
-        urgency: 'normal',
-      },
-    });
-    this.showDialog([task]);
   }
 }
+
+export type TaskWithBoard = { board: Board; list: TaskList; task: Task };

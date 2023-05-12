@@ -9,7 +9,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Field, Num, Obj, Select, Text } from '../../../../shared/model/entity/settings';
+import { Field, Num, Obj, Select, Text } from '../../../model/settings';
 import { State } from '../../../service/state';
 import { MessageService } from '../../../service/message.service';
 import { SettingsService } from '../../../service/settings.service';

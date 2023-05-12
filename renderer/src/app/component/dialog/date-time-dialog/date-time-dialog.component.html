@@ -4,17 +4,22 @@
 
   <div class="row">
     <div class="col-12  mt-3">
-      <span class="fg-4 mr-2">Date:</span>
-      <span>{{date | dateUser}}</span>
-      <div class="line my-3">
+      <div class="row justify-content-between">
+        <div class="col-12 col-sm align-self-center">
+          <span class="fg-4 mr-2">Date:</span>
+          <span>{{date | dateUser}}</span>
+        </div>
+        <div class="col-12 col-sm-auto">
+          <button mat-stroked-button (click)="setToNow()">Set to current date</button>
+        </div>
       </div>
-      <!--    <div class="col">-->
-      <!--    </div>-->
+      <div class="line my-3"></div>
     </div>
     <div class="col-12">
       <div class="row">
         <div class="col-12 col-sm-5">
-          <mat-calendar [selected]="date" (selectedChange)="onChangeDay($event)" [dateClass]="calendarDayClassProvider"></mat-calendar>
+          <mat-calendar [selected]="date" (selectedChange)="onChangeDay($event)"
+                        [dateClass]="calendarDayClassProvider"></mat-calendar>
         </div>
         <div class="col-12 col-sm-7">
           <div class="row mt-3">
@@ -30,7 +35,8 @@
             <div class="col-12 col-sm-5 col-md-4 mt-3">
               <div class="d-flex flex-column overflow-auto" style="max-height: 400px">
                 <ng-container *ngFor="let t of predefined">
-                  <button mat-button class="btn-small" (click)="onChangeTimeSpecific(t.hour, t.minute)">{{t.date}}</button>
+                  <button mat-button class="btn-small"
+                          (click)="onChangeTimeSpecific(t.hour, t.minute)">{{t.date}}</button>
                   <div class="separator"></div>
                 </ng-container>
               </div>

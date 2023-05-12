@@ -1,11 +1,14 @@
 <div class="container">
   <div>
     <div *ngFor="let r of rows" class="row separator py-3 justify-content-between">
-      <div class="col">
-        <div class="font-11 mb-1">{{r.task.title}}</div>
-        <div class="fg-3" [ngClass]="{'fg-warn': r.inPast}">{{ r.dateLine }}</div>
+      <div class="col-12 col-md">
+        <div class="font-11 mb-1">{{r.task.task.title}}</div>
+        <div class="row justify-content-between">
+          <div class="col-12 col-sm fg-3" [ngClass]="{'fg-warn': r.inPast}">{{ r.dateLine }}</div>
+          <div class="col-12 col-sm-auto fg-3" *ngIf="state.currentBoard.id !== r.task.board.id"><em>{{ r.task.board.title }}</em></div>
+        </div>
       </div>
-      <div class="col-auto">
+      <div class="col-12 col-md-auto mt-3 mt-md-1 text-right">
         <mat-menu #menu="matMenu">
           <button mat-menu-item (click)="snooze(r.task, 30)">30 min.</button>
           <button mat-menu-item (click)="snooze(r.task, 60)">1 hour</button>
@@ -19,8 +22,4 @@
       </div>
     </div>
   </div>
-<!--  <div class="d-flex justify-content-end pt-3">-->
-<!--    <button mat-stroked-button color="accent" class="mr-2">Snooze all</button>-->
-<!--    <button mat-stroked-button color="success" (click)="closed.emit()">Complete all</button>-->
-<!--  </div>-->
 </div>

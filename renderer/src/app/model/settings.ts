@@ -302,12 +302,11 @@ export class DateField extends Field<DateTime> {
 
 export class Obj<V extends Record<string, Field<any>>> extends Field<Map<keyof V, any>[]> {
 
-  readonly type: FieldType;
+  override readonly type: FieldType = 'object_array';
 
   readonly def: Map<keyof V, Field<any>>;
 
-  readonly defaultValue: Map<keyof V, any>[];
-
+  override readonly defaultValue: Map<keyof V, any>[] = [];
 
   constructor(
     readonly label: string,
@@ -317,7 +316,6 @@ export class Obj<V extends Record<string, Field<any>>> extends Field<Map<keyof V
     readonly inlineRemoveRowButton = false,
   ) {
     super();
-    this.type = 'object_array';
     this.def = new Map(Object.entries(def));
 
     const defaults = new Map<string, any>();

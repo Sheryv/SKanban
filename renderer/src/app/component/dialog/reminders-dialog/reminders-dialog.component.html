@@ -12,9 +12,7 @@
     <button mat-menu-item (click)="reminders.snoozeAll(7*1440)">7 days</button>
   </mat-menu>
 
-
-  <div *ngIf="data instanceof "></div>
-
-  <button mat-stroked-button color="accent" class="mr-2" [matMenuTriggerFor]="menu" >Snooze all</button>
-  <button mat-stroked-button color="success" (click)="reminders.completeAll();close()">Complete all</button>
+  <button mat-button class="mr-2" (click)="close()">Hide</button>
+  <button mat-stroked-button *ngIf="data.tasks?.length > 0" color="accent" class="mr-2" [matMenuTriggerFor]="menu">Snooze all</button>
+  <button mat-stroked-button *ngIf="data.tasks?.length > 0" color="success" (click)="reminders.completeAll()">Complete all</button>
 </div>

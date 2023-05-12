@@ -2,7 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Task } from '../../../../shared/model/entity/task';
 import { DateTime } from 'luxon';
 import { ClientUtils } from '../../../util/client-utils';
-import { ReminderService } from '../../../service/reminder.service';
+import { ReminderService, TaskWithBoard } from '../../../service/reminder.service';
+import { State } from '../../../service/state';
 
 @Component({
   selector: 'app-reminders-list',
@@ -14,38 +15,38 @@ export class RemindersListComponent implements OnInit {
   @Output()
   closed = new EventEmitter<any>();
 
-  rows: { task: Task; inPast: boolean; dateLine: string }[];
+  rows: { task: TaskWithBoard; inPast: boolean; dateLine: string }[];
 
   private now = DateTime.now().toMillis();
 
   // private changes: { task: Task, complete?: boolean, snooze?: number }[] = [];
 
   @Input()
-  set tasks(tasks: Task[]) {
-    this.rows = tasks.map(task => ({
-      task,
-      inPast: task.due_date < this.now,
-      dateLine: ClientUtils.formatOverdueDuration(DateTime.fromMillis(task.due_date)),
-    })).sort((a, b) => a.task.due_date - b.task.due_date);
+  set tasks(tasks: TaskWithBoard[]) {
+    this.rows = tasks.map(w => ({
+      task: w,
+      inPast: w.task.due_date < this.now,
+      dateLine: ClientUtils.formatOverdueDuration(DateTime.fromMillis(w.task.due_date)),
+    })).sort((a, b) => a.task.task.due_date - b.task.task.due_date);
   }
 
-  constructor(private remindersService: ReminderService) {
+  constructor(private remindersService: ReminderService, public state: State) {
 
   }
 
   ngOnInit(): void {
   }
 
-  complete(task: Task) {
-    this.rows.splice(this.rows.findIndex(r => r.task.id === task.id), 1);
+  complete(task: TaskWithBoard) {
+    this.rows.splice(this.rows.findIndex(r => r.task.task.id === task.task.id), 1);
     this.remindersService.completeAll([task]);
     if (this.rows.length === 0) {
       this.closed.emit();
     }
   }
 
-  snooze(task: Task, minutes: number) {
-    this.rows.splice(this.rows.findIndex(r => r.task.id === task.id), 1);
+  snooze(task: TaskWithBoard, minutes: number) {
+    this.rows.splice(this.rows.findIndex(r => r.task.task.id === task.task.id), 1);
     this.remindersService.snoozeAll([task], minutes);
     if (this.rows.length === 0) {
       this.closed.emit();

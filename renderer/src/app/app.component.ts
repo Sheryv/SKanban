@@ -26,6 +26,7 @@ import { IS_ELECTRON, NODE_CTX } from './global';
 import { Ipcs } from '../shared/model/ipcs';
 import { DateTime, Settings as LuxonSettings } from 'luxon';
 import { ReminderService } from './service/reminder.service';
+import { ViewService } from './service/view.service';
 
 
 @Component({
@@ -53,6 +54,7 @@ export class AppComponent implements OnInit {
               private msg: MessageService,
               private zone: NgZone,
               private keyService: KeyCommandsService,
+              private viewService: ViewService,
               private reminderService: ReminderService,
               private electron: ElectronService,
   ) {
@@ -127,7 +129,7 @@ export class AppComponent implements OnInit {
 
     const dialogRef = this.dialog.open<SingleInputDialogComponent, DialogParams>(SingleInputDialogComponent, {
       width: '450px',
-      data: {title: 'Create board'},
+      data: { title: 'Create board' },
     });
 
     dialogRef.afterClosed()
@@ -213,13 +215,13 @@ export class AppComponent implements OnInit {
   }
 
   search(term: string) {
-    this.state.search.next({term, enabled: true});
+    this.state.search.next({ term, enabled: true });
   }
 
   closeSearch() {
     if (this.searchMode) {
       this.searchMode = false;
-      this.state.search.next({enabled: false, term: ''});
+      this.state.search.next({ enabled: false, term: '' });
     }
   }
 
@@ -232,5 +234,19 @@ export class AppComponent implements OnInit {
       op: 'import',
       boardId: id,
     }).subscribe(b => b && this.msg.success('List imported'));
+  }
+
+  showUpcomingReminders() {
+    this.taskService.getAllTasks().subscribe(all => {
+      const {
+        future,
+        inNotificationTimeRange,
+      } = this.reminderService.findTasksWithNotifications(all.flatMap(({ board, list, tasks }) => tasks.map(task => ({
+        board,
+        list,
+        task,
+      }))));
+      this.viewService.showRemindersListDialog([...future, ...inNotificationTimeRange]);
+    });
   }
 }

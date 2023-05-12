@@ -28,12 +28,12 @@ export class DateTimeDialogComponent {
       {
         hour: k + 7,
         minute: 0,
-        date: DateTime.fromObject({hour: k + 7, minute: 0}).toLocaleString(DateTime.TIME_SIMPLE),
+        date: DateTime.fromObject({ hour: k + 7, minute: 0 }).toLocaleString(DateTime.TIME_SIMPLE),
       },
       {
         hour: k + 7,
         minute: 30,
-        date: DateTime.fromObject({hour: k + 7, minute: 30}).toLocaleString(DateTime.TIME_SIMPLE),
+        date: DateTime.fromObject({ hour: k + 7, minute: 30 }).toLocaleString(DateTime.TIME_SIMPLE),
       },
     ]);
   }
@@ -54,16 +54,16 @@ export class DateTimeDialogComponent {
   };
 
   onChangeTime(time: Date) {
-    this.date = this.date.set({hour: time.getHours(), minute: time.getMinutes(), second: time.getSeconds()});
+    this.date = this.date.set({ hour: time.getHours(), minute: time.getMinutes(), second: time.getSeconds() });
   }
 
   onChangeTimeSpecific(hour: number, minute: number) {
-    this.date = this.date.set({hour, minute, second: 0});
+    this.date = this.date.set({ hour, minute, second: 0 });
     this.time = new Date(this.time.setHours(hour, minute));
   }
 
-  onChangeDay(day: DateTime) {
-    this.date = day.set({hour: this.time.getHours(), minute: this.time.getMinutes(), second: this.time.getSeconds()});
+  onChangeDay(day: DateTime = DateTime.now()) {
+    this.date = day.set({ hour: this.time.getHours(), minute: this.time.getMinutes(), second: this.time.getSeconds() });
   }
 
   save() {
@@ -72,5 +72,11 @@ export class DateTimeDialogComponent {
 
   clear() {
     this.dialogRef.close(DateTime.fromMillis(0));
+  }
+
+  setToNow() {
+    const now = DateTime.now();
+    this.date = now;
+    this.time = now.toJSDate();
   }
 }

@@ -46,7 +46,6 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
   saved: EventEmitter<Task> = new EventEmitter<Task>();
   @Output()
   closed: EventEmitter<Task> = new EventEmitter<Task>();
-  options = MarkdownUtils.editorOptions();
 
   priorityAttrs = TASK_PRIORITY_ATTR;
   stateAttrs = TASK_STATE_ATTR;
@@ -121,7 +120,7 @@ export class TaskDetailsComponent implements OnInit, OnDestroy {
 
       this.form = this.fb.group({
         title: [this._task.title, [Validators.required]],
-        content: [this._task.content, [Validators.max(10000)]],
+        content: [this._task.content, [Validators.max(30000)]],
         // eslint-disable-next-line @typescript-eslint/naming-convention
         due_date: [date],
         type: [this._task.type, [Validators.required]],

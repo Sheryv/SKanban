@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, Validators } from '@angular/forms';
+import { FormControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'app-single-input-dialog',
@@ -9,22 +9,18 @@ import { FormControl, Validators } from '@angular/forms';
 export class SingleInputDialogComponent {
   name: FormControl;
   data: DialogParams;
-  
+
   constructor(
     public dialogRef: MatDialogRef<SingleInputDialogComponent>,
     @Inject(MAT_DIALOG_DATA) params: DialogParams) {
-    
-    this.data = {label: 'Name', required: true, title: 'Input'};
+
+    this.data = {label: '', title: 'Provide value'};
     Object.assign(this.data, params);
-    
-    if (this.data.required) {
-      this.name = new FormControl(null, Validators.required);
-    } else {
-      this.name = new FormControl();
-    }
+
+    this.name = new FormControl(null, this.data.validator);
     this.name.setValue(this.data.value);
   }
-  
+
   save() {
     if (this.name.valid) {
       this.dialogRef.close(this.name.value);
@@ -36,7 +32,8 @@ export class SingleInputDialogComponent {
 
 export interface DialogParams {
   label?: string;
-  required?: boolean;
+  validator?: ValidatorFn;
+  errors?: Record<string, string>;
   title: string;
   value?: string;
 }

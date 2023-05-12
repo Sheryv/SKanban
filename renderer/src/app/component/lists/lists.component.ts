@@ -228,7 +228,8 @@ export class ListsComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(CreateTaskDialogComponent, {
       maxWidth: '95vw',
       minWidth: '30vw',
-      width: '1100px',
+      width: '1300px',
+      minHeight: '75vh',
       data: list,
 
     });
@@ -501,7 +502,29 @@ export class ListsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async enableFileSync(l: TaskList) {
+  changeListWidth() {
+    const listWidth = this.settingsService.settingsDef.ui.lists.listWidth;
+    const dialogRef = this.dialog.open<SingleInputDialogComponent, DialogParams>(SingleInputDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Change list width',
+        label: `Width in pixels (default: ${listWidth.defaultValue})`,
+        value: listWidth.getValue() + '',
+        validator: (c) =>
+          Object.fromEntries(
+            listWidth.validate(c.value)
+              .map((v, i) => ['e' + i, v]),
+          ),
+      },
+    }).afterClosed().subscribe(r => {
+      if (r) {
+        listWidth.replaceValue(Number(r));
+        this.settingsService.save().subscribe(() => this.updateSettings(this.settingsService.settingsDef));
+      }
+    });
+  }
+
+  enableFileSync(l: TaskList) {
     this.electron.send(Ipcs.SHELL, {op: 'showOpenFileDialog'})
       .pipe(
         takeWhile(p => p != null),

@@ -3,7 +3,7 @@
   <mat-form-field class="w-100" appearance="fill">
     <mat-label>{{data.label}}</mat-label>
     <input cdkFocusInitial matInput [formControl]="name">
-    <mat-error *ngIf="name.hasError('required')">Field cannot be empty</mat-error>
+    <mat-error *ngFor="let e of (name.errors | keyvalue) || []" app-form-errors [error]="e"></mat-error>
   </mat-form-field>
 </div>
 <div mat-dialog-actions align="end">

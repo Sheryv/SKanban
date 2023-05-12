@@ -208,6 +208,7 @@
 <!--                   maxlength="10000">-->
 <!--        </md-editor>-->
         <div class="mat-hint font-8">Markdown supported</div>
+        <mat-error *ngFor="let e of (form.get('content').errors | keyvalue) || []" app-form-errors [error]="e"></mat-error>
       </ng-container>
     </div>
 

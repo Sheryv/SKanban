@@ -276,7 +276,7 @@ app-reminders-dialog {
   li {
     margin-left: 0.5rem;
     display: list-item;
-    list-style-position: inside;
+    //list-style-position: inside;
 
     ul, ol {
       margin-left: 1rem;
@@ -445,4 +445,9 @@ mat-hint, .mat-hint {
 .calendar-highlight-day-weekend {
   @extend .calendar-highlight-day;
   background-color: #1d273a !important;
+}
+
+app-monaco-editor.ng-invalid {
+  display: block;
+  border: 1px solid $warn;
 }

@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { Injectable, NgZone } from '@angular/core';
 import { PropertiesService } from './properties.service';
-import { Bool, DateField, Field, Num, Obj, Select, Text } from '../../shared/model/entity/settings';
+import { Bool, DateField, Field, Num, Obj, Select, Text } from '../model/settings';
 import { map, mergeMap, switchMap } from 'rxjs/operators';
 import { forkJoin, Observable, of, Subject } from 'rxjs';
 import { Utils } from '../../shared/util/utils';

@@ -36,6 +36,7 @@
           }
         ],
         "@typescript-eslint/dot-notation": 0,
+        "@typescript-eslint/naming-convention": "warn",
         "@typescript-eslint/member-ordering": "warn",
         "guard-for-in": "warn"
       }

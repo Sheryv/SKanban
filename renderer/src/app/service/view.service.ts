@@ -11,6 +11,7 @@ import {
   DialogTemplateParams,
 } from '../component/dialog/abstract-dialog/abstract-dialog.component';
 import { Observable } from 'rxjs';
+import { TaskWithBoard } from './reminder.service';
 
 @Injectable({
   providedIn: 'root',
@@ -46,11 +47,11 @@ export class ViewService {
   }
 
 
-  showRemindersListDialog(tasks: Task[]) {
+  showRemindersListDialog(tasks: TaskWithBoard[]) {
     this.remindersDialogHandle?.close();
 
-    this.remindersDialogHandle = this.dialog.open<RemindersDialogComponent, { tasks: Task[] }>(RemindersDialogComponent, {
-      width: '700px',
+    this.remindersDialogHandle = this.dialog.open<RemindersDialogComponent, { tasks: TaskWithBoard[] }>(RemindersDialogComponent, {
+      width: '800px',
       disableClose: true,
       data: {tasks},
       height: '600px',

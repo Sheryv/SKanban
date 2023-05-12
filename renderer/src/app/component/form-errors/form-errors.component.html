@@ -7,8 +7,14 @@
 <ng-container *ngIf="error.key === 'min'">
   Minimum allowed value is {{error.value.min}}
 </ng-container>
+<ng-container *ngIf="error.key === 'minlength'">
+  Minimum allowed length is {{error.value.requiredLength}}
+</ng-container>
 <ng-container *ngIf="error.key === 'max'">
   Max allowed value is {{error.value.max}}
+</ng-container>
+<ng-container *ngIf="error.key === 'maxlength'">
+  Max allowed length is {{error.value.requiredLength}}
 </ng-container>
 <ng-container *ngIf="error.label">
   {{error.label}}

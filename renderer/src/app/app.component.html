@@ -4,6 +4,7 @@
       <span class="text-ellipsis">{{currentBoard.title}}</span><i
       class="material-icons icon-btn ml-3" matTooltip="Board settings" (click)="boardSettings(currentBoard)">build</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Import list from file" (click)="importList(currentBoard.id)">sim_card_download</i>
+      <i class="material-icons icon-btn ml-1" matTooltip="Show upcoming reminders" (click)="showUpcomingReminders()">notifications</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">local_offer</i>
       <div *ngIf="searchMode" class="ml-4 d-flex align-items-center">
         <!--                <mat-form-field class="field-small" appearance="outline">-->

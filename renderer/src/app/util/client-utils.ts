@@ -61,13 +61,13 @@ export class ClientUtils {
         line += `, now`;
       } else if (diff > -60) {
         line += `, ${-Math.ceil(diff)} minutes overdue`;
-      } else if (diff > -240) {
+      } else {
         line += `, ${-Math.ceil(diff / 60)} hours overdue`;
       }
     } else {
       if (diff < 60) {
         line += `, within ${Math.ceil(diff)} minutes`;
-      } else if (diff < 240) {
+      } else {
         line += `, within ${Math.ceil(diff / 60)} hours`;
       }
     }

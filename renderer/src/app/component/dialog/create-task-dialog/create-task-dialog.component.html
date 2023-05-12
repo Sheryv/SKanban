@@ -4,58 +4,43 @@
 <div mat-dialog-content>
   <form [formGroup]="form">
     <div class="row mb-3">
-      <mat-form-field class="col-12 col-lg-9 col-xl-10" appearance="fill">
+      <mat-form-field class="col-12 col-lg-6 col-xl-8" appearance="fill">
         <mat-label>Name</mat-label>
-        <input matInput maxlength="100" formControlName="name" #name cdkFocusInitial (keydown.enter)="save()"
+        <input matInput required="true" maxlength="100" formControlName="name" #name cdkFocusInitial
+               (keydown.enter)="$event.preventDefault();editor.focus()"
                (keydown.control.enter)="save()">
         <mat-hint align="end">{{name.value?.length || 0}} / 100</mat-hint>
-        <mat-hint>Press 'Enter' to submit. Leave empty to create note</mat-hint>
+        <mat-hint>Press 'Ctrl + Enter' to submit</mat-hint>
       </mat-form-field>
 
       <mat-form-field class="col-12 col-lg-3 col-xl-2" appearance="fill">
-        <mat-label>Task type</mat-label>
-        <mat-select formControlName="type">
-          <mat-option *ngFor="let e of taskTypes | keyvalue" [value]="e.key">{{e.value}}</mat-option>
+        <mat-label>Priority</mat-label>
+        <mat-select formControlName="priority">
+          <mat-option *ngFor="let e of priorityAttrs | keyvalue" [value]="e.key">{{e.value.title}}</mat-option>
         </mat-select>
-        <!--                <mat-hint>Press 'Enter' to submit</mat-hint>-->
+      </mat-form-field>
+      <mat-form-field class="col-12 col-lg-3 col-xl-2" appearance="fill">
+        <mat-label>State</mat-label>
+        <mat-select formControlName="state">
+          <mat-option *ngFor="let e of stateAttrs | keyvalue" [value]="e.key">{{e.value.title}}</mat-option>
+        </mat-select>
       </mat-form-field>
     </div>
 
-    <md-editor name="Content"
-               formControlName="content"
-               [height]="'20rem'"
-               [mode]="'editor'"
-               [options]="options"
-               (onEditorLoaded)="$event.setOptions({theme: 'ace/theme/twilight'})"
-               [preRender]="preRenderPreviewCallback"
-               maxlength="10000">
-    </md-editor>
-    <div class="mat-hint font-8">Markdown supported</div>
-    <!--        -->
-    <!--        <mat-form-field class="w-100" appearance="outline">-->
-    <!--            <mat-label>Content</mat-label>-->
-    <!--            <textarea matInput maxlength="10000" rows="5" formControlName="content" (keydown.control.enter)="save()"-->
-    <!--                      #content></textarea>-->
-    <!--            <mat-hint>Press 'Ctrl + Enter' to submit. Markdown supported</mat-hint>-->
-    <!--            <mat-hint align="end">{{content.value?.length || 0}} / 10 000</mat-hint>-->
-    <!--        </mat-form-field>-->
+    <app-monaco-editor #editor id="task-content" formControlName="content" [height]="'41vh'" [vertical]="false"></app-monaco-editor>
+    <div class="d-flex justify-content-between">
+      <div class="mat-hint font-8">Markdown supported</div>
+      <div class="mat-hint font-8">{{form.get('content').value.length || 0}} / 30000</div>
+    </div>
+    <mat-error *ngFor="let e of (form.get('content').errors | keyvalue) || []" app-form-errors [error]="e"></mat-error>
     <div class="row mt-3">
       <div class="col-sm-5 col-md-4 col-lg-3 col-12 order-sm-1 mb-3">
-        <!--                <mat-form-field class="w-100" appearance="fill">-->
-        <!--                    <mat-label>Due date</mat-label>-->
-        <!--                    <input matInput [matDatepicker]="picker" formControlName="due_date" placeholder="dd.mm.yyyy"-->
-        <!--                           (keydown.enter)="save()" (keydown.control.enter)="save()">-->
-        <!--                    <mat-datepicker-toggle matSuffix [for]="picker" matTooltip="Select date"></mat-datepicker-toggle>-->
-        <!--                    <mat-datepicker #picker></mat-datepicker>-->
-        <!--                    <mat-error *ngIf="form.get('due_date').errors">Invalid date</mat-error>-->
-        <!--                    <mat-hint>Click icon to select</mat-hint>-->
-        <!--                </mat-form-field>-->
 
         <mat-form-field class="w-100 field-small mb-1" appearance="fill">
           <mat-label>Due date</mat-label>
           <input matInput placeholder="dd.mm.yyyy" [value]="form.get('dueDate').value | dateUser" readonly="true"
-                 (click)="viewService.openDatepicker(form.get('dueDate'), false)">
-          <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('dueDate'), false)">
+                 (click)="viewService.openDatepicker(form.get('dueDate'), false, true)">
+          <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('dueDate'), false, true)">
             <mat-icon>calendar_month</mat-icon>
           </button>
           <mat-hint>Click icon to select</mat-hint>

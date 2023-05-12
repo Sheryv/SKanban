@@ -6,13 +6,13 @@ import { Component, Input, OnInit } from '@angular/core';
 })
 export class FormErrorsComponent implements OnInit {
   @Input()
-  error: { key: string, value: any, label?: string };
+  error: { key: string; value: any; label?: string };
 
   constructor() {
   }
 
   ngOnInit(): void {
-    if (typeof this.error.value == 'string') {
+    if (!this.error.label && typeof this.error.value == 'string') {
       this.error.label = this.error.value;
     }
   }

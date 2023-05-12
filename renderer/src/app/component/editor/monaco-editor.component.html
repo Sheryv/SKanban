@@ -1,1 +1,24 @@
-<ngx-monaco-editor style="display: block; max-height: 95vh; min-height: 200px; height: 50vh" [options]="editorOptions" (onInit)="onEditorReady($event)"></ngx-monaco-editor>
+<div class="d-flex align-items-stretch" [ngClass]="{'flex-column': vertical}">
+  <div class="bg-3 d-flex align-items-stretch overflow-hidden"  [ngClass]="{'flex-column': !vertical}" [style]="!vertical && height ? 'height: ' + height : '' ">
+    <i  [matMenuTriggerFor]="headingMenu" [matTooltip]="'Heading'" class="m-1 icon-btn material-icons-outlined">title</i>
+    <span style="display: inline-block; background-color: #444444; min-height: 1px; min-width: 1px"></span>
+    <i [matTooltip]="'Bold style'" (click)="triggerAction('make-bold')" class="m-1 icon-btn material-icons-outlined font-13">format_bold</i>
+    <i [matTooltip]="'Italic style'" (click)="triggerAction('make-italic')" class="m-1 icon-btn material-icons-outlined">format_italic</i>
+    <span style="display: inline-block; background-color: #444444; min-height: 1px; min-width: 1px"></span>
+    <i [matTooltip]="'Insert list'" (click)="triggerAction('insert-list')" class="m-1 icon-btn material-icons-outlined">list</i>
+    <i [matTooltip]="'Insert link'" (click)="triggerAction('insert-link')" class="m-1 icon-btn material-icons-outlined">add_link</i>
+    <i [matTooltip]="'Insert table'" (click)="triggerAction('insert-table')" class="m-1 icon-btn material-icons-outlined">table</i>
+    <i [matTooltip]="'Insert code block'" (click)="triggerAction('insert-code')" class="m-1 icon-btn material-icons-outlined">code_blocks</i>
+    <i [matTooltip]="'Insert checkbox'" (click)="triggerAction('insert-checkbox')" class="m-1 icon-btn material-icons-outlined">checklist</i>
+    <span style="display: inline-block; background-color: #444444; min-height: 1px; min-width: 1px"></span>
+    <mat-menu #headingMenu>
+      <button (click)="triggerAction('insert-h1')" mat-menu-item>Heading 1</button>
+      <button (click)="triggerAction('insert-h2')" mat-menu-item>Heading 2</button>
+      <button (click)="triggerAction('insert-h3')" mat-menu-item>Heading 3</button>
+      <button (click)="triggerAction('insert-h4')" mat-menu-item>Heading 4</button>
+      <button (click)="triggerAction('insert-h5')" mat-menu-item>Heading 5</button>
+    </mat-menu>
+  </div>
+  <ngx-monaco-editor style="flex-grow: 1; display: block; max-height: 95vh; min-height: 200px" [ngStyle]="{'height': height}"
+                     [options]="editorOptions" (onInit)="onEditorReady($event)"></ngx-monaco-editor>
+</div>

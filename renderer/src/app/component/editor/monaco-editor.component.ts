@@ -1,13 +1,14 @@
-import { AfterViewInit, Component, forwardRef, Input, ViewChild } from '@angular/core';
+/* eslint-disable no-bitwise */
+import { Component, forwardRef, Input, ViewChild } from '@angular/core';
 import type * as mn from 'monaco-editor';
 import { EditorComponent } from 'ngx-monaco-editor-v2';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 
 // @ts-ignore
-type Editor = mn.editor.IStandaloneCodeEditor
+type Editor = mn.editor.IStandaloneCodeEditor;
 
-declare const monaco: any;
+declare const monaco: typeof mn;
 
 @Component({
   selector: 'app-monaco-editor',
@@ -18,8 +19,24 @@ declare const monaco: any;
     multi: true,
   }],
 })
-export class MonacoEditorComponent implements ControlValueAccessor, AfterViewInit {
+export class MonacoEditorComponent implements ControlValueAccessor {
 
+  @Input()
+  height = '50vh';
+
+  @Input()
+  vertical = true;
+
+  // @ts-ignore
+  editorOptions: mn.editor.IStandaloneEditorConstructionOptions = {
+    theme: 'monokai',
+    language: 'markdown',
+    wordWrap: 'on',
+    automaticLayout: true,
+    // model: {
+    //   value: ClientUtils.exampleMd,
+    // }
+  };
 
   @ViewChild(EditorComponent)
   private component: EditorComponent;
@@ -39,16 +56,6 @@ export class MonacoEditorComponent implements ControlValueAccessor, AfterViewIni
     }
   }
 
-  // @ts-ignore
-  editorOptions: mn.editor.IStandaloneEditorConstructionOptions = {
-    theme: 'monokai',
-    language: 'markdown',
-    wordWrap: 'on',
-    automaticLayout: true,
-    // model: {
-    //   value: ClientUtils.exampleMd,
-    // }
-  };
 
   // set text(newValue) {
   //   this.onValueChanged.emit(newValue);
@@ -94,44 +101,149 @@ export class MonacoEditorComponent implements ControlValueAccessor, AfterViewIni
     }
 
 
-    const executeAction = {
-      id: 'make-bold',
-      label: 'Make Bold',
-      contextMenuOrder: 2,
-      contextMenuGroupId: '2_modification',
-      keybindings: [
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB,
-      ],
-      run: (...args: any[]) => {
-        const e = args[0] as Editor;
-
-        const sel = e.getSelection();
-        const range = {
-          startColumn: sel.getStartPosition().column,
-          startLineNumber: sel.getStartPosition().lineNumber,
-          endColumn: sel.getEndPosition().column,
-          endLineNumber: sel.getEndPosition().lineNumber,
-        };
-        e.getModel().pushEditOperations([sel], [{
-          // range: IRange;
-          // text: string | null;
-          range: range,
-          text: '**' + e.getModel().getValueInRange(range) + '**',
-        }], (e) => {
-          return null;
-        });
-
-        console.log('action', args);
-      },
-    };
-
     // monaco.editor.addEditorAction(executeAction);
-    editor.addAction(executeAction);
-
+    this.createActions(editor);
   }
 
-  ngAfterViewInit() {
-    console.log('editor init')
+  private createActions(editor: Editor) {
+    this.addActions(editor, [{
+      id: 'make-bold',
+      label: 'Bold style',
+      addToMenu: 1,
+      keyBinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB,
+      cmd: this.replaceTextActionCmd(s => `**${s}**`),
+    }, {
+      id: 'make-italic',
+      label: 'Italic style',
+      addToMenu: 1,
+      keyBinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI,
+      cmd: this.replaceTextActionCmd(s => `_${s}_`),
+    }, {
+      id: 'insert-link',
+      label: 'Insert link',
+      addToMenu: 2,
+      keyBinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL,
+      cmd: this.replaceTextActionCmd(
+        s => `[${s}]()`,
+        () => (o) => o.map(e => monaco.Selection.fromPositions(e.range.getEndPosition().delta(null, 3))),
+      ),
+    }, {
+      id: 'insert-h1',
+      label: 'Heading 1 style',
+      cmd: this.replaceTextActionCmd(s => `# ${s}`),
+    }, {
+      id: 'insert-h2',
+      label: 'Heading 2 style',
+      addToMenu: 3,
+      cmd: this.replaceTextActionCmd(s => `## ${s}`),
+    }, {
+      id: 'insert-h3',
+      label: 'Heading 3 style',
+      addToMenu: 3,
+      cmd: this.replaceTextActionCmd(s => `### ${s}`),
+    }, {
+      id: 'insert-h4',
+      label: 'Heading 4 style',
+      cmd: this.replaceTextActionCmd(s => `#### ${s}`),
+    }, {
+      id: 'insert-h5',
+      label: 'Heading 5 style',
+      cmd: this.replaceTextActionCmd(s => `##### ${s}`),
+    }, {
+      id: 'insert-list',
+      label: 'Insert list',
+      addToMenu: 2,
+      cmd: this.replaceTextActionCmd(s => `- ${s}`),
+    }, {
+      id: 'insert-table',
+      label: 'Insert table',
+      keyBinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ,
+      addToMenu: 2,
+      cmd: this.replaceTextActionCmd(
+        s => `\n|  |  |\n|---|---|\n| ${s} |  |\n`,
+        (c) => (o) =>
+          o.map(e => monaco.Selection.fromPositions(new monaco.Position(e.range.getEndPosition().lineNumber - 1, c.endColumn + 2))),
+      ),
+    }, {
+      id: 'insert-code',
+      label: 'Insert code block',
+      addToMenu: 2,
+      keyBinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+      cmd: this.replaceTextActionCmd(
+        s => '```\n' + s + '\n```',
+        () => (o) => o.map(e => monaco.Selection.fromPositions(e.range.getEndPosition().delta(-1))),
+      ),
+    }, {
+      id: 'insert-checkbox',
+      label: 'Insert checkbox',
+      addToMenu: 2,
+      cmd: this.replaceTextActionCmd(s => `${s}[ ]`),
+    }]);
+  }
+
+  triggerAction(action: string) {
+    this.editor.trigger('click', action, null);
+    this.editor.focus()
+  }
+
+  private addActions(
+    editor: Editor,
+    actions: { id: string; label: string; cmd: (editor: Editor, ...args: any[]) => void | Promise<void>; addToMenu?: number; keyBinding?: number }[],
+  ) {
+
+    const actionDescriptors: mn.editor.IActionDescriptor[] = actions.map((a, i) => {
+
+      const desc: mn.editor.IActionDescriptor = {
+        id: a.id,
+        label: a.label,
+        keybindings: a.keyBinding && [a.keyBinding],
+        run: a.cmd,
+      };
+
+      if (a.addToMenu > 0) {
+        desc.contextMenuOrder = i;
+        desc.contextMenuGroupId = (a.addToMenu + 1) + '_custom';
+      }
+
+      return desc;
+    });
+
+    for (const action of actionDescriptors) {
+      editor.addAction(action);
+    }
+  }
+
+  private replaceTextActionCmd(
+    replacer: (current: string) => string,
+    cursorState: ((currSel: mn.Selection, delta: number) => mn.editor.ICursorStateComputer)
+      = (currSel: mn.Selection, delta: number) => {
+
+      return (inverseEditOperations: mn.editor.IValidEditOperation[]) =>
+        [monaco.Selection.fromPositions(currSel.getEndPosition().delta(null, delta))];
+    },
+  ): (editor: Editor, ...args: any[]) => void | Promise<void> {
+    return (e, ...args: any[]) => {
+      const range = this.range(e);
+      const current = e.getModel().getValueInRange(range);
+      const newText = replacer(current);
+      const delta = newText.length - current.length;
+      const end = cursorState && cursorState(e.getSelection(), delta);
+      e.executeEdits('action', [{
+        range,
+        text: newText,
+        forceMoveMarkers: true,
+      }], end);
+    };
+  }
+
+  private range(editor: Editor): mn.IRange {
+    const sel = editor.getSelection();
+    return {
+      startColumn: sel.getStartPosition().column,
+      startLineNumber: sel.getStartPosition().lineNumber,
+      endColumn: sel.getEndPosition().column,
+      endLineNumber: sel.getEndPosition().lineNumber,
+    };
   }
 
   writeValue(obj: any): void {
@@ -160,5 +272,9 @@ export class MonacoEditorComponent implements ControlValueAccessor, AfterViewIni
       this.onTouched = fn;
     }
 
+  }
+
+  focus() {
+    this.editor.focus();
   }
 }
