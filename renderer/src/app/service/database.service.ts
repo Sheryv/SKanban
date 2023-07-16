@@ -12,7 +12,7 @@ export class DatabaseService {
   constructor(private electron: ElectronService) {
   }
 
-  public static readonly IS_NULL = '\0is null';
+  public static readonly NULL = '\0is null';
   public static readonly IS_NOT_NULL = '\0is not null';
 
   save(operation: DbOperation): Observable<DbExecResult> {

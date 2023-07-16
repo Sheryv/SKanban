@@ -43,7 +43,7 @@ export class LabelService {
 
   setLabelsForTask(task: Task, labels: Label[]): Observable<DbExecResult[]> {
     const lb = labels.slice();
-    return this.db.findAll({table: 'task_labels', clauses: {deleted_date: DatabaseService.IS_NULL, task_id: task.id}})
+    return this.db.findAll({table: 'task_labels', clauses: {deleted_date: DatabaseService.NULL, task_id: task.id}})
       .pipe(
         map((all: TaskLabel[]) => {
           return all.filter(a => {

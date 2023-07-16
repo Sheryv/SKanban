@@ -11,9 +11,13 @@ import { DbExecResult } from '../../shared/model/db';
 import { Label } from '../../shared/model/entity/label';
 import { Utils } from '../../shared/util/utils';
 import { ElectronService } from './electron.service';
-import { Ipcs } from '../../shared/model/ipcs';
 import { TaskSupport } from '../../shared/support/task.support';
 import { State } from './state';
+import { ListService } from './list.service';
+import { moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { Ipcs } from '../../shared/model/ipcs';
+import { runInZone } from '../util/client-utils';
+import { DateTime } from 'luxon';
 
 @Injectable({
   providedIn: 'root',
@@ -23,24 +27,17 @@ export class TaskService {
   constructor(private db: DatabaseService,
               private fc: Factory,
               private electron: ElectronService,
+              private list: ListService,
               private taskHistorySupport: TaskSupport,
               private state: State) {
   }
 
-  getBoards(): Observable<Board[]> {
-    return this.db.findAll({ table: 'boards', clauses: { deleted: DatabaseService.IS_NULL } })
-      .pipe(
-        take(1),
-        map(r => r as Board[]),
-      );
-  }
-
-  getLists(board: Board): Observable<TaskList[]> {
-    return this.db.findAll({ table: 'lists', clauses: { board_id: board.id, deleted: DatabaseService.IS_NULL } })
+  getListsWithTasks(board: Board): Observable<TaskList[]> {
+    return this.list.getLists(board.id)
       .pipe(
         take(1),
         mergeMap((ls: TaskList[]) => {
-          const obs = ls.map(l => this.getTasks(l.id));
+          const obs = ls.map(l => this.getTasksForList(l.id));
           return zip(of(ls), ...obs);
         }),
         map((z: any[]) => {
@@ -54,11 +51,12 @@ export class TaskService {
       );
   }
 
+
   getAllTasks(): Observable<{ board: Board; list: TaskList; tasks: Task[] }[]> {
-    return this.getBoards()
+    return this.list.getBoards()
       .pipe(
         mergeMap(boards =>
-          forkJoin(boards.filter(b => b && b.id).flatMap(b => this.getLists(b).pipe(
+          forkJoin(boards.filter(b => b && b.id).flatMap(b => this.getListsWithTasks(b).pipe(
             map(lists => ({ l: lists, b })),
           ))),
         ),
@@ -66,8 +64,8 @@ export class TaskService {
       );
   }
 
-  getTasks(listId: number): Observable<Task[]> {
-    return this.db.findAll({ table: 'tasks', clauses: { list_id: listId, deleted: DatabaseService.IS_NULL } })
+  getTasksForList(listId: number): Observable<Task[]> {
+    return this.db.findAll({ table: 'tasks', clauses: { list_id: listId, deleted: DatabaseService.NULL } })
       .pipe(
         mergeMap((ls: Task[]) => {
           if (ls.length > 0) {
@@ -94,60 +92,91 @@ export class TaskService {
       );
   }
 
-  saveBoard(b: Board): Observable<DbExecResult> {
-    return this.db.save({ table: 'boards', row: b });
-  }
-
-  saveList(b: TaskList): Observable<DbExecResult> {
-    return this.db.save({ table: 'lists', row: b });
-  }
 
   saveTask(b: Task): Observable<DbExecResult> {
-    this.state.taskChanged.next(b);
+    this.state.taskChangeEvent.next(b);
     return this.db.save({ table: 'tasks', row: b });
   }
 
-  updatePosition(tasks: Task[]): Observable<DbExecResult[]> {
-    return concat(tasks.map(t => {
-      const prevList = t.$prevList;
-      const list = t.list_id;
-      const ob = prevList ? this.addHistoryEntryOptional({ ...t, list_id: prevList }) : of(true);
-      t.$prevList = null;
+  updatePosition(listId: number, tasks: Task[], notifyUpdated: boolean = true): Observable<DbExecResult[]> {
+    return concat(tasks.map((t, i) => {
+      t.position = i;
 
-      this.state.taskChanged.next(t);
+      let ob: Observable<any> = of(true);
+      if (t.$prevList != null || t.list_id !== listId) {
+        ob = this.addHistoryEntryOptional({ ...t, list_id: t.$prevList ?? t.list_id });
+      }
+
+      t.list_id = listId;
+      t.$prevList = null;
 
       return zip(this.db.exec({
         table: 'tasks',
         sql: 'update tasks set position = ?, list_id = ? where id = ?',
-        params: [t.position, list, t.id],
-      }), ob);
+        params: [t.position, t.list_id, t.id],
+      }), of(t), ob);
     })).pipe(
       mergeMap(v => v),
+      tap(([_, t]) => this.state.taskChangeEvent.next(t)),
       map(v => v[0]),
       take(tasks.length),
       toArray(),
       take(1),
+      switchMap(s =>
+        this.list.getList(listId).pipe(
+          switchMap(list => {
+            if (notifyUpdated && list.synchronized_file != null) {
+              return this.electron.send(Ipcs.JOB, {
+                op: 'export',
+                listId: list.id,
+                path: list.synchronized_file,
+              });
+            }
+            return of(true);
+          }),
+          map(() => s),
+        )),
     );
   }
 
-  updateListPosition(lists: TaskList[]): Observable<DbExecResult[]> {
-    return concat(lists.map(t => {
-      return this.db.exec({
-        table: 'tasks',
-        sql: 'update lists set position = ? where id = ?',
-        params: [t.position, t.id],
-      });
-    })).pipe(
-      mergeMap(v => v),
-      take(lists.length),
-      toArray(),
-      take(1),
+  moveToList(task: Task, currentList: TaskList, targetList: TaskList): Observable<DbExecResult[]> {
+    const currentIndex = currentList.$tasks.findIndex(t => t.id === task.id);
+
+    transferArrayItem(currentList.$tasks,
+      targetList.$tasks,
+      currentIndex,
+      targetList.$tasks.length);
+    return this.updatePosition(currentList.id, currentList.$tasks).pipe(
+      switchMap(() => this.updatePosition(targetList.id, targetList.$tasks)),
     );
   }
+
+  moveTaskToTop(task: Task, listToUpdate: TaskList = null): Observable<DbExecResult[]> {
+    return this.moveTaskToIndex(task, 0, listToUpdate);
+  }
+
+  moveTaskToBottom(task: Task, listToUpdate: TaskList = null): Observable<DbExecResult[]> {
+    return (listToUpdate ? of(listToUpdate) : this.list.getList(task.list_id)).pipe(
+      switchMap(list => this.moveTaskToIndex(task, list.$tasks.length - 1, list)),
+    );
+  }
+
+  moveTaskToIndex(task: Task, index: number, listToUpdate: TaskList = null): Observable<DbExecResult[]> {
+    return (listToUpdate ? of(listToUpdate) : this.list.getList(task.list_id)).pipe(
+      switchMap(list => {
+        if (list.$tasks.length > 1) {
+          moveItemInArray(list.$tasks, task.position, index);
+          return this.updatePosition(list.id, list.$tasks);
+        }
+        return of([]);
+      }),
+    );
+  }
+
 
   addHistoryEntryOptional(task: Task, prev: Task | null = null): Observable<DbExecResult> {
     if (this.taskHistorySupport.doTaskChanged(task, prev)) {
-      const h = this.fc.createHistoryEntrySerialize(task);
+      const h = this.fc.createHistoryEntrySerialize(prev || task);
       return this.db.save({ table: 'task_history', row: h });
     }
     return of(null);
@@ -164,16 +193,10 @@ export class TaskService {
     })));
   }
 
-  disableAllFileSync(): Observable<any> {
-    return this.db.findAll({ table: 'lists' }).pipe(
-      map(r => r as TaskList[]),
-      switchMap(lists => {
-        return forkJoin(lists.map(l => {
-          l.synchronized_file = null;
-          return this.saveList(l);
-        }));
-      }),
-      switchMap(() => this.electron.send(Ipcs.JOB, { op: 'disableAllSync' })),
+  deleteTask(task: Task): Observable<DbExecResult> {
+    task.deleted = DateTime.now().toMillis();
+    return this.saveTask(task).pipe(
+      switchMap(res => this.addHistoryEntryOptional(task)),
     );
   }
 }

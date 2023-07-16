@@ -1,10 +1,10 @@
-import { Component, Inject, NgZone } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, Validators } from '@angular/forms';
 import { Board } from '../../../../shared/model/entity/board';
 import { TaskService } from '../../../service/task.service';
 import { MessageService } from '../../../service/message.service';
-import { runInZone } from '../../../util/client-utils';
+import { ListService } from '../../../service/list.service';
 
 @Component({
   selector: 'app-board-settings-dialog',
@@ -17,8 +17,8 @@ export class BoardSettingsDialogComponent {
     public dialogRef: MatDialogRef<BoardSettingsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: Board,
     private taskService: TaskService,
+    private listService: ListService,
     private msg: MessageService,
-    private zone: NgZone,
   ) {
 
     this.name = new FormControl(null, Validators.required);
@@ -35,7 +35,7 @@ export class BoardSettingsDialogComponent {
 
   delete() {
     this.data.deleted = Date.now();
-    this.taskService.saveBoard(this.data).pipe(runInZone(this.zone)).subscribe(c => {
+    this.listService.saveBoard(this.data).subscribe(c => {
       this.dialogRef.close();
       this.msg.success('Board deleted');
     });

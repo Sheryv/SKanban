@@ -122,23 +122,27 @@ html, body {
 }
 
 .message-success {
-  @extend .bg-success;
-  @extend .fg;
+  --mdc-snackbar-container-color: #{$success-bg};
+  --mdc-snackbar-supporting-text-color: #{$foreground};
+  --mat-mdc-snack-bar-button-color: #{$foreground-secondary};
 }
 
 .message-error {
-  @extend .bg-error;
-  @extend .fg;
+  --mdc-snackbar-container-color: #{$error-bg};
+  --mdc-snackbar-supporting-text-color: #{$foreground};
+  --mat-mdc-snack-bar-button-color: #{$foreground-secondary};
 }
 
 .message-info {
-  @extend .bg-accent;
-  @extend .fg;
+  --mdc-snackbar-container-color: #{$accent-bg};
+  --mdc-snackbar-supporting-text-color: #{$foreground};
+  --mat-mdc-snack-bar-button-color: #{$foreground-secondary};
 }
 
 .message-warning {
-  background-color: $warn-bg;
-  @extend .fg;
+  --mdc-snackbar-container-color: #{$warn-bg};
+  --mdc-snackbar-supporting-text-color: #{$foreground};
+  --mat-mdc-snack-bar-button-color: #{$foreground-secondary};
 }
 
 .message-success .mat-button, .message-error .mat-button, .message-success .mat-button {
@@ -154,44 +158,44 @@ html, body {
   }
 }
 
-mat-form-field.field-small {
-  .mat-form-field-infix {
-    margin-top: 0;
-    padding-bottom: 10px;
-    border-top: none;
-  }
-
-  .mat-select-arrow-wrapper {
-    transform: none;
-  }
-}
 
 .mat-mdc-form-field-focus-overlay {
   background-color: transparentize($foreground, 0.35);
 }
 
-.small-input {
+.input-sm, .input-md {
   border: 1px solid transparentize($foreground, 0.68);
   border-radius: 4px;
   padding: 2px;
   background: transparent;
   color: $foreground;
   outline: none;
-
+  font-size: 0.9rem;
+  font-family: inherit;
 }
 
-.small-input:hover {
-  border-color: transparentize($foreground, 0.32);
+.input-sm:hover, .input-md:hover {
+  border-color: transparentize($foreground, 0.2);
 }
 
-.small-input:focus {
+.input-sm:focus, .input-md:focus {
   border-color: $primary;
 }
 
-.small-input, .mdc-text-field, .ace-editor .ace_content {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+.input-md {
+  padding: 5px;
+  font-size: 1rem;
+  margin: 1px;
 }
 
+.input-md:focus {
+  border-width: 2px;
+  margin: 0;
+}
+
+.input-sm, .input-md, .mdc-text-field, .ace-editor .ace_content {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
 
 .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
   mat-label {
@@ -285,6 +289,7 @@ app-reminders-dialog {
 
   p {
     white-space: pre-wrap;
+    margin-top: 0.5rem;
   }
 
   blockquote, ul, ol {
@@ -423,6 +428,38 @@ app-reminders-dialog {
 
 .mat-mdc-dialog-container .mdc-dialog__content {
   --mdc-dialog-supporting-text-color: #{$foreground};
+}
+
+mat-form-field.field-small {
+  .mat-form-field-infix {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-top: none;
+  }
+
+  .mat-select-arrow-wrapper {
+    transform: none;
+  }
+}
+
+mat-form-field.field-ex-small {
+  .mat-mdc-text-field-wrapper .mat-mdc-form-field-infix {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    min-height: 31px;
+  }
+
+  .mat-select-arrow-wrapper {
+    transform: none;
+  }
+
+  .mat-mdc-form-field-bottom-align {
+    display: none;
+  }
+
+  .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+    max-height: 31px;
+  }
 }
 
 mat-hint, .mat-hint {

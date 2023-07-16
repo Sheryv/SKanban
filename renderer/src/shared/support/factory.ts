@@ -21,7 +21,7 @@ export class Factory {
               type_label_id: number = null,
               deleted: number = null,
   ): Board {
-    return {title, create_date, type_label_id, deleted};
+    return {title, create_date, type_label_id, deleted, done_tasks_list_id: null};
   }
 
   createList(title: string,

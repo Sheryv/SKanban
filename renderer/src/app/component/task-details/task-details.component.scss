@@ -1,5 +1,11 @@
 @import "../../../styles/scss/colors";
 
+.field {
+  min-width: 150px;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .field-title {
   color: $foreground-quaternary;
   text-transform: uppercase;
@@ -22,6 +28,17 @@
 .field-title:hover {
   .edit-button {
     visibility: visible;
+  }
+
+}
+
+.field-content {
+  margin-right: 0;
+  padding-right: 0.5rem;
+  border-right: 3px solid transparent;
+
+  &:hover {
+    border-color: #5b2c64;
   }
 }
 

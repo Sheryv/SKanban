@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Task } from '../../../../shared/model/entity/task';
 import { DateTime } from 'luxon';
 import { ClientUtils } from '../../../util/client-utils';
 import { ReminderService, TaskWithBoard } from '../../../service/reminder.service';

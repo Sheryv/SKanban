@@ -103,3 +103,36 @@
 
   --mat-mdc-button-persistent-ripple-color: #{$success-bg};
 }
+
+
+.priority-trivial {
+  color: #7bc1aa;
+}
+
+.priority-minor {
+  color: #4bbcff;
+}
+
+.priority-major {
+  color: #ffb102;
+}
+
+.priority-critical {
+  color: #da1f1f;
+}
+
+.priority-blocker {
+  color: #ff2121;
+}
+
+.task-state-open {
+  color: $foreground-secondary;
+}
+
+.task-state-in_progress {
+  color: #bf7f20;
+}
+
+.task-state-done {
+  color: $success;
+}

@@ -3,6 +3,7 @@ import { Component, forwardRef, Input, ViewChild } from '@angular/core';
 import type * as mn from 'monaco-editor';
 import { EditorComponent } from 'ngx-monaco-editor-v2';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { KeyCommandsService } from '../../service/key-commands.service';
 
 
 // @ts-ignore
@@ -43,7 +44,11 @@ export class MonacoEditorComponent implements ControlValueAccessor {
   private editor: Editor;
   private initial: string;
 
-  // @Output()
+
+  constructor(private keyService: KeyCommandsService) {
+  }
+
+// @Output()
   // onValueChanged = new EventEmitter<string>();
 
   @Input()
@@ -107,6 +112,11 @@ export class MonacoEditorComponent implements ControlValueAccessor {
 
   private createActions(editor: Editor) {
     this.addActions(editor, [{
+      //   id: 'save-task',
+      //   label: 'Save task',
+      //   keyBinding: this.keyService.toMonacoKeyCode(ACTIONS.saveTask),
+      //   cmd: ()=> {console.log('monaco save task executed')}
+      // },{
       id: 'make-bold',
       label: 'Bold style',
       addToMenu: 1,
@@ -183,7 +193,7 @@ export class MonacoEditorComponent implements ControlValueAccessor {
 
   triggerAction(action: string) {
     this.editor.trigger('click', action, null);
-    this.editor.focus()
+    this.editor.focus();
   }
 
   private addActions(

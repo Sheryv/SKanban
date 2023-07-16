@@ -25,10 +25,10 @@ import { DatabaseService } from './service/database.service';
 import { WebviewDirective } from './directive/webview.directive';
 
 import { AppComponent } from './app.component';
-import { Factory } from '../shared/./support/factory';
+import { Factory } from '../shared/support/factory';
 import { BoardAvatarPipe } from './pipe/board-avatar.pipe';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { DateAdapter, MAT_DATE_LOCALE, MatRippleModule } from '@angular/material/core';
+import { DateAdapter, MatRippleModule } from '@angular/material/core';
 import { ListsComponent } from './component/lists/lists.component';
 import { State } from './service/state';
 import { MatButtonModule } from '@angular/material/button';
@@ -44,7 +44,6 @@ import { CreateBoardDialogComponent } from './component/dialog/create-board-dial
 import { MatDialogModule } from '@angular/material/dialog';
 import { CreateTaskDialogComponent } from './component/dialog/create-task-dialog/create-task-dialog.component';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { ClientUtils } from './util/client-utils';
 import { LabelService } from './service/label.service';
 import { LabelChipComponent } from './component/label-chip/label-chip.component';
 import { MatMenuModule } from '@angular/material/menu';
@@ -61,7 +60,6 @@ import { FormErrorsComponent } from './component/form-errors/form-errors.compone
 import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSelectModule } from '@angular/material/select';
-import { LMarkdownEditorModule } from 'ngx-markdown-editor';
 import { AutofocusDirective } from './directive/auto-focus.directive';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { MonacoEditorComponent } from './component/editor/monaco-editor.component';
@@ -82,6 +80,11 @@ import { TaskSupport } from '../shared/support/task.support';
 import { RemindersDialogComponent } from './component/dialog/reminders-dialog/reminders-dialog.component';
 import { CustomDateAdapter } from './util/custom-date-adapter';
 import { AbstractDialogComponent } from './component/dialog/abstract-dialog/abstract-dialog.component';
+import { CdkContextMenuTrigger } from '@angular/cdk/menu';
+import { RemoteMenuTriggerDirective } from './directive/remote-menu-trigger.directive';
+import { ListService } from './service/list.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { KeybindingsComponent } from './component/dialog/keybindings-dialog/keybindings.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -115,7 +118,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     DateTimeDialogComponent,
     RemindersListComponent,
     RemindersDialogComponent,
-    AbstractDialogComponent
+    AbstractDialogComponent,
+    RemoteMenuTriggerDirective,
+    KeybindingsComponent,
   ],
   imports: [
     BrowserModule,
@@ -154,9 +159,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     AngularSplitModule,
     MatProgressSpinnerModule,
     KeyboardShortcutsModule.forRoot(),
-    LMarkdownEditorModule,
-    LMarkdownEditorModule,
     MonacoEditorModule.forRoot(MONACO_EDITOR_CONFIG),
+    CdkContextMenuTrigger,
+    MatCheckboxModule,
   ],
   providers: [
     ElectronService,
@@ -170,7 +175,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     MessageService,
     ReminderService,
     TaskSupport,
-    {provide: DateAdapter, useClass: CustomDateAdapter},
+    ListService,
+    { provide: DateAdapter, useClass: CustomDateAdapter },
   ],
   bootstrap: [AppComponent],
 })

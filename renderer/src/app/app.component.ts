@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { ElectronService } from './service/electron.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Board } from '../shared/model/entity/board';
-import { Factory } from '../shared/./support/factory';
+import { Factory } from '../shared/support/factory';
 import { State } from './service/state';
 import { SettingsService } from './service/settings.service';
-import { KeyCommandsService } from './service/key-commands.service';
+import { ACTIONS, KeyCommandsService } from './service/key-commands.service';
 import { ShortcutInput } from 'ng-keyboard-shortcuts';
 import { MatDialog } from '@angular/material/dialog';
 import { filter, mergeMap, take } from 'rxjs/operators';
@@ -24,32 +24,33 @@ import { SettingsComponent } from './component/dialog/settings-dialog/settings.c
 import { AboutDialogComponent } from './component/dialog/about-dialog/about-dialog.component';
 import { IS_ELECTRON, NODE_CTX } from './global';
 import { Ipcs } from '../shared/model/ipcs';
-import { DateTime, Settings as LuxonSettings } from 'luxon';
+import { Settings as LuxonSettings } from 'luxon';
 import { ReminderService } from './service/reminder.service';
 import { ViewService } from './service/view.service';
-
+import { ListService } from './service/list.service';
+import { KeybindingsComponent } from './component/dialog/keybindings-dialog/keybindings.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   boards: Board[];
   currentBoard: Board;
   loaded: boolean = null;
   shortcuts: ShortcutInput[];
-  searchMode = false;
-  initialValue = ClientUtils.exampleMd;
+  keyCommands = ACTIONS;
 
   constructor(public electronService: ElectronService,
+              public state: State,
               private translate: TranslateService,
               private factory: Factory,
-              private state: State,
               private settings: SettingsService,
               private change: ChangeDetectorRef,
               private dialog: MatDialog,
               private taskService: TaskService,
+              private listService: ListService,
               private labelService: LabelService,
               private msg: MessageService,
               private zone: NgZone,
@@ -64,7 +65,6 @@ export class AppComponent implements OnInit {
     console.log('Running in DEV env: ', NODE_CTX?.isDevEnvironment, ' | ',
       IS_ELECTRON ? 'Mode electron' : 'Mode web', ' | Locale: ', ClientUtils.getLangCode());
 
-    this.shortcuts = keyService.prepareShortcuts();
 
     document.addEventListener('click', (event) => {
       const target = event.target;
@@ -76,31 +76,49 @@ export class AppComponent implements OnInit {
         }
       }
     });
-
-    (window as Window)['luxon'] = DateTime;
   }
 
   ngOnInit(): void {
+    this.shortcuts = this.keyService.listShortcuts();
     this.settings.refresh().subscribe(s => {
       this.loaded = true;
     });
 
     this.reminderService.calculateReminders();
-    this.state.boardChanged.subscribe(b => {
+    this.state.selectedBoard.pipe(filter(b => !!b)).subscribe(b => {
       this.currentBoard = b;
       if (NODE_CTX.isDevEnvironment) {
         console.log('on change board:', b.title, this.boards);
       }
     });
-    this.keyService.searchEvent.emitter.subscribe(e => this.searchMode = true);
-    this.keyService.escapeEvent.emitter.subscribe(e => this.closeSearch());
+    ACTIONS.searchInLists.onTrigger(e => this.state.changeListMode('quicksearch'));
+    this.keyService.dialogAwareEmitter(ACTIONS.escapeCommand).subscribe(e => {
+      this.closeSearch();
+      if (this.state.taskEditModeEnabled.value) {
+        this.state.taskEditModeEnabled.next(false);
+      } else {
+        this.state.selectedTask.next(null);
+      }
+    });
+    ACTIONS.editSelectedTask.onTrigger(e => {
+      if (this.state.selectedTask.value && this.state.taskEditModeEnabled.value === false) {
+        this.state.taskEditModeEnabled.next(true);
+      }
+    });
     this.refreshBoards();
-
+    this.state.listMode.subscribe(m => {
+      if (m.mode !== 'normal') {
+        this.state.taskFiltersDisabled = false;
+      }
+    });
 
   }
 
+  ngAfterViewInit() {
+  }
+
   private refreshBoards() {
-    this.taskService.getBoards().pipe(runInZone(this.zone)).subscribe(b => {
+    this.listService.getBoards().pipe(runInZone(this.zone)).subscribe(b => {
       this.boards = b;
       this.boardChange(this.boards[0]);
     });
@@ -112,7 +130,7 @@ export class AppComponent implements OnInit {
     }
     if (b) {
       this.closeSearch();
-      this.state.boardChanged.next(b);
+      this.state.selectedBoard.next(b);
     }
   }
 
@@ -138,11 +156,11 @@ export class AppComponent implements OnInit {
         filter(name => name),
         mergeMap(name => {
           const b = this.factory.createBoard(name);
-          return this.taskService.saveBoard(b);
+          return this.listService.saveBoard(b);
         }),
         mergeMap(res => {
           const id = res.lastID;
-          return zip(of(id), this.taskService.getBoards());
+          return zip(of(id), this.listService.getBoards());
         }),
         runInZone(this.zone),
       )
@@ -183,7 +201,7 @@ export class AppComponent implements OnInit {
         filter(name => name),
         mergeMap(name => {
           board.title = name;
-          return this.taskService.saveBoard(board);
+          return this.listService.saveBoard(board);
         }),
         runInZone(this.zone),
       )
@@ -206,6 +224,15 @@ export class AppComponent implements OnInit {
     dialogRef.afterClosed().subscribe();
   }
 
+  keybindingsDialog() {
+    const dialogRef = this.dialog.open(KeybindingsComponent, {
+      minWidth: '400px',
+      width: '1100px'
+    });
+
+    dialogRef.afterClosed().subscribe();
+  }
+
   aboutDialog() {
     this.dialog.open(AboutDialogComponent, {});
   }
@@ -214,19 +241,18 @@ export class AppComponent implements OnInit {
     this.electronService.showDbFile();
   }
 
-  search(term: string) {
-    this.state.search.next({ term, enabled: true });
+  quickSearch(term: string) {
+    this.state.changeListMode('quicksearch', term);
   }
 
   closeSearch() {
-    if (this.searchMode) {
-      this.searchMode = false;
-      this.state.search.next({ enabled: false, term: '' });
+    if (this.state.listMode.value.mode === 'quicksearch') {
+      this.state.changeListMode('normal');
     }
   }
 
   disableAllFileSync() {
-    this.taskService.disableAllFileSync().subscribe(() => this.msg.success('All file sync disabled'));
+    this.listService.disableAllFileSync().subscribe(() => this.msg.success('All file sync disabled'));
   }
 
   importList(id: number) {

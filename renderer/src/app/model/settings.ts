@@ -37,7 +37,7 @@ export abstract class Field<T> {
   }
 
   getValue() {
-    return this.value || this.defaultValue;
+    return this.value ?? this.defaultValue;
   }
 
   updateOptions(options: typeof Field.prototype.view) {
@@ -229,7 +229,7 @@ export class Bool extends Field<boolean> {
   }
 
   deserialize(value: string): boolean {
-    return Boolean(value);
+    return value === 'true';
   }
 
   withOptions(options: typeof Field.prototype.view): Bool {

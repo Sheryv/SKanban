@@ -12,4 +12,5 @@ export interface TaskList extends Entity {
 
   $tasks?: Task[];
   $filteredTasks?: Task[];
+  $customFilter?: boolean;
 }

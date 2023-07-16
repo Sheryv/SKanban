@@ -5,7 +5,7 @@ export enum TaskState {
 }
 
 export const TASK_STATE_ATTR = new Map([
-  [TaskState.OPEN, {icon: 'stars', color: '', title: 'Open'}],
-  [TaskState.IN_PROGRESS, {icon: 'schedule', color: '', title: 'In progress'}],
-  [TaskState.DONE, {icon: 'check_circle', color: '', title: 'Done'}],
+  [TaskState.OPEN, {icon: 'stars', code: 'open', title: 'Open'}],
+  [TaskState.IN_PROGRESS, {icon: 'schedule', code: 'in_progress', title: 'In progress'}],
+  [TaskState.DONE, {icon: 'verified_user', code: 'done', title: 'Done'}],
 ]);

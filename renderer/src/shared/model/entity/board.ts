@@ -6,6 +6,7 @@ export interface Board extends Entity {
   create_date: number;
   deleted: number;
   type_label_id: number;
+  done_tasks_list_id: number;
 
   $lists?: TaskList[];
 }

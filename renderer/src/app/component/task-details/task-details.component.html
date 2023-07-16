@@ -1,6 +1,6 @@
-<div class="container">
-  <form [formGroup]="form" *ngIf="form" id="task-details">
-    <div class="field-title" *ngIf="editMode">
+<div>
+  <form [formGroup]="form" *ngIf="form" id="task-details" class="flex-grid mx-2">
+    <div class="field field-title flex-grid-item-100" *ngIf="editMode">
       <span>Name</span>
       <div>
         <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
@@ -11,176 +11,174 @@
            (click)="save()">done</i>
       </div>
     </div>
-    <div class="mb-2">
-      <mat-form-field class="w-100 field-small" appearance="outline" *ngIf="editMode">
-        <input matInput maxlength="100" formControlName="title" #name (keydown.enter)="save()" id="task-name"
-               (keydown.control.enter)="save()">
+    <div class="field flex-grid-item-100 mb-2">
+      <mat-form-field class="w-100 field-small"  appearance="outline" *ngIf="editMode">
+        <input cdkFocusInitial  matInput maxlength="100" formControlName="title" #name id="task-name">
         <mat-hint align="end">{{name.value?.length || 0}} / 100</mat-hint>
         <mat-error *ngIf="form.get('title').hasError('required')">Cannot be empty</mat-error>
-        <mat-hint>Press 'Enter' to submit</mat-hint>
+        <mat-hint>Press '{{keys.saveTask.toLongStringAll()[0]}}' to submit</mat-hint>
       </mat-form-field>
     </div>
 
-    <div class="row">
-      <div class="col-12 col-md-9">
+    <div class="flex-grid-separator"></div>
+    <div class="field flex-grid-item-max">
 
-        <div class="field-title">
-          <span>Labels</span>
-          <div>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit()">edit</i>
-            <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
-               (click)="cancel()">close</i>
-            <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
-               (click)="save()">done</i>
-          </div>
+      <div class="field-title">
+        <span>Labels</span>
+        <div>
+          <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+             (click)="startEdit()">edit</i>
+          <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
+             (click)="cancel()">close</i>
+          <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+             (click)="save()">done</i>
         </div>
-        <div class="mb-2">
-          <div class="mb-2">
-            <app-label-chip *ngFor="let lbl of editMode ? selectedLabels : task.$labels" [label]="lbl"
-                            style="cursor: pointer" [editable]="editMode"
-                            (removed)="removeLabel(lbl)"
-            ></app-label-chip>
-          </div>
-          <div class="my-2 panel-box p-2" *ngIf="editMode">
-            Available:<br>
-            <app-label-chip *ngFor="let lbl of labels" [label]="lbl" style="cursor: pointer"
-                            matTooltip="Click to add"
-                            (click)="addLabel(lbl)"
-            ></app-label-chip>
-          </div>
-        </div>
-
       </div>
-      <div class="col-12 col-md-3">
-        <div class="field-title" style="min-height: 1.75rem">
+      <div class="mb-2">
+        <div class="mb-2">
+          <app-label-chip *ngFor="let lbl of editMode ? selectedLabels : task.$labels" [label]="lbl"
+                          style="cursor: pointer" [editable]="editMode"
+                          (removed)="removeLabel(lbl)"
+          ></app-label-chip>
+        </div>
+        <div class="my-2 panel-box p-2" *ngIf="editMode">
+          Available:<br>
+          <app-label-chip *ngFor="let lbl of labels" [label]="lbl" style="cursor: pointer"
+                          matTooltip="Click to add"
+                          (click)="addLabel(lbl)"
+          ></app-label-chip>
+        </div>
+      </div>
+
+    </div>
+    <div class="field flex-grid-item-min mb-2" style="min-width: 80px">
+      <div class="field-title" style="min-height: 1.75rem">
           <span class="d-flex align-items-center"
                 matTooltip="When task is marked as handled it will no longer generate any new user notification">
             Handled <i class="ml-1 material-icons-outlined">help</i>
           </span>
-          <div>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit(null)">edit</i>
-            <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
-               (click)="cancel()">close</i>
-            <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
-               (click)="save()">done</i>
-          </div>
-        </div>
-        <div *ngIf="!editMode">
-          <div *ngIf="task.handled" class="d-flex align-items-center">
-            <mat-icon class="fg-success inline-icon mr-1">check_circle</mat-icon>
-            Yes
-          </div>
-          <div *ngIf="!task.handled" class="d-flex align-items-center">
-            <mat-icon class="fg-warn inline-icon mr-1">close</mat-icon>
-            No
-          </div>
-        </div>
-        <div class="my-3" *ngIf="editMode">
-          <mat-slide-toggle formControlName="handled"></mat-slide-toggle>
+        <div>
+          <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+             (click)="startEdit(null)">edit</i>
+          <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
+             (click)="cancel()">close</i>
+          <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+             (click)="save()">done</i>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-12 col-md-6">
-        <div class="field-title">
-          <span>Priority</span>
-          <div>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit(null)">edit</i>
-            <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
-               (click)="cancel()">close</i>
-            <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
-               (click)="save()">done</i>
-          </div>
+      <div *ngIf="!editMode">
+        <div *ngIf="task.handled" class="d-flex align-items-center">
+          <mat-icon class="fg-success inline-icon mr-1">check_circle</mat-icon>
+          Yes
         </div>
-        <div class="mb-3">
+        <div *ngIf="!task.handled" class="d-flex align-items-center">
+          <mat-icon class="fg-warn inline-icon mr-1">close</mat-icon>
+          No
+        </div>
+      </div>
+      <div class="my-3" *ngIf="editMode">
+        <mat-slide-toggle formControlName="handled"></mat-slide-toggle>
+      </div>
+    </div>
+    <div class="flex-grid-separator"></div>
+    <div class="field flex-grid-item-25">
+      <div class="field-title">
+        <span>Priority</span>
+        <div>
+          <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+             (click)="startEdit(null)">edit</i>
+          <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
+             (click)="cancel()">close</i>
+          <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+             (click)="save()">done</i>
+        </div>
+      </div>
+      <div class="mb-3">
           <span *ngIf="!editMode" class="d-flex align-items-center">
-            <mat-icon class="mr-1 inline-icon">{{priorityAttrs.get(task.priority).icon}}</mat-icon>
+            <mat-icon class="mr-1 material-icons-outlined inline-icon"
+                      [ngClass]="'priority-' + priorityAttrs.get(task.priority).code">{{priorityAttrs.get(task.priority).icon}}</mat-icon>
             {{priorityAttrs.get(task.priority).title}}
           </span>
-          <mat-form-field *ngIf="editMode" class="w-100 field-small" appearance="outline">
-            <mat-select formControlName="priority">
-              <mat-option *ngFor="let e of priorityAttrs | keyvalue" [value]="e.key">{{e.value.title}}</mat-option>
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field *ngIf="editMode" class="w-100 field-small" appearance="outline">
+          <mat-select formControlName="priority">
+            <mat-option *ngFor="let e of priorityAttrs | keyvalue" [value]="e.key">{{e.value.title}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="field flex-grid-item-25">
+      <div class="field-title" style="min-height: 1.75rem">
+        <span>State</span>
+        <div>
+          <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+             (click)="startEdit(null)">edit</i>
+          <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
+             (click)="cancel()">close</i>
+          <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+             (click)="save()">done</i>
         </div>
       </div>
-      <div class="col-12 col-md-6">
-        <div class="field-title" style="min-height: 1.75rem">
-          <span>State</span>
-          <div>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit(null)">edit</i>
-            <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
-               (click)="cancel()">close</i>
-            <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
-               (click)="save()">done</i>
-          </div>
-        </div>
-        <div class="mb-3">
+      <div class="mb-3">
           <span *ngIf="!editMode" class="d-flex align-items-center">
-            <mat-icon class="mr-1 inline-icon">{{stateAttrs.get(task.state).icon}}</mat-icon>
+            <mat-icon class="mr-1 inline-icon"
+                      [ngClass]="'task-state-' + stateAttrs.get(task.state).code">{{stateAttrs.get(task.state).icon}}</mat-icon>
             {{stateAttrs.get(task.state).title}}
           </span>
-          <mat-form-field *ngIf="editMode" class="w-100 field-small" appearance="outline">
-            <mat-select formControlName="state">
-              <mat-option *ngFor="let e of stateAttrs | keyvalue" [value]="e.key">{{e.value.title}}</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
+        <mat-form-field *ngIf="editMode" class="w-100 field-small" appearance="outline">
+          <mat-select formControlName="state">
+            <mat-option *ngFor="let e of stateAttrs | keyvalue" [value]="e.key">{{e.value.title}}</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-sm-12 col-md-6">
-        <div class="field-title">
-          <span>Due date</span>
-          <div>
-            <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
-               (click)="startEdit('#task-due-date')">edit</i>
-            <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
-               (click)="cancel()">close</i>
-            <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
-               (click)="save()">done</i>
-          </div>
-        </div>
-        <div class="mb-3">
-          <div *ngIf="!editMode" (dblclick)="startEdit('#task-due-date')">
-            {{task.due_date | dateMillis}}
-          </div>
-          <!--            <div class="col-sm-12 col-md-6">-->
-          <!--              <mat-form-field class="w-100 field-small mb-1" appearance="outline" *ngIf="editMode">-->
-          <!--                <input matInput [matDatepicker]="picker" formControlName="due_date" placeholder="dd.mm.yyyy"-->
-          <!--                       id="task-due-date" [min]="now"-->
-          <!--                       (keydown.enter)="save()" (keydown.control.enter)="save()">-->
-          <!--                <mat-datepicker-toggle matSuffix [for]="picker" matTooltip="Select date"></mat-datepicker-toggle>-->
-          <!--                <mat-datepicker #picker></mat-datepicker>-->
-          <!--                <mat-error *ngIf="form.get('due_date').errors">Invalid date</mat-error>-->
-          <!--                <mat-hint>Click icon to select</mat-hint>-->
-          <!--              </mat-form-field>-->
-          <!--            </div>-->
-          <mat-form-field class="w-100 field-small mb-1" appearance="outline" *ngIf="editMode">
-            <input matInput placeholder="dd.mm.yyyy" [value]="form.get('due_date').value | dateUser" readonly="true"
-                   (click)="viewService.openDatepicker(form.get('due_date'), false, true)">
-            <button mat-icon-button matSuffix (click)="viewService.openDatepicker(form.get('due_date'), false, true)">
-              <mat-icon>calendar_month</mat-icon>
-            </button>
-            <mat-hint>Click icon to select</mat-hint>
-          </mat-form-field>
-          <input hidden formControlName="due_date">
+    <div class="field flex-grid-item-25">
+      <div class="field-title">
+        <span>Due date</span>
+        <div>
+          <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
+             (click)="startEdit('#task-due-date')">edit</i>
+          <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"
+             (click)="cancel()">close</i>
+          <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"
+             (click)="save()">done</i>
         </div>
       </div>
-      <div class="col-12 col-md-6">
-        <div class="field-title" style="min-height: 1.75rem">
-          <span>Modify date</span>
+      <div class="mb-3">
+        <div *ngIf="!editMode" (dblclick)="startEdit('#task-due-date')">
+          {{task.due_date | dateMillis}}
         </div>
-        <div class="mb-3">{{task.modify_date | dateMillis:true}}</div>
+        <!--            <div class="col-sm-12 col-md-6">-->
+        <!--              <mat-form-field class="w-100 field-small mb-1" appearance="outline" *ngIf="editMode">-->
+        <!--                <input matInput [matDatepicker]="picker" formControlName="due_date" placeholder="dd.mm.yyyy"-->
+        <!--                       id="task-due-date" [min]="now"-->
+        <!--                       (keydown.enter)="save()" (keydown.control.enter)="save()">-->
+        <!--                <mat-datepicker-toggle matSuffix [for]="picker" matTooltip="Select date"></mat-datepicker-toggle>-->
+        <!--                <mat-datepicker #picker></mat-datepicker>-->
+        <!--                <mat-error *ngIf="form.get('due_date').errors">Invalid date</mat-error>-->
+        <!--                <mat-hint>Click icon to select</mat-hint>-->
+        <!--              </mat-form-field>-->
+        <!--            </div>-->
+        <mat-form-field class="w-100 field-small mb-1" appearance="outline" *ngIf="editMode">
+          <input matInput placeholder="dd.mm.yyyy" [value]="form.get('due_date').value | dateUser" readonly="true"
+                 (click)="viewService.openDatepicker(form.get('due_date'), false, true)">
+<!--          <button mat-icon-button matSuffix (click)="pickDate(form.get('due_date'))" tabindex="-1">-->
+<!--            <mat-icon>calendar_month</mat-icon>-->
+<!--          </button>-->
+          <mat-hint>Click icon to select</mat-hint>
+        </mat-form-field>
+        <input hidden formControlName="due_date">
       </div>
     </div>
 
-    <div class="field-title">
+    <div class="field flex-grid-item-25">
+      <div class="field-title" style="min-height: 1.75rem">
+        <span>Modify date</span>
+      </div>
+      <div class="mb-3">{{task.modify_date | dateMillis:true}}</div>
+    </div>
+
+    <div class="field field-title flex-grid-item-100">
       <span>Content</span>
       <div>
         <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"
@@ -191,118 +189,115 @@
            (click)="save()">done</i>
       </div>
     </div>
-    <div class="mb-4">
+    <div class="mb-4 field field-content flex-grid-item-100">
       <div *ngIf="!editMode" class="markdown-content" (dblclick)="startEdit(null)"
            [innerHTML]="task.content | markdown">
       </div>
       <ng-container *ngIf="editMode">
         <app-monaco-editor id="task-content" formControlName="content"></app-monaco-editor>
-
-<!--        <md-editor name="Content"-->
-<!--                   formControlName="content"-->
-<!--                   [height]="'400px'"-->
-<!--                   [mode]="'editor'"-->
-<!--                   [options]="options"-->
-<!--                   (onEditorLoaded)="$event.setOptions({theme: 'ace/theme/twilight'})"-->
-<!--                   [preRender]="preRenderPreviewCallback"-->
-<!--                   maxlength="10000">-->
-<!--        </md-editor>-->
-        <div class="mat-hint font-8">Markdown supported</div>
-        <mat-error *ngFor="let e of (form.get('content').errors | keyvalue) || []" app-form-errors [error]="e"></mat-error>
+        <div class="d-flex justify-content-between">
+          <div class="mat-hint font-8">Markdown supported</div>
+          <div class="mat-hint font-8">{{form.get('content').value.length || 0}} / 30000</div>
+        </div>
+        <mat-error *ngFor="let e of (form.get('content').errors | keyvalue) || []" app-form-errors
+                   [error]="e"></mat-error>
       </ng-container>
     </div>
 
-    <div class="field-title">
-      <span>Create date</span>
-    </div>
-    <div class="mb-2">{{task.create_date | dateMillis:true}}</div>
-    <div class="field-title">
-      <span>Task type</span>
-<!--      <div>-->
-<!--        <i class="ml-1 material-icons icon-btn fg edit-button" *ngIf="!editMode" matTooltip="Edit"-->
-<!--           (click)="startEdit(null)">edit</i>-->
-<!--        <i class="ml-1 material-icons icon-btn fg-warn" *ngIf="editMode" matTooltip="Cancel"-->
-<!--           (click)="cancel()">close</i>-->
-<!--        <i class="ml-1 material-icons icon-btn fg-success" *ngIf="editMode" matTooltip="Accept"-->
-<!--           (click)="save()">done</i>-->
-<!--      </div>-->
-    </div>
-    <div class="mb-3">
-      <div *ngIf="!editMode" (dblclick)="startEdit(null)">
-        {{taskTypes.get(task.type)}}
+    <div class="field flex-grid-item-50">
+
+      <div class="field-title">
+        <span>Create date</span>
       </div>
-<!--      <mat-form-field *ngIf="editMode" class="w-100 field-small" appearance="outline">-->
-<!--        <mat-select formControlName="type">-->
-<!--          <mat-option *ngFor="let e of taskTypes | keyvalue" [value]="e.key">{{e.value}}</mat-option>-->
-<!--        </mat-select>-->
-<!--      </mat-form-field>-->
+      <div class="mb-2">{{task.create_date | dateMillis:true}}</div>
     </div>
-
-  </form>
-  <div class="field-title">
-    <span>History</span>
-  </div>
-  <button mat-stroked-button class="btn-small my-2"
-          (click)="showHistory = !showHistory">{{showHistory ? 'Hide' : 'Show'}}</button>
-  <div class="mb-3" *ngIf="showHistory">
-    <div *ngIf="!history">
-      <mat-spinner [diameter]="30"></mat-spinner>
-    </div>
-    <div *ngIf="history">
-
-      <div *ngFor="let h of history" class="d-flex history-item mb-2">
-        <!--  <i class="material-icons font-8 mr-1 mt-1">adjust</i>-->
-        <div class="w-100">
-          <div class="d-flex justify-content-between mb-1 flex-wrap">
-            <div class="history-item-title">{{h.$task.title}}</div>
-            <div class="font-8 fg-3 mt-2 mx-2">{{h.history_date | dateMillis: true}}</div>
-          </div>
-          <div class="font-9 mx-2 d-flex flex-column">
-            <span>Title: {{h.$task.title}}</span>
-            <span>Due date: {{h.$task.due_date | dateMillis}}</span>
-            <span>State: {{stateAttrs.get(h.$task.state).title}}</span>
-            <span>Priority: {{priorityAttrs.get(h.$task.priority).title}}</span>
-            <span>List id: {{h.$task.list_id}}</span>
-            <span>Type: {{h.$task.title}}</span>
-            <span>Labels:
-              <app-label-chip *ngFor="let lbl of h.$labels" [label]="lbl"></app-label-chip>
-            </span>
-            <span>Deleted: {{h.$task.deleted | dateMillis}}</span>
-            <span>Handled: {{(h.$task.handled && h.$task.handled | dateMillis) || 'No'}}</span>
-            <span>Position: {{h.$task.position}}</span>
-            <span>Content: {{h.$task.content}}</span>
-          </div>
-          <!--          <ng-container *ngIf="h.type == historyTypes.LIST_CHANGE">-->
-          <!--            <div class="font-9 mx-2">{{h.removed}} -> {{h.added}}</div>-->
-          <!--          </ng-container>-->
-          <!--          <ng-container *ngIf="h.type == historyTypes.LABEL_ADD">-->
-          <!--            <div class="font-8 fg-4 mx-2">Added:</div>-->
-          <!--            <div class="mx-2">-->
-          <!--              <app-label-chip *ngFor="let lbl of h.$labels" [label]="lbl"></app-label-chip>-->
-          <!--            </div>-->
-          <!--          </ng-container>-->
-          <!--          <ng-container *ngIf="h.type == historyTypes.LABEL_REMOVE">-->
-          <!--            <div class="font-8 fg-4 mx-2">Removed:</div>-->
-          <!--            <div class="mx-2">-->
-          <!--              <app-label-chip *ngFor="let lbl of h.$labels" [label]="lbl"></app-label-chip>-->
-          <!--            </div>-->
-          <!--          </ng-container>-->
-          <!--          <ng-container-->
-          <!--            *ngIf="h.type != historyTypes.LIST_CHANGE && h.type != historyTypes.LABEL_ADD && h.type != historyTypes.LABEL_REMOVE && h.type != historyTypes.DELETE">-->
-          <!--            <div class="font-8 fg-4 mx-2">Previous:</div>-->
-          <!--            <div class="markdown-content-preview font-9 mx-2"-->
-          <!--            >{{h.content || h.title || h.state || (h.task_type != null && taskTypes.get(h.task_type)) || (h.due_date | dateMillis: true)}}</div>-->
-          <!--          </ng-container>-->
+    <div class="field flex-grid-item-50">
+      <div class="field-title">
+        <span>Task type</span>
+      </div>
+      <div class="mb-3">
+        <div *ngIf="!editMode" (dblclick)="startEdit(null)">
+          {{taskTypes.get(task.type)}}
         </div>
       </div>
     </div>
+
+  </form>
+  <div class="mx-2">
+
+    <div class="field field-title">
+      <span>History</span>
+    </div>
+    <div class="field">
+
+      <button mat-stroked-button class="btn-small my-2"
+              (click)="showHistory = !showHistory">{{showHistory ? 'Hide' : 'Show'}}</button>
+      <div class="mb-3" *ngIf="showHistory">
+        <div *ngIf="!history">
+          <mat-spinner [diameter]="30"></mat-spinner>
+        </div>
+        <div *ngIf="history">
+
+          <div *ngFor="let h of history" class="d-flex history-item mb-2">
+            <!--  <i class="material-icons font-8 mr-1 mt-1">adjust</i>-->
+            <div class="w-100">
+              <div class="d-flex justify-content-between mb-1 flex-wrap">
+                <div class="history-item-title">{{h.$task.title}}</div>
+                <div class="d-inline-flex align-items-center">
+                  <span class="font-8 fg-3 mx-2">{{h.history_date | dateMillis: true}}</span>
+                  <i *ngIf="editMode" class="icon-btn material-icons-outlined" (click)="restoreFromHistory(h)"
+                     [matTooltip]="'Restore'">settings_backup_restore</i>
+                </div>
+              </div>
+              <div class="font-9 mx-2 d-flex flex-column">
+                <span>Title: {{h.$task.title}}</span>
+                <span>Due date: {{h.$task.due_date | dateMillis}}</span>
+                <span>State: {{stateAttrs.get(h.$task.state).title}}</span>
+                <span>Priority: {{priorityAttrs.get(h.$task.priority).title}}</span>
+                <span>List id: {{h.$task.list_id}}</span>
+                <span>Type: {{h.$task.title}}</span>
+                <span>Labels:
+              <app-label-chip *ngFor="let lbl of h.$labels" [label]="lbl"></app-label-chip>
+            </span>
+                <span>Deleted: {{h.$task.deleted | dateMillis}}</span>
+                <span>Handled: {{(h.$task.handled !== null && h.$task.handled | dateMillis) || 'No'}}</span>
+                <span>Position: {{h.$task.position}}</span>
+                <span>Content: {{h.$task.content}}</span>
+              </div>
+              <!--          <ng-container *ngIf="h.type == historyTypes.LIST_CHANGE">-->
+              <!--            <div class="font-9 mx-2">{{h.removed}} -> {{h.added}}</div>-->
+              <!--          </ng-container>-->
+              <!--          <ng-container *ngIf="h.type == historyTypes.LABEL_ADD">-->
+              <!--            <div class="font-8 fg-4 mx-2">Added:</div>-->
+              <!--            <div class="mx-2">-->
+              <!--              <app-label-chip *ngFor="let lbl of h.$labels" [label]="lbl"></app-label-chip>-->
+              <!--            </div>-->
+              <!--          </ng-container>-->
+              <!--          <ng-container *ngIf="h.type == historyTypes.LABEL_REMOVE">-->
+              <!--            <div class="font-8 fg-4 mx-2">Removed:</div>-->
+              <!--            <div class="mx-2">-->
+              <!--              <app-label-chip *ngFor="let lbl of h.$labels" [label]="lbl"></app-label-chip>-->
+              <!--            </div>-->
+              <!--          </ng-container>-->
+              <!--          <ng-container-->
+              <!--            *ngIf="h.type != historyTypes.LIST_CHANGE && h.type != historyTypes.LABEL_ADD && h.type != historyTypes.LABEL_REMOVE && h.type != historyTypes.DELETE">-->
+              <!--            <div class="font-8 fg-4 mx-2">Previous:</div>-->
+              <!--            <div class="markdown-content-preview font-9 mx-2"-->
+              <!--            >{{h.content || h.title || h.state || (h.task_type != null && taskTypes.get(h.task_type)) || (h.due_date | dateMillis: true)}}</div>-->
+              <!--          </ng-container>-->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="field field-title">
+      <span>JSON</span>
+    </div>
+    <div class="field">
+      <button mat-stroked-button class="btn-small my-2"
+              (click)="showJson = !showJson">{{showJson ? 'Hide' : 'Show'}}</button>
+      <code class="text-monospace markdown-content-preview d-block mt-4" *ngIf="showJson">{{text}}</code>
+    </div>
   </div>
 
-
-  <div class="field-title">
-    <span>JSON</span>
-  </div>
-  <button mat-stroked-button class="btn-small my-2"
-          (click)="showJson = !showJson">{{showJson ? 'Hide' : 'Show'}}</button>
-  <code class="text-monospace markdown-content-preview d-block mt-4" *ngIf="showJson">{{text}}</code>
 </div>

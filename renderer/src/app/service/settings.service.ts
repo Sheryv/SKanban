@@ -37,9 +37,11 @@ export class SettingsService {
         listWidth: new Num('Task list width [px]', 'lists.listWidth', 300, true, 20000, 50),
         itemFontSize: new Num('Task item font size [%]', 'lists.itemFontSize', 100, true, 1000, 10),
         itemPadding: new Num('Task item padding [%]', 'lists.itemPadding', 100, true, 20000, 10),
-        itemLabelTextVisibility: new Bool('Label text visibility', 'lists.itemLabelTextVisibility', true),
+        itemLabelTextVisibility: new Bool('Label text visible', 'lists.itemLabelTextVisibility', true),
         itemContentVisibleLines: new Num('Number of content lines visible for each task', 'lists.itemContentVisibleLines', 3, true, 200, 0).withOptions({hint: 'Set 0 to hide content displaying'}),
-        itemDueDateVisibility: new Bool('Due date visibility', 'lists.itemDueDateVisibility', true),
+        itemDueDateVisibility: new Bool('Due date visible', 'lists.itemDueDateVisibility', true),
+        itemPriorityVisibility: new Bool('Priority icon visible', 'lists.itemPriorityVisibility', true),
+        itemStateVisibility: new Bool('State icon visible', 'lists.itemStateVisibility', true),
         detailsWith: new Num('Task details panel width [%]', 'lists.detailsWith', 35, true, 90, 10),
         itemVisibilityConfig: new Obj('Automatic hiding of tasks', 'lists.itemVisibilityConfig', {
           name: new Text('List name', 'name', ''),
@@ -90,7 +92,7 @@ export class SettingsService {
       map(rows => {
         this.findFields(obj, f => {
           const found = rows.find(r => r.key === this.prefix + f.code);
-          if (found) {
+          if (found != null) {
             f.replaceValue(f.deserialize(found.value));
           }
         });

@@ -22,4 +22,5 @@ export interface Task extends Entity {
 
   $labels?: Label[];
   $prevList?: number;
+  $selected?: boolean;
 }

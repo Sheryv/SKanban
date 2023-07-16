@@ -6,20 +6,23 @@
       <i class="material-icons icon-btn ml-1" matTooltip="Import list from file" (click)="importList(currentBoard.id)">sim_card_download</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Show upcoming reminders" (click)="showUpcomingReminders()">notifications</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">local_offer</i>
-      <div *ngIf="searchMode" class="ml-4 d-flex align-items-center">
+      <i class="material-icons icon-btn ml-1" *ngIf="(state.listMode | async).mode === 'normal' && !state.taskFiltersDisabled" matTooltip="Temporary disable filters" (click)="state.taskFiltersDisabled = true">filter_alt_off</i>
+      <i class="material-icons icon-btn ml-1 fg-warn" *ngIf="(state.listMode | async).mode === 'normal' && state.taskFiltersDisabled" matTooltip="Enable all filters" (click)="state.taskFiltersDisabled = false">filter_alt</i>
+      <i *ngIf="(state.listMode | async).mode === 'normal'" (click)="state.changeListMode('advanced')" class="material-icons icon-btn ml-1" matTooltip="Advanced search ({{keyCommands.advancedSearchInLists.toShortString()}})">filter_list</i>
+      <div *ngIf="(state.listMode | async).mode === 'quicksearch'" class="ml-4 d-flex align-items-center">
         <!--                <mat-form-field class="field-small" appearance="outline">-->
-        <input class="small-input" #searchBox appAutofocus maxlength="100" (keydown.escape)="closeSearch()"
-               (change)="search(searchBox.value)">
+        <input class="input-sm" #searchBox appAutofocus maxlength="100" (keydown.escape)="closeSearch()"
+               (change)="quickSearch(searchBox.value)">
         <!--                    <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="search(searchBox.value)">-->
         <!--                        <mat-icon>search</mat-icon>-->
         <!--                    </button>-->
         <!--                </mat-form-field>-->
-        <i class="material-icons icon-btn icon-btn-fill ml-1 fg-primary" matTooltip="Find"
-           (click)="search(searchBox.value)">search</i>
+        <i class="material-icons icon-btn icon-btn-fill ml-1 fg-primary" matTooltip="Quick search"
+           (click)="quickSearch(searchBox.value)">search</i>
         <i class="material-icons icon-btn ml-1" matTooltip="Exit search" (click)="closeSearch()">clear</i>
       </div>
-      <i *ngIf="!searchMode" class="material-icons icon-btn ml-1" matTooltip="Find"
-         (click)="searchMode = true">search</i>
+      <i *ngIf="(state.listMode | async).mode === 'normal'" class="material-icons icon-btn ml-1" matTooltip="Quick search ({{keyCommands.searchInLists.toShortString()}})"
+         (click)="state.changeListMode('quicksearch')">search</i>
     </div>
     <div class="flex-grow-1"></div>
     <i class="material-icons icon-btn" matTooltip="System menu" [matMenuTriggerFor]="systemMenu">settings</i>
@@ -40,7 +43,7 @@
         <mat-icon>sync_disabled</mat-icon>
         <span>Disable all file sync</span>
       </button>
-      <button mat-menu-item disabled>
+      <button mat-menu-item (click)="keybindingsDialog()">
         <mat-icon>help</mat-icon>
         <span>Keyboard shortcuts</span>
       </button>

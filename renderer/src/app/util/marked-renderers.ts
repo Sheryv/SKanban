@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { MdEditorOption } from 'ngx-markdown-editor';
 import { Settings } from '../service/settings.service';
-
-declare let marked: any;
-declare let hljs: any;
+import { marked } from 'marked';
+import MarkedOptions = marked.MarkedOptions;
+import hljs from 'highlight.js';
 
 export class MarkdownUtils {
   private static readonly REG_EXP_CARET_RETURN = /\r/g;
@@ -24,7 +23,7 @@ export class MarkdownUtils {
       case 'code':
         return function(code: any, language: any) {
           const validLang = !!(language && hljs.getLanguage(language));
-          const highlighted = validLang ? hljs.highlight(language, code).value : code;
+          const highlighted = validLang ? hljs.highlight(language, code).value : hljs.highlightAuto(code);
           return `<pre style="padding: 0; border-radius: 0;"><code class="hljs ${language}">${highlighted}</code></pre>`;
         };
       case 'table':
@@ -58,7 +57,6 @@ export class MarkdownUtils {
     let normalized = content.replace(this.REG_EXP_CARET_RETURN, '');
     if (config) {
       const lines = config.split('\n');
-      // console.log(normalized);
       for (const pattern of lines) {
         const indexOf = pattern.lastIndexOf(';');
         if (indexOf > 0) {
@@ -97,17 +95,19 @@ export class MarkdownUtils {
   //     // }
   //   };
   // }
+
+  static prepareMarkedOptions(): MarkedOptions {
+    const markedRender = new marked.Renderer();
+    markedRender.image = MarkdownUtils.prepareMarkedRenderer('image') as any;
+    markedRender.code = MarkdownUtils.prepareMarkedRenderer('code') as any;
+    markedRender.table = MarkdownUtils.prepareMarkedRenderer('table') as any;
+    markedRender.listitem = MarkdownUtils.prepareMarkedRenderer('listitem') as any;
+    return {
+      gfm: true,
+      renderer: markedRender,
+      highlight: (code: any) => hljs.highlightAuto(code).value,
+    };
+  }
 }
 
 
-export function prepareMarkedOptions() {
-  const markedRender = new marked.Renderer();
-  markedRender.image = MarkdownUtils.prepareMarkedRenderer('image');
-  markedRender.code = MarkdownUtils.prepareMarkedRenderer('code');
-  markedRender.table = MarkdownUtils.prepareMarkedRenderer('table');
-  markedRender.listitem = MarkdownUtils.prepareMarkedRenderer('listitem');
-  return {
-    renderer: markedRender,
-    highlight: (code: any) => hljs.highlightAuto(code).value,
-  };
-}

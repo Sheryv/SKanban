@@ -1,7 +1,8 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DateTime } from 'luxon';
 import { SettingsService } from '../../../service/settings.service';
+import { MatCalendar } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-date-time-dialog',
@@ -14,6 +15,9 @@ export class DateTimeDialogComponent {
   meridian = false;
 
   predefined: { hour: number; minute: number; date: string }[];
+
+  @ViewChild(MatCalendar, { static: false }) calendar: MatCalendar<DateTime>;
+
   private holidays: DateTime[];
 
   constructor(public dialogRef: MatDialogRef<DateTimeDialogComponent>,
@@ -78,5 +82,7 @@ export class DateTimeDialogComponent {
     const now = DateTime.now();
     this.date = now;
     this.time = now.toJSDate();
+    this.calendar.activeDate = now;
+    this.calendar.updateTodaysDate();
   }
 }

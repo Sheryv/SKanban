@@ -1,0 +1,47 @@
+.flex-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  overflow: hidden;
+
+  @mixin flex-grid-item {
+    //display: grid;
+    //place-content: center;
+    //text-align: center;
+    flex: 1 1 calc(25% - 1rem);
+  }
+
+  .flex-grid-item-25 {
+    @include flex-grid-item;
+  }
+
+  .flex-grid-item-33 {
+    @include flex-grid-item;
+    flex-basis: calc(33% - 1rem);
+  }
+
+  .flex-grid-item-50 {
+    @include flex-grid-item;
+    flex-basis: calc(50% - 1rem);
+  }
+
+  .flex-grid-item-100 {
+    @include flex-grid-item;
+    flex-basis: 100%;
+  }
+
+  .flex-grid-item-max {
+    @include flex-grid-item;
+    flex-grow: 10000;
+    flex-basis: 0;
+  }
+
+  .flex-grid-item-min {
+    flex-grow: 1;
+  }
+
+  .flex-grid-separator {
+    flex-basis: 100%;
+    max-height: 0;
+  }
+}

@@ -7,6 +7,8 @@
   padding: 0.5rem 0;
   overflow: hidden;
   box-shadow: $elevate-3;
+
+  --mdc-checkbox-state-layer-size: 32px
 }
 
 .list-item {
@@ -72,3 +74,13 @@
   box-shadow: $elevate-2;
 }
 
+.list-item .task-state-open {
+  display: none;
+}
+
+.filters-panel {
+  @extend .bg-alt-3;
+  box-shadow: $elevate-2;
+  z-index: 10;
+  position: relative;
+}

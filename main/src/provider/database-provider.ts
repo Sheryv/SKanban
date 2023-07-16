@@ -41,6 +41,7 @@ export class DatabaseProvider {
       'title TEXT NOT NULL, ' +
       'create_date INTEGER NOT NULL, ' +
       'type_label_id INTEGER, ' +
+      'done_tasks_list_id INTEGER, ' +
       'deleted INTEGER' +
       ')');
 
@@ -110,11 +111,11 @@ export class DatabaseProvider {
       await this.migrateDB(Number(versionFromDb.value));
     }
 
-    const lists = await this.db.all('select * from lists') as TaskList[]
+    const lists = await this.db.all('select * from lists') as TaskList[];
     for (let list of lists) {
       if (list.synchronized_file && !existsSync(list.synchronized_file)) {
-        await this.db.run('update lists set synchronized_file = null where id = ?', list.id)   ;
-        console.log(`Removed file sync link for list ${list.id} because file does not exists at ${list.synchronized_file}`)
+        await this.db.run('update lists set synchronized_file = null where id = ?', list.id);
+        console.log(`Removed file sync link for list ${list.id} because file does not exists at ${list.synchronized_file}`);
       }
     }
   }
@@ -128,13 +129,14 @@ export class DatabaseProvider {
       version++;
     }
     if (version === 2) {
+      await this.db.run('alter table boards add column done_tasks_list_id INTEGER');
       await this.db.run('alter table tasks add column uuid TEXT NOT NULL default \'-\'');
       await this.db.run('alter table tasks add column priority INTEGER NOT NULL default 2');
       await this.db.run('alter table tasks add column handled INTEGER');
       await this.db.run('alter table task_history add column priority');
       await this.db.run('alter table lists add column synchronized_file TEXT');
 
-      await this.db.run('drop table task_history')
+      await this.db.run('drop table task_history');
       await this.db.run('CREATE TABLE IF NOT EXISTS task_history (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ' +
         'json TEXT NOT NULL, ' +
         'history_date INTEGER NOT NULL, ' +
@@ -165,7 +167,7 @@ export class DatabaseProvider {
           },
           e => console.error('DB: Error executing sql: ', JSON.stringify(op), ' | ', e));
         return p;
-      }).then(r => ({exec: r}));
+      }).then(r => ({ exec: r }));
   }
 
   findAll(op: DbOperation): Promise<DbResult> {
@@ -176,7 +178,7 @@ export class DatabaseProvider {
     if (CONTEXT.isDevEnvironment && DatabaseProvider.LOG_REQUESTS) {
       console.log(DatabaseProvider.DB_LOG_TAG, 'findAll: ', JSON.stringify(op), '\n');
     }
-    return this.db.all<Row[]>(sql, ...cl.params).then(r => ({rows: r}));
+    return this.db.all<Row[]>(sql, ...cl.params).then(r => ({ rows: r }));
   }
 
   find(op: DbOperation): Promise<DbResult> {
@@ -185,14 +187,14 @@ export class DatabaseProvider {
 
     return this.db.get<Row | null>(`select *
                                     from ${op.table}
-                                    where id = ?${cl.where}`, op.findId, ...cl.params).then(r => ({rows: [r]}));
+                                    where id = ?${cl.where}`, op.findId, ...cl.params).then(r => ({ rows: [r] }));
   }
 
   exec(op: DbOperation): Promise<DbResult> {
     notNullField(op.sql, 'DbOperation.sql');
     notNullField(op.params, 'DbOperation.params');
 
-    return this.db.run(op.sql, ...op.params).then(r => ({exec: r}));
+    return this.db.run(op.sql, ...op.params).then(r => ({ exec: r }));
   }
 
   query(op: DbOperation): Promise<DbResult> {
@@ -204,16 +206,24 @@ export class DatabaseProvider {
         console.log(DatabaseProvider.DB_LOG_TAG, 'query: ', JSON.stringify(d), JSON.stringify(op));
       }
       return d;
-    }).then(r => ({rows: r}));
+    }).then(r => ({ rows: r }));
   };
 
   private buildUpdate(op: DbOperation) {
-    const keys = Object.keys(op.row).filter(k => k !== 'id' && !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string'));
+    const keys = Object.keys(op.row).filter(k =>
+      k !== 'id' && !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string' || op.row[k] === DatabaseProvider.IS_NULL),
+    );
 
     const sql = `update ${op.table}
                  set ${keys.map(k => k + '=?').join(', ')}
                  where id = ?`;
-    const params = keys.map(k => op.row[k]);
+    const params = keys.map(k => {
+      if (op.row[k] !== DatabaseProvider.IS_NULL) {
+        return op.row[k];
+      } else {
+        return null;
+      }
+    });
     params.push(op.row.id);
     if (CONTEXT.isDevEnvironment && DatabaseProvider.LOG_REQUESTS) {
       console.log(DatabaseProvider.DB_LOG_TAG, 'update: ', sql, ' || ', JSON.stringify(params));
@@ -222,7 +232,9 @@ export class DatabaseProvider {
   }
 
   private buildInsert(op: DbOperation) {
-    const keys = Object.keys(op.row).filter(k => k !== 'id' && !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string'));
+    const keys = Object.keys(op.row).filter(k =>
+      k !== 'id' && !k.startsWith('$') && (typeof op.row[k] === 'number' || typeof op.row[k] === 'string'),
+    );
 
     const sql = `insert into ${op.table} (${keys.join(', ')})
                  values (${keys.map(k => '?').join(',')})`;
@@ -234,7 +246,7 @@ export class DatabaseProvider {
   }
 
   private transformClauses(clauses: { [key: string]: any }, suffix: string = ''): { where: string, params: any[] } {
-    const res = {where: '', params: []};
+    const res = { where: '', params: [] };
     if (clauses && Object.keys(clauses).length > 0) {
       const keys = Object.keys(clauses);
       res.params = keys.map(k => clauses[k]).filter(v => typeof v !== 'string' || !v.startsWith('\0'));

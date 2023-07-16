@@ -132,13 +132,7 @@ $my-theme-normal-density: mat.define-dark-theme((
 
 @import "styles/css/bootstrap-grid.min.css";
 @import "styles/scss/utils";
-//@import "assets/scss/fontawesome/fontawesome";
-//@import "assets/scss/fontawesome/solid";
+@import "styles/scss/flex-grid";
 @import "styles/scss/main";
 
-.sd {
-  slide-out-background: linear-gradient(270deg, #222b45 0%, #151a30 100%);
-  slide-out-shadow-color: 0 4px 14px 0 #8f9bb3;
-  slide-out-shadow-color-rtl: 0 4px 14px 0 #8f9bb3;
-
-}
+@import "highlight.js/styles/monokai-sublime.css";

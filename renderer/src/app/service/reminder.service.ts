@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { Task } from '../../shared/model/entity/task';
 import { State } from './state';
 import { Ipcs } from '../../shared/model/ipcs';
 import { ElectronService } from './electron.service';
 import { debounceTime } from 'rxjs';
 import { TaskService } from './task.service';
-import { DatabaseService } from './database.service';
 import { DateTime } from 'luxon';
 import { Settings, SettingsService } from './settings.service';
 import { ViewService } from './view.service';
@@ -31,10 +29,8 @@ export class ReminderService {
   private nextHandlerId: number;
   private nextHandlerDate: DateTime;
 
-  constructor(private dialog: MatDialog,
-              private state: State,
+  constructor(private state: State,
               private electron: ElectronService,
-              private db: DatabaseService,
               private settingsService: SettingsService,
               private viewService: ViewService,
               private taskService: TaskService) {
@@ -46,7 +42,7 @@ export class ReminderService {
     });
     this.settings = this.settingsService.settingsDef.ui.notifications;
 
-    this.state.taskChanged.subscribe(task => {
+    this.state.taskChangeEvent.subscribe(task => {
       if (task.due_date && task.due_date > DateTime.now().toMillis()) {
         if (this.nextHandlerDate == null || task.due_date < this.nextHandlerDate.toMillis()) {
           this.calculateReminders();
@@ -177,35 +173,45 @@ export class ReminderService {
   }
 
   snoozeAll(tasks: TaskWithBoard[], minutes: number) {
-    const holidays: DateTime[] = this.settings.customHolidays.getValue().map(r => DateTime.fromISO(r.get('date')));
-    const now = DateTime.now();
-    let newDate = now.plus({ minute: minutes });
-    if (!newDate.hasSame(now, 'day')) {
-      const found = holidays.filter(h => h.toMillis() <= newDate.toMillis() && h.toMillis() >= now.toMillis());
-      let d = now.plus({ day: 1 });
-      while (d.year < newDate.year
-        || (d.year === newDate.year && (d.month < newDate.month
-          || (d.month === newDate.month && d.day <= newDate.day)))
-        ) {
-
-        if (this.settings.saturdaysAreHolidays.getValue() && d.weekday === 6) {
-          found.push(d);
-        } else if (this.settings.sundaysAreHolidays.getValue() && d.weekday === 7) {
-          found.push(d);
-        }
-        d = d.plus({ day: 1 });
-      }
-
-      if (found.length > 0) {
-        console.debug('Holidays in range', found.map(h => h.toISO()));
-        newDate = newDate.plus({ day: found.length });
-      }
-    }
+    const newDate = this.calculateNextSnoozeDate(minutes, this.settings);
 
     for (const task of tasks) {
       task.task.due_date = newDate.toMillis();
       this.taskService.saveTask(task.task);
     }
+  }
+
+  calculateNextSnoozeDate(offsetMinutes: number, settings: Settings['ui']['notifications']): DateTime {
+    const holidays: DateTime[] = settings.customHolidays.getValue().map(r => DateTime.fromISO(r.get('date'))).map(h => h.startOf('day'));
+    const now = DateTime.now();
+    let newDate = now.plus({ minute: offsetMinutes });
+    if (!newDate.hasSame(now, 'day')) {
+      let d = now.plus({ day: 1 });
+      const found = new Set<number>();
+      while (d.year < newDate.year
+        || (d.year === newDate.year && (d.month < newDate.month
+          || (d.month === newDate.month && d.day <= newDate.day)))
+        ) {
+
+        if (settings.saturdaysAreHolidays.getValue() && d.weekday === 6) {
+          newDate = newDate.plus({ day: 1 });
+        } else if (settings.sundaysAreHolidays.getValue() && d.weekday === 7) {
+          newDate = newDate.plus({ day: 1 });
+        }
+        const f = holidays.filter(h => h.toMillis() <= newDate.toMillis() && h.toMillis() >= d.startOf('day').toMillis());
+        for (const dateTime of f) {
+          const millis = dateTime.toMillis();
+          if (!found.has(millis)) {
+            found.add(millis);
+            newDate = newDate.plus({ day: 1 });
+          }
+        }
+
+        d = d.plus({ day: 1 });
+      }
+    }
+
+    return newDate;
   }
 
   private showDialog(tasks: TaskWithBoard[]) {
