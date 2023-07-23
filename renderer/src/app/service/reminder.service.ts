@@ -3,7 +3,7 @@ import { Task } from '../../shared/model/entity/task';
 import { State } from './state';
 import { Ipcs } from '../../shared/model/ipcs';
 import { ElectronService } from './electron.service';
-import { debounceTime } from 'rxjs';
+import { debounceTime, Observable } from 'rxjs';
 import { TaskService } from './task.service';
 import { DateTime } from 'luxon';
 import { Settings, SettingsService } from './settings.service';
@@ -11,6 +11,8 @@ import { ViewService } from './view.service';
 import { TaskPriority } from '../../shared/model/entity/task-priority';
 import { Board } from '../../shared/model/entity/board';
 import { TaskList } from '../../shared/model/entity/task-list';
+import { TaskExecResults } from '../../shared/model/db';
+import { NODE_CTX } from '../global';
 
 interface Reminder {
   task: Task;
@@ -70,7 +72,9 @@ export class ReminderService {
   addReminders(tasks: TaskWithBoard[]) {
     // upcoming
     const found = this.findTasksWithNotifications(tasks);
-    console.debug('Calculated reminders of tasks', found);
+    if (NODE_CTX.isDevEnvironment) {
+      console.debug('Calculated reminders of tasks', found);
+    }
     const { inNotificationTimeRange, overdue } = found;
 
 
@@ -115,9 +119,10 @@ export class ReminderService {
         clearTimeout(this.nextHandlerId);
       }
 
-      this.nextHandlerDate = min ? DateTime.fromMillis(min.task.due_date) : DateTime.now().plus({ minute: 1 });
+      this.nextHandlerDate = min ? DateTime.fromMillis(min.task.due_date) : DateTime.now().plus({ minute: 5 });
       const wait = this.nextHandlerDate.diffNow('milliseconds').milliseconds;
-      console.debug('Scheduling next check to ', this.nextHandlerDate.toISO(), ' what is', wait, 'ms from now');
+      // eslint-disable-next-line no-console
+      console.debug('Scheduling next reminders check to ', this.nextHandlerDate.toISO());
       this.nextHandlerId = Number(setTimeout(this.calculateReminders.bind(this), wait));
     }
     // for (const task of other) {
@@ -164,21 +169,21 @@ export class ReminderService {
     return { overdue, inNotificationTimeRange, future };
   }
 
-  completeAll(tasks: TaskWithBoard[]) {
+  completeAll(tasks: TaskWithBoard[]): Observable<TaskExecResults> {
     const now = DateTime.now().toMillis();
     for (const task of tasks) {
       task.task.handled = now;
-      this.taskService.saveTask(task.task);
     }
+    return this.taskService.saveTasks(tasks.map(t => t.task));
   }
 
-  snoozeAll(tasks: TaskWithBoard[], minutes: number) {
+  snoozeAll(tasks: TaskWithBoard[], minutes: number): Observable<TaskExecResults> {
     const newDate = this.calculateNextSnoozeDate(minutes, this.settings);
 
     for (const task of tasks) {
       task.task.due_date = newDate.toMillis();
-      this.taskService.saveTask(task.task);
     }
+    return this.taskService.saveTasks(tasks.map(t => t.task));
   }
 
   calculateNextSnoozeDate(offsetMinutes: number, settings: Settings['ui']['notifications']): DateTime {
@@ -217,9 +222,10 @@ export class ReminderService {
   private showDialog(tasks: TaskWithBoard[]) {
     this.viewService.showRemindersListDialog(tasks);
     if (this.settings.enableBringWindowToTop.getValue() && tasks.some(t => t.task.priority >= TaskPriority.CRITICAL)) {
-      this.electron.send(Ipcs.SHELL, { op: 'bringWindowToTop' }).subscribe(() => this.electron.send(Ipcs.SHELL, { op: 'flashFrame' }));
+      this.electron.send(Ipcs.SHELL, { op: 'bringWindowToTop' })
+        .subscribe(() => this.electron.send(Ipcs.SHELL, { op: 'flashFrame' }).subscribe());
     } else {
-      this.electron.send(Ipcs.SHELL, { op: 'flashFrame' });
+      this.electron.send(Ipcs.SHELL, { op: 'flashFrame' }).subscribe();
     }
   }
 }

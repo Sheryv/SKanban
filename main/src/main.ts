@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu, MenuItem } from 'electron';
 import { join } from 'node:path';
 import { platform } from 'node:process';
 import { applySecurityRestrictions } from './security-restrictions';
@@ -100,7 +100,7 @@ app
  * Like `npm run compile` does. It's ok 😅
  */
 if (isProd) {
-  app.setAppUserModelId('SKanban')
+  app.setAppUserModelId('SKanban');
   app
     .whenReady()
     .then(() => import('electron-updater'))
@@ -118,6 +118,7 @@ if (isProd) {
 async function createWindow() {
   const browserWindow = new BrowserWindow({
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -139,6 +140,23 @@ async function createWindow() {
    * @see https://github.com/electron/electron/issues/25012 for the afford mentioned issue.
    */
   browserWindow.on('ready-to-show', () => {
+    const s = Menu.getApplicationMenu();
+   s.append(new MenuItem({
+     type: 'submenu',
+      label: 'SKanban', id: 'test',
+     submenu: [
+       {
+         type: 'normal',
+         label: 'Test notifications',
+         click: (m, b, e) => ProvidersBuilder.notification.show({
+           body: 'Body text send at ' + new Date().toLocaleString(),
+           title: 'Test title'
+         }),
+       }
+     ]
+    }));
+    Menu.setApplicationMenu(s);
+
     browserWindow?.show();
 
     if (!isProd) {

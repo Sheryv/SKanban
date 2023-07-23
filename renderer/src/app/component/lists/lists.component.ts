@@ -3,7 +3,7 @@ import { State } from '../../service/state';
 import { Board } from '../../../shared/model/entity/board';
 import { TaskList } from '../../../shared/model/entity/task-list';
 import { Task } from '../../../shared/model/entity/task';
-import { Factory } from '../../../shared/./support/factory';
+import { Factory } from '../../../shared/support/factory';
 import { ListTasksVisibilityConfig, Settings, SettingsService } from '../../service/settings.service';
 import { ACTIONS } from '../../service/key-commands.service';
 import { filter, map, mergeMap, pairwise, startWith, switchMap, take, takeWhile, tap } from 'rxjs/operators';
@@ -26,6 +26,13 @@ import { Utils } from '../../../shared/util/utils';
 import { ListService } from '../../service/list.service';
 import { TASK_PRIORITY_ATTR } from '../../../shared/model/entity/task-priority';
 import { TASK_STATE_ATTR } from '../../../shared/model/entity/task-state';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  BatchAction,
+  BatchActionDialogComponent,
+  BatchActionDialogParams,
+} from '../dialog/batch-action-dialog/batch-action-dialog.component';
+
 
 @Component({
   selector: 'app-lists',
@@ -59,6 +66,7 @@ export class ListsComponent implements OnInit, OnDestroy {
   dragEnabled = true;
 
   private searchTerm = '';
+  advancedSearchForm: FormGroup;
 
   constructor(public state: State,
               private factory: Factory,
@@ -67,6 +75,7 @@ export class ListsComponent implements OnInit, OnDestroy {
               public listService: ListService,
               private msg: MessageService,
               private dialog: MatDialog,
+              private fb: FormBuilder,
               private zone: NgZone,
               private electron: ElectronService,
   ) {
@@ -81,8 +90,18 @@ export class ListsComponent implements OnInit, OnDestroy {
         const found = l.$tasks?.find(t => t.id === task.id);
         if (found) {
           Object.assign(found, task);
+
+          if (found.deleted != null) {
+            l.$tasks.splice(l.$tasks.findIndex(t => t.id === task.id), 1);
+            if (this.state.selectedTask.value && this.state.selectedTask.value.id === found.id) {
+              this.state.selectedTask.next(null);
+            }
+          }
+
         }
       });
+
+
       // if (this.lists.some(l => l.$tasks?.some(t => t.id === task.id) ?? false)) {
       //   this.changeBoard(state.currentBoard);
       // }
@@ -90,6 +109,11 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.advancedSearchForm = this.fb.group({
+      phrase: ['', Validators.required],
+      state: [''],
+      priority: [''],
+    });
     ACTIONS.addTask.onTrigger(e => {
       if (this.highlightedList && this.highlightedList.title) {
         this.addTask(this.highlightedList);
@@ -161,6 +185,7 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
 
   private loadLists() {
+    this.selectedTasks = [];
     const b = this.state.selectedBoard.value;
     return this.taskService.getListsWithTasks(b).pipe(
       take(1),
@@ -181,7 +206,7 @@ export class ListsComponent implements OnInit, OnDestroy {
 
         this.loading = false;
         if (NODE_CTX.isDevEnvironment) {
-          console.log('loaded list ',
+          console.debug('loaded list ',
             this.lists,
             this.lists?.[0]?.$tasks?.map(t => ({
               n: t.title,
@@ -245,9 +270,9 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
 
   deleteTask(task: Task) {
-    this.taskService.deleteTask(task).subscribe(() => {
-      const list = this.lists.find(l => l.id === task.list_id);
-      list.$tasks.splice(list.$tasks.findIndex(t => t.id === task.id), 1);
+    this.taskService.deleteTasks([task]).subscribe(() => {
+      // const list = this.lists.find(l => l.id === task.list_id);
+      // list.$tasks.splice(list.$tasks.findIndex(t => t.id === task.id), 1);
       this.msg.successShort('Task deleted');
       this.state.selectedTask.next(null);
     });
@@ -333,8 +358,20 @@ export class ListsComponent implements OnInit, OnDestroy {
 
   filterTasks(tasks: Task[], list: TaskList): Task[] {
     const config = this.isListAutoSorted(list);
-    if (this.state.listMode.value.mode === 'quicksearch') {
-      const baseList = tasks.filter(t => t.title.includes(this.searchTerm) || t.content.includes(this.searchTerm));
+    if (this.state.listMode.value.mode === 'quicksearch' || this.state.listMode.value.mode === 'advanced') {
+      let baseList: Task[];
+      if (this.state.listMode.value.mode === 'advanced') {
+        baseList = tasks.filter(t =>
+          (this.advancedSearchForm.value.phrase === ''
+            || t.title.includes(this.advancedSearchForm.value.phrase) || t.content.includes(this.advancedSearchForm.value.phrase)
+          )
+          && (this.advancedSearchForm.value.state?.length === 0 || this.advancedSearchForm.value.state.includes(t.state))
+          && (this.advancedSearchForm.value.priority?.length === 0 || this.advancedSearchForm.value.priority.includes(t.priority)),
+        );
+      } else {
+        baseList = tasks.filter(t => t.title.includes(this.searchTerm) || t.content.includes(this.searchTerm));
+      }
+
       if (config) {
         const sort = config.get('sortBy');
         const filtered = baseList.sort((a, b) => this.sortTasks(a, b, sort, config));
@@ -345,6 +382,18 @@ export class ListsComponent implements OnInit, OnDestroy {
       list.$filteredTasks = baseList;
       list.$customFilter = true;
       return baseList;
+      // } else if (this.state.listMode.value.mode === 'advanced') {
+      //   const baseList = tasks.filter(t => t.title.includes(this.searchTerm) || t.content.includes(this.searchTerm));
+      //   if (config) {
+      //     const sort = config.get('sortBy');
+      //     const filtered = baseList.sort((a, b) => this.sortTasks(a, b, sort, config));
+      //     list.$filteredTasks = filtered;
+      //     list.$customFilter = true;
+      //     return filtered;
+      //   }
+      //   list.$filteredTasks = baseList;
+      //   list.$customFilter = true;
+      //   return baseList;
     } else {
       if (config && !this.state.taskFiltersDisabled) {
         const now = DateTime.fromMillis(Date.now());
@@ -495,12 +544,8 @@ export class ListsComponent implements OnInit, OnDestroy {
   }
 
   markTaskAsDone(task: Task) {
-    const target = this.lists.find(l => l.id === this.state.selectedBoard.value.done_tasks_list_id);
-    const current = this.lists.find(l => l.id === task.list_id);
-    task.handled = DateTime.now().toMillis();
-    this.taskService.saveTask(task).pipe(
-      switchMap(() => this.taskService.moveToList(task, current, target)),
-    ).subscribe(() => this.msg.successShort('\'Mark done\' completed'));
+    this.taskService.markTasksAsDone([task], this.lists)
+      .subscribe(() => this.msg.successShort('\'Mark done\' completed'));
   }
 
   itemSelectionChange() {
@@ -515,6 +560,18 @@ export class ListsComponent implements OnInit, OnDestroy {
   selectNoneForList(l: TaskList) {
     l.$tasks.forEach(t => t.$selected = false);
     this.itemSelectionChange();
+  }
+
+  runBatchAction(batch: BatchAction) {
+    this.dialog.open<BatchActionDialogComponent, BatchActionDialogParams>(BatchActionDialogComponent, {
+      width: '850px',
+      data: {
+        action: batch,
+        tasks: this.selectedTasks,
+        lists: this.lists,
+      },
+    }).afterClosed().subscribe(r => {
+    });
   }
 
   @HostListener('window:keydown.control', ['$event'])
@@ -540,5 +597,4 @@ export class ListsComponent implements OnInit, OnDestroy {
       priorityVisible: s.ui.lists.itemPriorityVisibility.getValue(),
     };
   }
-
 }

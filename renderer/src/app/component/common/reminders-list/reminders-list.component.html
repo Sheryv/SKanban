@@ -5,7 +5,7 @@
         <div class="font-11 mb-1">{{r.task.task.title}}</div>
         <div class="row justify-content-between">
           <div class="col-12 col-sm fg-3" [ngClass]="{'fg-warn': r.inPast}">{{ r.dateLine }}</div>
-          <div class="col-12 col-sm-auto fg-3" *ngIf="state.currentBoard.id !== r.task.board.id"><em>{{ r.task.board.title }}</em></div>
+          <div class="col-12 col-sm-auto fg-3" *ngIf="(state.selectedBoard | async).id !== r.task.board.id"><em>{{ r.task.board.title }}</em></div>
         </div>
       </div>
       <div class="col-12 col-md-auto mt-3 mt-md-1 text-right">

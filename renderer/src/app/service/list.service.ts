@@ -111,9 +111,8 @@ export class ListService {
     list.deleted = DateTime.now().toMillis();
     return this.saveList(list)
       .pipe(
-        mergeMap(r => concat((list.$tasks || []).map(t => this.taskService.deleteTask(t)))),
-        mergeMap(v => v),
-        toArray(),
+        switchMap(r => this.taskService.deleteTasks(list.$tasks || [])),
+        map(r => r.exec),
       );
   }
 }

@@ -86,12 +86,14 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this.reminderService.calculateReminders();
     this.state.selectedBoard.pipe(filter(b => !!b)).subscribe(b => {
+      this.state.listMode.next({ mode: 'normal' });
       this.currentBoard = b;
       if (NODE_CTX.isDevEnvironment) {
         console.log('on change board:', b.title, this.boards);
       }
     });
     ACTIONS.searchInLists.onTrigger(e => this.state.changeListMode('quicksearch'));
+    ACTIONS.advancedSearchInLists.onTrigger(e => this.state.changeListMode('advanced'));
     this.keyService.dialogAwareEmitter(ACTIONS.escapeCommand).subscribe(e => {
       this.closeSearch();
       if (this.state.taskEditModeEnabled.value) {
@@ -135,16 +137,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   createBoard() {
-    this.electron.send(Ipcs.SHELL, {
-      op: 'showNotification', options: {
-        title: 'TEST Task reminder:',
-        body: 'Title of task\n4.04.2023, 20:08:35',
-        urgency: 'critical',
-      },
-    }).subscribe(s => {
-      console.log('noti resolved', s);
-    });
-
     const dialogRef = this.dialog.open<SingleInputDialogComponent, DialogParams>(SingleInputDialogComponent, {
       width: '450px',
       data: { title: 'Create board' },
@@ -227,7 +219,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   keybindingsDialog() {
     const dialogRef = this.dialog.open(KeybindingsComponent, {
       minWidth: '400px',
-      width: '1100px'
+      width: '1100px',
     });
 
     dialogRef.afterClosed().subscribe();

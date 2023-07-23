@@ -85,6 +85,7 @@ import { RemoteMenuTriggerDirective } from './directive/remote-menu-trigger.dire
 import { ListService } from './service/list.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { KeybindingsComponent } from './component/dialog/keybindings-dialog/keybindings.component';
+import { BatchActionDialogComponent } from './component/dialog/batch-action-dialog/batch-action-dialog.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -121,6 +122,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AbstractDialogComponent,
     RemoteMenuTriggerDirective,
     KeybindingsComponent,
+    BatchActionDialogComponent,
   ],
   imports: [
     BrowserModule,

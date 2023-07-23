@@ -113,7 +113,7 @@ export const ACTIONS = {
   moveTaskToTop: defaultKeyEvent('ctrl + shift + t', 'Move selected task to top'),
   moveTaskToBottom: defaultKeyEvent('ctrl + shift + g', 'Move selected task to bottom'),
   searchInLists: defaultKeyEvent('ctrl + f', 'Quick task search in current board'),
-  advancedSearchInLists: defaultKeyEvent('ctrl + shift + f', 'Advanced task search in current board'),
+  advancedSearchInLists: defaultKeyEvent('ctrl + shift + f', 'Advanced task search and multi selection tool in current board'),
   escapeCommand: defaultKeyEvent('esc', 'Cancel action / Close task details panel', null, { allowIn: [AllowIn.Input, AllowIn.Textarea] }),
 };
 

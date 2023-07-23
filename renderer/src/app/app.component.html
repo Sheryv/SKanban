@@ -5,10 +5,10 @@
       class="material-icons icon-btn ml-3" matTooltip="Board settings" (click)="boardSettings(currentBoard)">build</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Import list from file" (click)="importList(currentBoard.id)">sim_card_download</i>
       <i class="material-icons icon-btn ml-1" matTooltip="Show upcoming reminders" (click)="showUpcomingReminders()">notifications</i>
-      <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">local_offer</i>
+      <i class="material-icons icon-btn ml-1" matTooltip="Labels" (click)="createLabel(currentBoard.id)">label</i>
       <i class="material-icons icon-btn ml-1" *ngIf="(state.listMode | async).mode === 'normal' && !state.taskFiltersDisabled" matTooltip="Temporary disable filters" (click)="state.taskFiltersDisabled = true">filter_alt_off</i>
       <i class="material-icons icon-btn ml-1 fg-warn" *ngIf="(state.listMode | async).mode === 'normal' && state.taskFiltersDisabled" matTooltip="Enable all filters" (click)="state.taskFiltersDisabled = false">filter_alt</i>
-      <i *ngIf="(state.listMode | async).mode === 'normal'" (click)="state.changeListMode('advanced')" class="material-icons icon-btn ml-1" matTooltip="Advanced search ({{keyCommands.advancedSearchInLists.toShortString()}})">filter_list</i>
+      <i *ngIf="(state.listMode | async).mode === 'normal'" (click)="state.changeListMode('advanced')" class="material-icons icon-btn ml-1" matTooltip="Advanced search and multi selection tool ({{keyCommands.advancedSearchInLists.toShortString()}})">filter_list</i>
       <div *ngIf="(state.listMode | async).mode === 'quicksearch'" class="ml-4 d-flex align-items-center">
         <!--                <mat-form-field class="field-small" appearance="outline">-->
         <input class="input-sm" #searchBox appAutofocus maxlength="100" (keydown.escape)="closeSearch()"

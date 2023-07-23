@@ -3,7 +3,7 @@ import { DatabaseService } from './database.service';
 import { map, mergeMap, take } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { NODE_CTX } from '../global';
-import { DbExecResult, Row } from '../../shared/model/db';
+import { DbExecResult } from '../../shared/model/db';
 import { Property } from '../../shared/model/entity/property';
 
 @Injectable({
@@ -15,7 +15,7 @@ export class PropertiesService {
   }
 
   get(key: string): Observable<Property> {
-    return this.db.findAll({table: 'properties', clauses: {key: key}})
+    return this.db.findAll({ table: 'properties', clauses: { key } })
       .pipe(
         take(1),
         map(r => r && r[0] as Property),
@@ -32,7 +32,7 @@ export class PropertiesService {
     })
       .pipe(
         take(1),
-        map(r => r as Property[])
+        map(r => r as Property[]),
       );
   }
 
@@ -46,17 +46,14 @@ export class PropertiesService {
     // }
     return this.get(key).pipe(
       mergeMap(v => {
-        const row = {key: key, value: value, id: null};
+        const row = { key: key, value, id: null };
         if (v != null) {
           row.id = v.id;
         }
         if (NODE_CTX.isDevEnvironment) {
           console.log('get-set prop', row);
         }
-        return this.db.save({table: 'properties', findId: null, row: row});
-        // else {
-        //   return this.db.exec({table: 'properties', findId: null, sql: 'insert into properties (key, value) values (?,?)', params: [key, value]});
-        // }
+        return this.db.save({ table: 'properties', findId: null, row: row });
       }),
     );
   }

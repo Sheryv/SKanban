@@ -1,7 +1,10 @@
-import { OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { OperatorFunction, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+@Component({
+  template: ''
+})
 export abstract class BaseComponent implements OnDestroy {
 
   protected destroyedEvent = new Subject<any>();

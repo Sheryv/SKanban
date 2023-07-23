@@ -24,7 +24,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser:browser",
           "options": {
-            "outputPath": "renderer/dist",
+            "outputPath": "main/build",
             "index": "renderer/src/index.html",
             "main": "renderer/src/index.ts",
             "tsConfig": "renderer/src/tsconfig.app.json",
@@ -35,18 +35,13 @@
               "renderer/src/favicon.256x256.png",
               {
                 "glob": "**/*",
-                "input": "node_modules/ace-builds/src-noconflict",
-                "output": "./assets/ace-builds/"
-              },
-              {
-                "glob": "**/*",
                 "input": "node_modules/monaco-editor/min/vs",
                 "output": "./assets/monaco/min/vs/"
               }
             ],
             "styles": [
               "renderer/src/styles.scss"
-            ],
+            ]
           },
           "configurations": {
             "dev": {

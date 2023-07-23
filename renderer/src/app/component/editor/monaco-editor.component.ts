@@ -4,6 +4,7 @@ import type * as mn from 'monaco-editor';
 import { EditorComponent } from 'ngx-monaco-editor-v2';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { KeyCommandsService } from '../../service/key-commands.service';
+import { NODE_CTX } from '../../global';
 
 
 // @ts-ignore
@@ -92,7 +93,9 @@ export class MonacoEditorComponent implements ControlValueAccessor {
       },
     ];
 
-    console.log('EDI', editor);
+    if (NODE_CTX.isDevEnvironment) {
+      console.log('EDI', editor);
+    }
 
     monaco.editor.addKeybindingRules(keys);
     if (this.initial) {

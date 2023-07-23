@@ -28,8 +28,8 @@
                     <mat-form-field class="col field-small" appearance="outline"
                                     [ngClass]="!inlineControls ? 'col-12 col-md-5' : 'w-100'">
                       <input matInput type="number" maxlength="100" [formControlName]="f.code">
-                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
-                                 [error]="e"></mat-error>
+                      <mat-error *ngFor="let e of parent.get(f.code)?.errors | keyvalue" app-form-errors
+                                 [error]="{key: e.key+'', value: e.value}"></mat-error>
                       <mat-hint
                         *ngIf="f.view.hint || f.defaultValue !== null">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
                     </mat-form-field>
@@ -43,8 +43,8 @@
                                     [ngClass]="!inlineControls ? 'col-12 col-md-7 col-lg-6' : 'w-100'">
                     <textarea matInput type="text" class="text-monospace" maxlength="{{f['maxLength']}}"
                               rows="{{f['lines']}}" [formControlName]="f.code"></textarea>
-                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
-                                 [error]="e"></mat-error>
+                      <mat-error *ngFor="let e of parent.controls[f.code]?.errors | keyvalue" app-form-errors
+                                 [error]="{key: e.key+'', value: e.value}"></mat-error>
                       <mat-hint
                         *ngIf="f.view.hint || f.defaultValue">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
                       <mat-hint align="end">{{parent.controls[f.code].value?.length || 0}} / {{f['maxLength']}}</mat-hint>
@@ -56,8 +56,8 @@
                     <mat-form-field class="col field-small" appearance="outline"
                                     [ngClass]="!inlineControls ? 'col-12 col-md-5' : 'w-100'">
                       <input matInput type="text" maxlength="{{f['maxLength']}}" [formControlName]="f.code">
-                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
-                                 [error]="e"></mat-error>
+                      <mat-error *ngFor="let e of parent.controls[f.code]?.errors | keyvalue" app-form-errors
+                                 [error]="{key: e.key+'', value: e.value}"></mat-error>
                       <mat-hint
                         *ngIf="f.view.hint || f.defaultValue">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
                     </mat-form-field>
@@ -100,8 +100,8 @@
                              [matDatepicker]="picker">
                       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                       <mat-datepicker #picker disabled="false"></mat-datepicker>
-                      <mat-error *ngFor="let e of (parent.controls[f.code].errors | keyvalue) || []" app-form-errors
-                                 [error]="e"></mat-error>
+                      <mat-error *ngFor="let e of parent.controls[f.code]?.errors | keyvalue" app-form-errors
+                                 [error]="{key: e.key+'', value: e.value}"></mat-error>
                       <mat-hint
                         *ngIf="f.view.hint || f.defaultValue !== null">{{f.view.hint ?? 'Default: ' + f.defaultValue}}</mat-hint>
                     </mat-form-field>

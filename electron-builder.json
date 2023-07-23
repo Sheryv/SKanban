@@ -1,49 +1,32 @@
 {
-  "asar": false,
+  "asar": true,
   "productName": "SKanban",
   "appId": "SKanban",
   "directories": {
     "output": "release/",
-    "buildResources": "renderer/dist",
+    "buildResources": "main/build",
     "app": "main"
   },
-  "artifactName": "SKanban-${version}.${ext}",
+  "artifactName": "SKanban-${version}-${os}.${ext}",
   "files": [
+    {
+      "from": "build",
+      "to": "./"
+    },
     "!*.code-workspace",
     "!LICENSE.md",
-    "!package.json",
     "!package-lock.json",
-    "!src/",
-    "!e2e/",
-    "!hooks/",
-    "!renderer/",
     "!angular.json",
     "!_config.yml",
     "!karma.conf.js",
     "!tsconfig.json",
     "!tslint.json",
     "!**/*.ts",
-    "renderer/dist",
-    "main/dist/**/*.js",
-    "dist/**/*.js",
-    "dist-main/preload/**/*.js",
-    "dist-main/renderer/shared/**/*.js"
+    "package.json",
+    "dist/**/*.js"
   ],
   "asarUnpack": [
     "./node_modules/node-notifier/**/*"
-  ],
-  "extraFiles": [
-    {
-      "from": "renderer/dist/",
-      "to": "resources/app/"
-    },
-    {
-      "from": "renderer/dist/assets/",
-      "to": "resources/app/assets",
-      "filter": [
-        "*.*"
-      ]
-    }
   ],
   "win": {
     "icon": "favicon.pack.ico",

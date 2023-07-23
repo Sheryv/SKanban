@@ -34,7 +34,7 @@ export class SettingsService {
       },
       lists: {
         label: 'Lists of tasks',
-        listWidth: new Num('Task list width [px]', 'lists.listWidth', 300, true, 20000, 50),
+        listWidth: new Num('Task list width [px]', 'lists.listWidth', 400, true, 20000, 50),
         itemFontSize: new Num('Task item font size [%]', 'lists.itemFontSize', 100, true, 1000, 10),
         itemPadding: new Num('Task item padding [%]', 'lists.itemPadding', 100, true, 20000, 10),
         itemLabelTextVisibility: new Bool('Label text visible', 'lists.itemLabelTextVisibility', true),
@@ -59,7 +59,7 @@ export class SettingsService {
         label: 'Notifications',
         enableDesktopNotification: new Bool('Enable system desktop notification', 'notifications.enableDesktopNotification', true),
         enableBringWindowToTop: new Bool(`Automatically show ${Utils.APP} window when new notification is generated (for priority Critical and higher)`, 'notifications.enableBringWindowToTop', true),
-        reminderAheadShowTime: new Num('Time a reminder notification is shown before task due date [minutes]', 'notifications.reminderAheadShowTime', 15, true, 43200, 1),
+        reminderAheadShowTime: new Num('The time reminder notification is shown before task due date [minutes]', 'notifications.reminderAheadShowTime', 15, true, 43200, 1),
         snoozeSkipsHolidays: new Bool('Skip holidays when using snooze (see calendar below)', 'notifications.snoozeSkipsHolidays', true),
         customHolidays: new Obj('Holidays list', 'notifications.holidaysList', {
           name: new Text('Name', 'name').withOptions({customCssClasses: this.gridColumnCss(6)}),

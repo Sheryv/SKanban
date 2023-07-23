@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { ShortcutInput } from 'ng-keyboard-shortcuts';
-import { ACTIONS, KeyCommandsService, KeyEvent } from '../../../service/key-commands.service';
+import { ACTIONS, KeyEvent } from '../../../service/key-commands.service';
 
 type Row = { key: string; value: any; children?: Row[] };
 
@@ -13,5 +12,22 @@ type Row = { key: string; value: any; children?: Row[] };
 export class KeybindingsComponent {
 
 
-  keybindings: KeyEvent[] = Object.values(ACTIONS);
+  readonly keybindings: KeyEvent[];
+
+  constructor() {
+    const k = Object.values(ACTIONS);
+    k.push(this.dummyKeyBinding('ctrl + -', 'Zoom out'));
+    k.push(this.dummyKeyBinding('ctrl + +', 'Zoom in'));
+    k.push(this.dummyKeyBinding('ctrl + 0', 'Reset zoom'));
+    this.keybindings = k;
+  }
+
+  private dummyKeyBinding(key: string, description: string) {
+    return new KeyEvent(() => ({
+      key,
+      description,
+      command(): any {
+      },
+    }));
+  }
 }

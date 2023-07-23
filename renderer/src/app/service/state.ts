@@ -18,7 +18,6 @@ export class State {
   selectedTask = new BehaviorSubject<Task | null>(null);
 
   constructor() {
-    this.taskEditModeEnabled.subscribe(e => console.log('edit mode -> ' + e));
     this.selectedTask.subscribe(() => {
       if (this.taskEditModeEnabled.value) {
         this.taskEditModeEnabled.next(false);

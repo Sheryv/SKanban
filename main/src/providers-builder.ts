@@ -27,9 +27,9 @@ import { NotificationProvider } from './provider/notification-provider';
 // }
 
 export class ProvidersBuilder {
+  static readonly notification = new NotificationProvider(ProvidersBuilder.dbp);
   private static readonly dbp = new DatabaseProvider();
   private static readonly files = new FileSyncProvider(ProvidersBuilder.dbp);
-  private static readonly notification = new NotificationProvider(ProvidersBuilder.dbp);
 
   static window: BrowserWindow;
 

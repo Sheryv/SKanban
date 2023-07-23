@@ -1,37 +1,63 @@
 <div class="h-100 d-flex flex-column">
 
   <div *ngIf="lists?.length > 0 && state.listMode.value.mode === 'advanced'" class="p-2 d-flex filters-panel">
-    <div class="row">
-    <span class="col-12 col-sm-auto">
-    Filters
-    </span>
-      <div class="col-12 col-sm-auto field-small mb-2">
-        <input placeholder="Search phrase" class="input-md w-100" maxlength="100" (keydown.enter)="save()"
-               (keydown.control.enter)="save()">
+    <form class="row my-0" [formGroup]="advancedSearchForm">
+      <span class="col-12 col-sm-auto">
+      Filters
+      </span>
+      <div class="col-12 col-sm-auto field-small my-2">
+        <input placeholder="Search phrase" class="input-md w-100" formControlName="phrase" maxlength="100">
       </div>
-      <mat-form-field class="col-12 col-sm-auto field-ex-small mb-2" appearance="outline">
-        <mat-select placeholder="Priority (not selected)">
+      <mat-form-field class="col-12 col-sm-auto field-ex-small my-2" appearance="outline">
+        <mat-select placeholder="Priority (not selected)" multiple formControlName="priority">
           <mat-option *ngFor="let e of priorityAttrs|keyvalue"
                       [value]="e.key">{{e.value.title}}</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field class="col-12 col-sm-auto field-ex-small" appearance="outline">
-        <mat-select placeholder="State (not selected)">
+      <mat-form-field class="col-12 col-sm-auto field-ex-small my-2" appearance="outline">
+        <mat-select placeholder="State (not selected)" multiple formControlName="state">
           <mat-option *ngFor="let e of stateAttrs|keyvalue"
                       [value]="e.key">{{e.value.title}}</mat-option>
         </mat-select>
       </mat-form-field>
-    </div>
+    </form>
     <div class="ml-2 flex-grow-1 d-flex">
       <div class="flex-grow-1">
-        <i class="material-icons icon-btn-30">
-          <mat-icon>search</mat-icon>
-        </i>
       </div>
-      <button mat-flat-button color="accent" class="btn-small mt-2" [disabled]="selectedTasks?.length === 0"
+      <button mat-flat-button color="accent" class="btn-small mt-2" [disabled]="selectedTasks?.length === 0" [matMenuTriggerFor]="selectedTasksActionsMenu"
               style="min-width: 190px">
         <span>Actions for {{selectedTasks.length}} tasks</span><i class="material-icons inline-icon">arrow_drop_down</i>
       </button>
+        <mat-menu #selectedTasksActionsMenu="matMenu" overlapTrigger="true">
+          <button mat-menu-item (click)="runBatchAction('moveToList')">
+            <mat-icon>change_circle</mat-icon>
+            <span>Move to list</span>
+          </button>
+          <button mat-menu-item (click)="runBatchAction('setPriority')">
+            <mat-icon>report</mat-icon>
+            <span>Set priority</span>
+          </button>
+          <button mat-menu-item (click)="runBatchAction('setState')">
+            <mat-icon>schedule</mat-icon>
+            <span>Set state</span>
+          </button>
+          <button mat-menu-item (click)="runBatchAction('markAsDone')">
+            <mat-icon>verified_user</mat-icon>
+            <span>Mark as done</span>
+          </button>
+          <button mat-menu-item (click)="runBatchAction('addLabels')">
+            <mat-icon>new_label</mat-icon>
+            <span>Add labels</span>
+          </button>
+          <button mat-menu-item (click)="runBatchAction('removeLabels')">
+            <mat-icon>label_off</mat-icon>
+            <span>Remove labels</span>
+          </button>
+          <button mat-menu-item (click)="runBatchAction('delete')">
+            <mat-icon>delete</mat-icon>
+            <span>Delete</span>
+          </button>
+        </mat-menu>
     </div>
     <i class="ml-2 material-icons icon-btn mt-1" (click)="state.changeListMode('normal')">close</i>
   </div>

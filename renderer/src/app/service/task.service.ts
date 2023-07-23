@@ -7,7 +7,7 @@ import { TaskList } from '../../shared/model/entity/task-list';
 import { Task } from '../../shared/model/entity/task';
 import { Factory } from '../../shared/support/factory';
 import { TaskHistory } from '../../shared/model/entity/task-history';
-import { DbExecResult } from '../../shared/model/db';
+import { DbExecResult, TaskExecResults } from '../../shared/model/db';
 import { Label } from '../../shared/model/entity/label';
 import { Utils } from '../../shared/util/utils';
 import { ElectronService } from './electron.service';
@@ -16,7 +16,6 @@ import { State } from './state';
 import { ListService } from './list.service';
 import { moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { Ipcs } from '../../shared/model/ipcs';
-import { runInZone } from '../util/client-utils';
 import { DateTime } from 'luxon';
 
 @Injectable({
@@ -93,9 +92,12 @@ export class TaskService {
   }
 
 
-  saveTask(b: Task): Observable<DbExecResult> {
-    this.state.taskChangeEvent.next(b);
-    return this.db.save({ table: 'tasks', row: b });
+  saveTasks(tasks: Task[]): Observable<TaskExecResults> {
+    return forkJoin(tasks.map(b => this.db.save({ table: 'tasks', row: b })))
+      .pipe(
+        map(res => new TaskExecResults(tasks, res)),
+        tap(all => all.tasks.forEach(t => this.state.taskChangeEvent.next(t))),
+      );
   }
 
   updatePosition(listId: number, tasks: Task[], notifyUpdated: boolean = true): Observable<DbExecResult[]> {
@@ -139,16 +141,31 @@ export class TaskService {
     );
   }
 
-  moveToList(task: Task, currentList: TaskList, targetList: TaskList): Observable<DbExecResult[]> {
-    const currentIndex = currentList.$tasks.findIndex(t => t.id === task.id);
+  moveToList(tasks: Task[], currentList: TaskList, targetList: TaskList): Observable<TaskExecResults> {
+    for (const task of tasks) {
+      const currentIndex = currentList.$tasks.findIndex(t => t.id === task.id);
 
-    transferArrayItem(currentList.$tasks,
-      targetList.$tasks,
-      currentIndex,
-      targetList.$tasks.length);
+      transferArrayItem(currentList.$tasks,
+        targetList.$tasks,
+        currentIndex,
+        targetList.$tasks.length);
+    }
+
     return this.updatePosition(currentList.id, currentList.$tasks).pipe(
       switchMap(() => this.updatePosition(targetList.id, targetList.$tasks)),
+      map(r => new TaskExecResults(tasks, r)),
     );
+  }
+
+
+  moveAllToList(tasks: Task[], allLists: TaskList[], targetList: TaskList): Observable<TaskExecResults> {
+    const obs = Array.from(Utils.groupBy(tasks, t => t.list_id).entries()).map(([listId, tasksForList]) => {
+        const current = allLists.find(l => l.id === listId);
+        return this.moveToList(tasksForList, current, targetList);
+      },
+    );
+
+    return forkJoin(obs).pipe(map(s => s.reduce((p, c) => p.combine(c))));
   }
 
   moveTaskToTop(task: Task, listToUpdate: TaskList = null): Observable<DbExecResult[]> {
@@ -183,6 +200,25 @@ export class TaskService {
   }
 
 
+  markTasksAsDone(tasks: Task[], allLists: TaskList[]): Observable<TaskExecResults> {
+    const target = allLists.find(l => l.id === this.state.selectedBoard.value.done_tasks_list_id);
+
+    const grouped = Utils.groupBy(tasks, t => t.list_id);
+
+    const obs = Array.from(grouped.entries()).map(([listId, tasksForList]) => {
+        const current = allLists.find(l => l.id === listId);
+        for (const task of tasksForList) {
+          task.handled = DateTime.now().toMillis();
+        }
+
+        return this.saveTasks(tasksForList).pipe(switchMap(res => this.moveToList(res.tasks, current, target)));
+      },
+    );
+
+    return forkJoin(obs).pipe(map(s => s.reduce((p, c) => p.combine(c))));
+  }
+
+
   getHistory(taskId: number): Observable<TaskHistory[]> {
     return this.db.findAll({
       table: 'task_history',
@@ -193,10 +229,10 @@ export class TaskService {
     })));
   }
 
-  deleteTask(task: Task): Observable<DbExecResult> {
-    task.deleted = DateTime.now().toMillis();
-    return this.saveTask(task).pipe(
-      switchMap(res => this.addHistoryEntryOptional(task)),
-    );
+  deleteTasks(tasks: Task[]): Observable<TaskExecResults> {
+    for (const task of tasks) {
+      task.deleted = DateTime.now().toMillis();
+    }
+    return this.saveTasks(tasks).pipe(TaskExecResults.transform(t => this.addHistoryEntryOptional(t)));
   }
 }

@@ -21,9 +21,8 @@ export class ElectronService {
   }
 
   send<I, O>(config: IpcConfig<I, O>, request: I, dontRunInZone: boolean = true): Observable<O> {
-    let promise = NODE_CTX.sendAsyncEventToMain(config.channel, request);
-    let observable = from(promise);
-    return observable.pipe(
+    const promise = NODE_CTX.sendAsyncEventToMain(config.channel, request);
+    return from(promise).pipe(
       switchMap(r => dontRunInZone ? of(r) : of(r).pipe(runInZone(this.ngZone))),
       map(r => r as O),
       take(1),
@@ -31,7 +30,7 @@ export class ElectronService {
   }
 
   showDbFile() {
-    this.send(Ipcs.SHELL, {op: 'showItemInFolder', name: Ipcs.SHELL_SHOW_ITEM_IN_FOLDER.showDbFile});
+    this.send(Ipcs.SHELL, { op: 'showItemInFolder', name: Ipcs.SHELL_SHOW_ITEM_IN_FOLDER.showDbFile });
   }
 
   streamEvents<I, O>(config: IpcConfig<I, O>): Observable<I> {

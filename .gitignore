@@ -3,6 +3,7 @@
 # compiled output
 /dist
 main/dist
+main/build
 renderer/dist
 /dist-main
 /tmp
@@ -16,6 +17,7 @@ src/**/*.js
 .angular
 database.db
 
+.parcel-cache
 # dependencies
 node_modules
 

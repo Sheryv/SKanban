@@ -32,7 +32,6 @@ import { BaseComponent } from '../base.component';
 export class TaskDetailsComponent extends BaseComponent implements OnInit {
   settings: Settings;
   form: FormGroup;
-  text: string;
   labels: Label[];
   allLabels: Label[] = [];
   selectedLabels: Label[] = [];
@@ -49,12 +48,13 @@ export class TaskDetailsComponent extends BaseComponent implements OnInit {
   priorityAttrs = TASK_PRIORITY_ATTR;
   stateAttrs = TASK_STATE_ATTR;
 
-  keys = ACTIONS
+  keys = ACTIONS;
 
   preRenderPreviewCallback: (s: string) => string;
 
 
   task: Task;
+  private _json: string;
   private _history: TaskHistory[];
   private loading = false;
 
@@ -102,7 +102,7 @@ export class TaskDetailsComponent extends BaseComponent implements OnInit {
       const date = this.task.due_date && DateTime.fromMillis(this.task.due_date);
 
       this._history = null;
-      this.text = JSON.stringify(this.task, null, 2);
+      this._json = null;
       this.showHistory = false;
       this.showJson = false;
 
@@ -153,7 +153,7 @@ export class TaskDetailsComponent extends BaseComponent implements OnInit {
     return this.taskService.addHistoryEntryOptional(t, prev)
       .pipe(
         take(1),
-        mergeMap(res => this.taskService.saveTask(t)),
+        mergeMap(res => this.taskService.saveTasks([t])),
         mergeMap(res => this.labelService.setLabelsForTask(t, this.selectedLabels)),
         take(1),
         tap({
@@ -265,6 +265,15 @@ export class TaskDetailsComponent extends BaseComponent implements OnInit {
     return this._history;
   }
 
+  get json() {
+    if (!this._json && !this.loading) {
+      this.loading = true;
+      this._json = JSON.stringify(this.task, null, 2);
+      this.loading = false;
+    }
+    return this._json;
+  }
+
 
   restoreFromHistory(h: TaskHistory) {
     this.form.controls.title.setValue(h.$task.title);
@@ -277,11 +286,5 @@ export class TaskDetailsComponent extends BaseComponent implements OnInit {
     this.selectedLabels = h.$labels;
 
     this.message.success('History data was filled in the form');
-  }
-
-
-  pickDate(dueDate: AbstractControl<DateTime>) {
-    console.log('due date form click');
-    this.viewService.openDatepicker(dueDate, false, true);
   }
 }

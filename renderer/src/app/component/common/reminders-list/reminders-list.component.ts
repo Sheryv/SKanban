@@ -38,33 +38,46 @@ export class RemindersListComponent implements OnInit {
 
   complete(task: TaskWithBoard) {
     this.rows.splice(this.rows.findIndex(r => r.task.task.id === task.task.id), 1);
-    this.remindersService.completeAll([task]);
-    if (this.rows.length === 0) {
-      this.closed.emit();
-    }
+    this.remindersService.completeAll([task]).subscribe(() => {
+      if (this.rows.length === 0) {
+        this.closed.emit();
+      }
+    });
   }
 
   snooze(task: TaskWithBoard, minutes: number) {
     this.rows.splice(this.rows.findIndex(r => r.task.task.id === task.task.id), 1);
-    this.remindersService.snoozeAll([task], minutes);
-    if (this.rows.length === 0) {
-      this.closed.emit();
-    }
+    this.remindersService.snoozeAll([task], minutes).subscribe(() => {
+      if (this.rows.length === 0) {
+        this.closed.emit();
+      }
+    });
   }
 
   snoozeAll(minutes: number) {
     const tasks = this.rows.map(r => r.task).slice();
-    this.remindersService.snoozeAll(tasks, minutes);
-    for (const t of tasks) {
-      this.snooze(t, minutes);
-    }
+    this.remindersService.snoozeAll(tasks, minutes).subscribe(() => {
+      for (const t of tasks) {
+        this.rows.splice(this.rows.findIndex(r => r.task.task.id === t.task.id), 1);
+
+      }
+
+      if (this.rows.length === 0) {
+        this.closed.emit();
+      }
+    });
   }
 
   completeAll() {
     const tasks = this.rows.map(r => r.task).slice();
-    this.remindersService.completeAll(tasks);
-    for (const t of tasks) {
-      this.complete(t);
-    }
+    this.remindersService.completeAll(tasks).subscribe(() => {
+      for (const t of tasks) {
+        this.rows.splice(this.rows.findIndex(r => r.task.task.id === t.task.id), 1);
+      }
+
+      if (this.rows.length === 0) {
+        this.closed.emit();
+      }
+    });
   }
 }

@@ -78,10 +78,10 @@ export class CreateTaskDialogComponent extends BaseComponent implements OnInit, 
           switchMap(tasks => {
             const max = Math.max(...tasks.map(t => t.position));
             task.position = max + 1;
-            return this.taskService.saveTask(task);
+            return this.taskService.saveTasks([task]);
           }),
           switchMap(res => {
-            task.id = res.lastID;
+            task.id = res.exec[0].lastID;
             return this.taskService.moveTaskToTop(task);
           }),
           switchMap(() => this.labelService.setLabelsForTask(task, this.selectedLabels)),

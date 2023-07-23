@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Settings } from '../service/settings.service';
 import { marked } from 'marked';
-import MarkedOptions = marked.MarkedOptions;
 import hljs from 'highlight.js';
+import { markedHighlight } from 'marked-highlight';
+import MarkedOptions = marked.MarkedOptions;
+import MarkedExtension = marked.MarkedExtension;
 
 export class MarkdownUtils {
   private static readonly REG_EXP_CARET_RETURN = /\r/g;
@@ -12,7 +14,7 @@ export class MarkdownUtils {
   static prepareMarkedRenderer(renderType: 'image' | 'table' | 'code' | 'listitem') {
     switch (renderType) {
       case 'image':
-        return function(href: string, title: string, text: string) {
+        return function (href: string, title: string, text: string) {
           let out = `<img style="max-width: 100%;" src="${href}" alt="${text}"`;
           if (title) {
             out += ` title="${title}"`;
@@ -21,17 +23,17 @@ export class MarkdownUtils {
           return out;
         };
       case 'code':
-        return function(code: any, language: any) {
+        return function (code: any, language: any) {
           const validLang = !!(language && hljs.getLanguage(language));
           const highlighted = validLang ? hljs.highlight(language, code).value : hljs.highlightAuto(code);
           return `<pre style="padding: 0; border-radius: 0;"><code class="hljs ${language}">${highlighted}</code></pre>`;
         };
       case 'table':
-        return function(header: string, body: string) {
+        return function (header: string, body: string) {
           return `<table class="table table-bordered">\n<thead>\n${header}</thead>\n<tbody>\n${body}</tbody>\n</table>\n`;
         };
       case 'listitem':
-        return function(text: any, task: boolean, checked: boolean) {
+        return function (text: any, task: boolean, checked: boolean) {
           if (/^\s*\[[x ]\]\s*/.test(text) || text.startsWith('<input')) {
             if (text.startsWith('<input')) {
               text = text
@@ -103,10 +105,24 @@ export class MarkdownUtils {
     markedRender.table = MarkdownUtils.prepareMarkedRenderer('table') as any;
     markedRender.listitem = MarkdownUtils.prepareMarkedRenderer('listitem') as any;
     return {
+      mangle: false,
+      headerIds: false,
       gfm: true,
       renderer: markedRender,
-      highlight: (code: any) => hljs.highlightAuto(code).value,
     };
+  }
+
+  static prepareHighlightPlugin(): MarkedExtension {
+    return markedHighlight({
+      // langPrefix: 'hljs language-',
+      highlight: (code: string, language: string) => {
+        if (language) {
+          return hljs.highlight(code, { language }).value;
+        } else {
+          return hljs.highlightAuto(code).value;
+        }
+      },
+    });
   }
 }
 

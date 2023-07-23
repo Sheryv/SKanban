@@ -1,4 +1,3 @@
-import { Subject } from 'rxjs';
 import { readFile } from 'fs';
 import * as path from 'path';
 import { ImportedTask } from '../../../renderer/src/shared/model/imported-task';
@@ -24,8 +23,6 @@ export class TaskFileImporter {
   static splitRegex() {
     return new RegExp(/\n {0,3}(((#[ \t]{4,})|(##[ \t]{4,}))\S*\w+[ \S]+)|(\w+[ \S]+\r?\n(-{5,}|={5,}))/g);
   }
-
-  onContentChanged = new Subject<{ filename: string, content: string }>();
 
   constructor(private path: string,
               private db: DatabaseProvider,

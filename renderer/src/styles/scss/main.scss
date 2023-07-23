@@ -30,6 +30,10 @@ html, body {
   border-top: 1px solid transparentize($foreground, 0.87);
 }
 
+a {
+  color: $accent;
+}
+
 .separator:not(:first-of-type) {
   @extend .line
 }
