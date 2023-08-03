@@ -28,10 +28,11 @@ jobs:
 #      uses: iCrawl/action-tsc@v1
 #      with:
 #        project: main/src
-    - name: Install tsc
+    - name: Install tsc and build main module
       shell: bash
-      run: npm install -g typescript && npm install
+      run: npm install -g typescript && npm install && tsc -p src/tsconfig.json
       working-directory: main
+
     - name: Electron Builder
       uses: paneron/action-electron-builder@v1.8.1
       with:
@@ -54,7 +55,7 @@ jobs:
         # Directory where NPM/Yarn commands should be run
 #         package_root: # optional, default is .
         # Name of the optional NPM build script which is executed before `electron-builder`
-        build_script_name: build:prod # optional, default is build
+        build_script_name: build:front # optional, default is build
         # Whether the action should execute the NPM build script before running `electron-builder`
 #         skip_build: # optional
         # Whether to run `electron-builder` using the Vue CLI plugin instead of calling the command directly
