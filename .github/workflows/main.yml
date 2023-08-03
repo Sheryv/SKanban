@@ -65,7 +65,7 @@ jobs:
         # Whether to run `electron-builder` using the Vue CLI plugin instead of calling the command directly
 #         use_vue_cli: # optional
         # Other arguments to pass to the `electron-builder` command, e.g. configuration overrides
-        args: "--publish=never portable" # optional, default is
+        args: "--publish=never" # optional, default is
         # Maximum number of attempts for completing the build and release step
 #         max_attempts: # optional, default is 1
         # Directory where `electron-builder` commands should be run

@@ -43,6 +43,7 @@
   "linux": {
     "icon": "favicon.256x256.png",
     "target": [
+      "zip",
       "AppImage"
     ]
   }
