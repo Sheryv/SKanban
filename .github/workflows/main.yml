@@ -1,8 +1,7 @@
-name: Release2
+name: Main
 
 on:
   workflow_dispatch:
-    
 #   push:
 #     tags: [ 'v*' ]
 # #     branches: [master]
@@ -11,7 +10,11 @@ on:
 
 jobs:
   build-win:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
     - name: Check out Git repository
       uses: actions/checkout@v1
@@ -20,6 +23,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 16
+    - name: tsc compile
+      uses: iCrawl/action-tsc@v1
+      with:
+        project: main/src
     - name: Electron Builder
       uses: paneron/action-electron-builder@v1.8.1
       with:
@@ -42,13 +49,13 @@ jobs:
         # Directory where NPM/Yarn commands should be run
 #         package_root: # optional, default is .
         # Name of the optional NPM build script which is executed before `electron-builder`
-        build_script_name: build:prod # optional, default is build
+        build_script_name: build:front # optional, default is build
         # Whether the action should execute the NPM build script before running `electron-builder`
 #         skip_build: # optional
         # Whether to run `electron-builder` using the Vue CLI plugin instead of calling the command directly
 #         use_vue_cli: # optional
         # Other arguments to pass to the `electron-builder` command, e.g. configuration overrides
-        args: "--publish=never portable" # optional, default is 
+        args: "--publish=never portable" # optional, default is
         # Maximum number of attempts for completing the build and release step
 #         max_attempts: # optional, default is 1
         # Directory where `electron-builder` commands should be run
