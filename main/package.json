@@ -19,7 +19,6 @@
   "source": "src/main.ts",
   "private": true,
   "scripts": {
-    "postinstall": "electron-builder install-app-deps",
     "start": "npm-run-all -p watch electron",
     "compile": "tsc -p src/tsconfig.json",
     "watch": "tsc -p src/tsconfig.json -w",

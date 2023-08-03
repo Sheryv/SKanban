@@ -30,7 +30,8 @@ jobs:
 #        project: main/src
     - name: Install tsc
       shell: bash
-      run: npm install -g typescript && cd main && npm install
+      run: npm install -g typescript && npm install
+      working-directory: main
     - name: Electron Builder
       uses: paneron/action-electron-builder@v1.8.1
       with:
