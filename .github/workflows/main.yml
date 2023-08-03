@@ -30,7 +30,7 @@ jobs:
 #        project: main/src
     - name: Build renderer module
       shell: bash
-      run: npm run build:front
+      run: npm install && npm run build:front
 
     - name: Install tsc and build main module
       shell: bash
